@@ -3,108 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Jovem Programador</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>ChatJovemProgramador - Widget</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row min-vh-100">
-            <!-- Sidebar Menu -->
-            <div class="col-md-3 col-lg-2 bg-primary text-white p-0 sidebar">
-                <div class="sidebar-header p-3 d-flex align-items-center">
-                    <i class="fas fa-robot fa-2x me-3"></i>
-                    <h4 class="m-0">Jovem Programador</h4>
+    <!-- Conteúdo da página principal (simulado) -->
+    <div class="main-page-content">
+        <header class="page-header">
+            <h1>🚀 Jovem Programador</h1>
+            <p>Sua jornada de programação começa aqui!</p>
+        </header>
+        
+        <main class="page-main">
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h2>Aprenda programação de forma divertida</h2>
+                    <p>Converse com nosso assistente virtual e tire suas dúvidas sobre programação, tecnologia e muito mais!</p>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <i class="fas fa-code"></i>
+                            <h3>Programação</h3>
+                            <p>Aprenda linguagens como Python, JavaScript, Java e muito mais</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h3>Educação</h3>
+                            <p>Conteúdo educativo adaptado para jovens programadores</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-users"></i>
+                            <h3>Comunidade</h3>
+                            <p>Conecte-se com outros jovens desenvolvedores</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="menu-options p-3">
-                    <button class="btn btn-light w-100 mb-2 menu-btn active" data-section="chat">
-                        <i class="fas fa-comments me-2"></i>Chat
-                    </button>
-                    <button class="btn btn-outline-light w-100 mb-2 menu-btn" data-section="sobre">
-                        <i class="fas fa-info-circle me-2"></i>Sobre o Programa
-                    </button>
-                    <button class="btn btn-outline-light w-100 mb-2 menu-btn" data-section="duvidas">
-                        <i class="fas fa-question-circle me-2"></i>Dúvidas Frequentes
-                    </button>
-                    <button class="btn btn-outline-light w-100 mb-2 menu-btn" data-section="cidades">
-                        <i class="fas fa-map-marker-alt me-2"></i>Cidades Participantes
-                    </button>
-                    <button class="btn btn-outline-light w-100 mb-2" id="livre-btn">
-                        <i class="fas fa-magic me-2"></i>Chat Gemini
-                    </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Botão Flutuante do Chatbot -->
+    <div class="chatbot-trigger" id="chatbot-trigger">
+        <div class="chat-bubble">
+            <div class="chat-bubble-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="chat-bubble-notification" id="chat-notification">
+                <span>1</span>
+            </div>
+        </div>
+        <div class="chat-bubble-tooltip">
+            <span>💬 Precisa de ajuda? Clique aqui!</span>
+        </div>
+    </div>
+    <!-- Widget do Chatbot (Oculto inicialmente) -->
+    <div class="chatbot-widget" id="chatbot-widget">
+        <!-- Header do Widget -->
+        <div class="widget-header">
+            <div class="widget-header-left">
+                <div class="widget-mascot">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="widget-title">
+                    <h3>ChatJovemProgramador</h3>
+                    <span class="widget-status">Online</span>
                 </div>
             </div>
+            <div class="widget-accessibility-controls">
+                <button id="font-size-btn" class="accessibility-btn" title="Ajustar tamanho da fonte" aria-label="Ajustar tamanho da fonte">
+                    <span class="font-icon">Aa</span>
+                </button>
+                <button id="contrast-btn" class="accessibility-btn" title="Alto contraste" aria-label="Alternar alto contraste">
+                    <span class="contrast-icon">◐</span>
+                </button>
+                <button id="tts-btn" class="accessibility-btn" title="Leitura de voz" aria-label="Alternar leitura de voz">
+                    <span class="tts-icon">🔊</span>
+                </button>
+            </div>
+            <div class="widget-header-right">
+                <button class="widget-minimize" id="widget-minimize" aria-label="Minimizar chat">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="widget-close" id="widget-close" aria-label="Fechar chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
 
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 p-0 main-content">
-                <!-- Chat Section -->
-                <div class="section" id="chat-section">
-                    <div class="chat-container">
-                        <div class="chat-header bg-light p-3">
-                            <h5 class="m-0">Chat com o Assistente</h5>
+        <!-- Conteúdo do Widget -->
+        <div class="widget-content">
+            <!-- Mensagens do Chat -->
+            <div class="widget-messages" id="widget-messages" role="log" aria-live="polite" aria-label="Mensagens do chat">
+                <div class="welcome-message">
+                    <div class="bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
                         </div>
-                        <div class="chat-messages" id="chat-messages">
-                            <div class="message bot">
-                                <div class="message-content">
-                                    Olá! 😊 Sou o assistente do Jovem Programador. Como posso te ajudar hoje?
-                                </div>
-                                <div class="message-time">agora</div>
+                        <div class="message-bubble">
+                            <div class="message-content">
+                                Olá! 👋 Sou o assistente do Jovem Programador. Como posso te ajudar hoje? 🚀
                             </div>
-                        </div>
-                        <div class="chat-input p-3 bg-light">
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="user-input" placeholder="Digite sua mensagem...">
-                                <button class="btn btn-primary" id="send-btn">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                            <div class="quick-questions mt-2">
-                                <button class="btn btn-sm btn-outline-primary quick-question">Inscrições</button>
-                                <button class="btn btn-sm btn-outline-primary quick-question">Cidades</button>
-                                <button class="btn btn-sm btn-outline-primary quick-question">Gratuidade</button>
-                                <button class="btn btn-sm btn-outline-primary quick-question">Idade mínima</button>
+                            <div class="message-reactions">
+                                <button class="reaction-btn" data-reaction="👍" aria-label="Gostei">👍</button>
+                                <button class="reaction-btn" data-reaction="👎" aria-label="Não gostei">👎</button>
+                                <button class="reaction-btn" data-reaction="❤️" aria-label="Amei">❤️</button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Other Sections (hidden by default) -->
-                <div class="section d-none" id="sobre-section">
-                    <div class="p-4">
-                        <h4 class="mb-4"><i class="fas fa-info-circle me-2"></i>Sobre o Programa</h4>
-                        <div class="card">
-                            <div class="card-body" id="sobre-content">
-                                Carregando informações...
-                            </div>
-                        </div>
+            </div>
+            
+            <!-- Indicador de digitação -->
+            <div class="typing-indicator" id="widget-typing-indicator" aria-label="O bot está pensando">
+                <div class="bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
                     </div>
-                </div>
-
-                <div class="section d-none" id="duvidas-section">
-                    <div class="p-4">
-                        <h4 class="mb-4"><i class="fas fa-question-circle me-2"></i>Dúvidas Frequentes</h4>
-                        <div class="accordion" id="duvidas-accordion">
-                            <!-- Dynamically filled by JavaScript -->
+                    <div class="message-bubble typing">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
                         </div>
-                    </div>
-                </div>
-
-                <div class="section d-none" id="cidades-section">
-                    <div class="p-4">
-                        <h4 class="mb-4"><i class="fas fa-map-marker-alt me-2"></i>Cidades Participantes</h4>
-                        <div class="card">
-                            <div class="card-body" id="cidades-content">
-                                Carregando lista de cidades...
-                            </div>
-                        </div>
+                        <span class="typing-text">O bot está pensando 🤔</span>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Input do Widget -->
+        <div class="widget-input-container">
+            <div class="widget-quick-actions" role="group" aria-label="Ações rápidas">
+                <button class="quick-btn" tabindex="0" aria-label="Como começar na programação">💻 Como começar?</button>
+                <button class="quick-btn" tabindex="0" aria-label="Dicas de carreira em tecnologia">🎯 Dicas de carreira</button>
+                <button class="quick-btn" tabindex="0" aria-label="Ferramentas úteis para programação">🔧 Ferramentas úteis</button>
+                <button class="quick-btn" tabindex="0" aria-label="Recursos de estudo recomendados">📚 Recursos de estudo</button>
+            </div>
+            
+            <div class="widget-input" role="group" aria-label="Enviar mensagem">
+                <input 
+                    type="text" 
+                    id="widget-message-input" 
+                    placeholder="Digite sua mensagem..." 
+                    aria-label="Campo de mensagem"
+                    aria-describedby="send-help-text"
+                    maxlength="500"
+                >
+                <button 
+                    id="widget-send-btn" 
+                    aria-label="Enviar mensagem"
+                    aria-describedby="send-help-text"
+                >
+                    <span class="send-icon">➤</span>
+                </button>
+                <div id="send-help-text" class="sr-only">Pressione Enter ou clique no botão para enviar</div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Feedback de Acessibilidade -->
+    <div class="accessibility-feedback" id="accessibility-feedback" aria-live="assertive"></div>
+
+    <!-- Mascote Animado -->
+    <div class="mascot-container" id="mascot-container">
+        <div class="mascot" id="mascot">
+            <i class="fas fa-robot"></i>
+        </div>
+    </div>
+
     <script src="/static/js/script.js"></script>
 </body>
 </html>
