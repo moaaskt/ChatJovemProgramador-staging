@@ -15,7 +15,7 @@
 
 ---
 
-## 🚀 Sobre o Projeto
+## 🚀 Sobre o Projetos
 
 O "Leozin" é um assistente virtual projetado para ser a fonte central e confiável de informações sobre o programa **Jovem Programador**. Ele resolve o problema de informações dispersas pelo site oficial, oferecendo respostas instantâneas, 24/7, para alunos, pais e empresas interessadas.
 
