@@ -530,12 +530,14 @@ function addMessage(content, sender) {
 function getBotResponse(userMessage) {
     const responses = {
         'oi': 'Olá! Como posso te ajudar hoje? 😊',
+        'i ae': 'Olá... Como posso te ajudar hoje?',
         'olá': 'Oi! Estou aqui para te ajudar! 👋',
         'como começar': 'Para começar na programação, recomendo aprender lógica de programação primeiro, depois escolher uma linguagem como Python ou JavaScript!',
         'carreira': 'A área de tecnologia oferece muitas oportunidades! Foque em aprender constantemente e construir um portfólio sólido.',
         'ferramentas': 'Algumas ferramentas essenciais: VS Code, Git, GitHub, e dependendo da área, frameworks específicos.',
         'estudo': 'Recomendo plataformas como freeCodeCamp, Coursera, e documentações oficiais. A prática é fundamental!',
-        'default': 'Interessante! Posso te ajudar com dúvidas sobre programação, carreira em tech, ferramentas e recursos de estudo. O que você gostaria de saber?'
+        'default': 'Interessante! Posso te ajudar com dúvidas sobre programação, carreira em tech, ferramentas e recursos de estudo. O que você gostaria de saber?',
+        'default': 'Posso te ajudar com dúvidas sobre programação, carreira em tech, ferramentas e recursos de estudo. O que você gostaria de saber?'
     };
     
     const lowerMessage = userMessage.toLowerCase();
