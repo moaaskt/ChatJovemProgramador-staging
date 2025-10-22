@@ -1,7 +1,7 @@
 /* ===== VARIÁVEIS CSS ===== */
 :root {
     /* Cores principais */
-    --primary-color: #6366f1;
+    --primary-color: #6600ff;
     --primary-dark: #4f46e5;
     --primary-light: #818cf8;
     --secondary-color: #f59e0b;
@@ -9,11 +9,11 @@
     --danger-color: #ef4444;
     
     /* Cores de fundo */
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-card: #1e293b;
-    --bg-hover: #334155;
+    --bg-primary: #170f2a;
+    --bg-secondary: #261e3b;
+    --bg-tertiary: #0a0a0a;
+    --bg-card: #1e2d3b;
+    --bg-hover: #403355;
     
     /* Cores de texto */
     --text-primary: #f8fafc;
@@ -21,7 +21,7 @@
     --text-muted: #94a3b8;
     
     /* Gradientes */
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --gradient-primary: linear-gradient(135deg, #6600ff 0%, #f143ab 100%);
     --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
     --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
     
