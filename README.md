@@ -142,5 +142,3 @@ Este projeto foi desenvolvido com a colaboração de uma equipe incrível. Agrad
 ## 📜 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-oi teste oi teste teste
