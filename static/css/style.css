@@ -76,6 +76,22 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
 }
+/* ====== RODA-PÉ ===== */
+footer {
+    background-color: #0f172a ;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer hr {
+    width: 70%;
+    margin: 20px auto 0 auto;
+    border: none;
+    border-top: 2px solid #ccc;
+}
+.alunos {
+    font-family: Arial, Helvetica, sans-serif;
+}
 
 /* ===== PÁGINA PRINCIPAL ===== */
 .main-page-content {
