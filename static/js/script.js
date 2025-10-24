@@ -411,10 +411,10 @@ function openWidget() {
     
     announceToScreenReader('Chat aberto');
     
-    // Mostrar mensagem de boas-vindas se for a primeira vez
-    if (AppState.messageHistory.length === 0) {
-        showWelcomeMessage();
-    }
+    // // Mostrar mensagem de boas-vindas se for a primeira vez
+    // if (AppState.messageHistory.length === 0) {
+    //     showWelcomeMessage();
+    // }
 }
 
 function closeWidget() {
@@ -481,7 +481,22 @@ function addMessage(content, sender) {
     
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
-    avatar.textContent = sender === 'bot' ? '🤖' : '👤';
+
+    if (sender === 'bot') {
+        const img = document.createElement('img');
+        img.src = 'assets/logo.png'; // Caminho da tua imagem
+        img.alt = 'Logo do bot';
+        img.width = 35;
+        img.height = 35;
+        avatar.appendChild(img);
+    } else {
+        const img = document.createElement('img');
+        img.src = 'assets/logo-user.png'; // Caminho da tua imagem
+        img.alt = 'Logo do usuário';
+        img.width = 20;
+        img.height = 23;
+        avatar.appendChild(img)
+    }
     
     const bubble = document.createElement('div');
     bubble.className = 'message-bubble';

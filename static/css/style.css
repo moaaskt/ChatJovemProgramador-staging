@@ -12,7 +12,7 @@
     --bg-primary: #170f2a;
     --bg-secondary: #261e3b;
     --bg-tertiary: #0a0a0a;
-    --bg-card: #1e2d3b;
+    --bg-card: #1b2936;
     --bg-hover: #403355;
     
     /* Cores de texto */
@@ -26,11 +26,11 @@
     --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
     
     /* Sombras */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+    --shadow-sm: 0 1px 1px 0 rgba(99, 102, 241, 0.3);
+    --shadow-md: 0 5px 7px -2px rgba(99, 102, 241, 0.3);
+    --shadow-lg: 0 12px 17px -5px rgba(99, 102, 241, 0.3);
+    --shadow-xl: 0 23px 28px -8px rgba(99, 102, 241, 0.3);
+    --shadow-glow: 0 0 21px rgba(99, 102, 241, 0.3);
     
     /* Tamanhos de fonte */
     --font-xs: 0.75rem;
