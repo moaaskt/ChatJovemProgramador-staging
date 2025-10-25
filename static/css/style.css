@@ -461,6 +461,13 @@ footer {
     line-height: 1.5;
 }
 
+.message-meta {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+}
+
 .message-reactions {
     display: flex;
     gap: var(--space-2);
