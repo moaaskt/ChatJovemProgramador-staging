@@ -419,18 +419,25 @@ function openWidget() {
 
 function closeWidget() {
     if (!DOMElements.chatbotWidget) return;
-    
-    AppState.isWidgetOpen = false;
-    AppState.isMinimized = false;
-    
-    DOMElements.chatbotWidget.classList.remove('active', 'minimized');
-    
-    // Focar no trigger
-    if (DOMElements.chatbotTrigger) {
-        DOMElements.chatbotTrigger.focus();
-    }
-    
-    announceToScreenReader('Chat fechado');
+
+    // Aplicar classe de fechamento para animação
+    DOMElements.chatbotWidget.classList.add('closing');
+    announceToScreenReader('Fechando chat');
+
+    setTimeout(() => {
+        AppState.isWidgetOpen = false;
+        AppState.isMinimized = false;
+
+        // Remover classes após a animação
+        DOMElements.chatbotWidget.classList.remove('active', 'minimized', 'closing');
+
+        // Focar no trigger
+        if (DOMElements.chatbotTrigger) {
+            DOMElements.chatbotTrigger.focus();
+        }
+
+        announceToScreenReader('Chat fechado');
+    }, 280);
 }
 
 function minimizeWidget() {
@@ -447,28 +454,34 @@ function minimizeWidget() {
 function sendMessage() {
     const message = DOMElements.messageInput?.value.trim();
     if (!message) return;
-    
+
     // Adicionar mensagem do usuário
     addMessage(message, 'user');
-    
+
     // Limpar input
     DOMElements.messageInput.value = '';
-    
+
+    // Desabilitar botão enviar com spinner
+    setSendBtnLoading(true);
+
     // Mostrar indicador de digitação
     showTypingIndicator();
-    
+
     // Simular resposta do bot
     setTimeout(() => {
         hideTypingIndicator();
         const botResponse = getBotResponse(message);
         addMessage(botResponse, 'bot');
-        
+
         // TTS para resposta do bot
         if (AppState.isTTSEnabled) {
             speakText(botResponse);
         }
+
+        // Reabilitar botão enviar
+        setSendBtnLoading(false);
     }, 1500);
-    
+
     // Adicionar XP
     addXP(10);
 }
@@ -584,6 +597,35 @@ function handleQuickAction(e) {
         DOMElements.messageInput.value = message;
         sendMessage();
     }
+}
+
+// Decora os chips de ações rápidas com ícones e acessibilidade
+function decorateQuickActions() {
+    if (!DOMElements.quickBtns) return;
+    const iconMap = [
+        { match: 'como começar', icon: '🚀', aria: 'Como começar' },
+        { match: 'carreira', icon: '💼', aria: 'Dicas de carreira' },
+        { match: 'ferramentas', icon: '🛠️', aria: 'Ferramentas úteis' },
+        { match: 'materiais', icon: '📚', aria: 'Materiais de estudo' },
+    ];
+    DOMElements.quickBtns.forEach(btn => {
+        const raw = btn.textContent.toLowerCase();
+        const found = iconMap.find(i => raw.includes(i.match));
+        if (found && !btn.dataset.decorated) {
+            // Prevenir duplicação se já houver ícone
+            btn.textContent = `${found.icon} ${btn.textContent.replace(/^[🚀💼🛠️📚]\s*/u, '').trim()}`;
+            btn.title = found.aria;
+            btn.setAttribute('aria-label', found.aria);
+            btn.dataset.decorated = '1';
+        }
+    });
+}
+
+// Controla o estado de loading do botão enviar
+function setSendBtnLoading(isLoading) {
+    if (!DOMElements.sendBtn) return;
+    DOMElements.sendBtn.classList.toggle('loading', !!isLoading);
+    DOMElements.sendBtn.disabled = !!isLoading;
 }
 
 // ===== INDICADORES =====
@@ -715,6 +757,18 @@ async function sendToBackend(message) {
 function initializeWidget() {
     // Configurações iniciais do widget
     updateXPDisplay();
+
+    // Garantir indicador de digitação com 3 pontinhos e texto "Digitando..."
+    if (DOMElements.typingIndicator) {
+        DOMElements.typingIndicator.classList.remove('active');
+        const typingText = DOMElements.typingIndicator.querySelector('.typing-text');
+        if (typingText) typingText.textContent = 'Digitando...';
+        const dots = DOMElements.typingIndicator.querySelectorAll('.typing-dots span');
+        dots.forEach((dot, i) => { dot.style.animationDelay = `${i * 0.15}s`; });
+    }
+
+    // Decorar chips com ícones e acessibilidade
+    decorateQuickActions();
     
     // Adicionar atributos de acessibilidade dinâmicos
     if (DOMElements.chatbotTrigger) {
