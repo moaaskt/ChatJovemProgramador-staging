@@ -451,7 +451,7 @@ function minimizeWidget() {
 }
 
 // ===== MENSAGENS =====
-function sendMessage() {
+async function sendMessage() {
     const message = DOMElements.messageInput?.value.trim();
     if (!message) return;
 
@@ -467,20 +467,44 @@ function sendMessage() {
     // Mostrar indicador de digitação
     showTypingIndicator();
 
-    // Simular resposta do bot
-    setTimeout(() => {
+    const lastUserMessage = message;
+
+    try {
+        const data = await sendToBackend(message);
+        hideTypingIndicator();
+
+        if (data && typeof data.response === 'string') {
+            addMessage(data.response, 'bot');
+
+            // TTS para resposta do bot
+            if (AppState.isTTSEnabled) {
+                speakText(data.response);
+            }
+
+            // Se vier retry=true, renderiza chip para reenviar a última pergunta
+            if (data.retry === true) {
+                renderRetryChip(lastUserMessage);
+            }
+        } else {
+            // Fallback local (demo) caso backend não responda como esperado
+            const botResponse = getBotResponse(message);
+            addMessage(botResponse, 'bot');
+            if (AppState.isTTSEnabled) {
+                speakText(botResponse);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
         hideTypingIndicator();
         const botResponse = getBotResponse(message);
         addMessage(botResponse, 'bot');
-
-        // TTS para resposta do bot
         if (AppState.isTTSEnabled) {
             speakText(botResponse);
         }
-
+    } finally {
         // Reabilitar botão enviar
         setSendBtnLoading(false);
-    }, 1500);
+    }
 
     // Adicionar XP
     addXP(10);
@@ -628,6 +652,32 @@ function setSendBtnLoading(isLoading) {
     DOMElements.sendBtn.disabled = !!isLoading;
 }
 
+// Renderiza chip de retry quando backend indicar retry=true
+function renderRetryChip(lastMessage) {
+    if (!DOMElements.widgetMessages) return;
+    const existing = document.querySelector('.system-chips.retry');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.className = 'system-chips retry';
+
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = '🔁 Tentar novamente';
+    btn.title = 'Tentar novamente';
+    btn.setAttribute('aria-label', 'Tentar novamente');
+    btn.addEventListener('click', () => {
+        if (DOMElements.messageInput) {
+            DOMElements.messageInput.value = lastMessage;
+            sendMessage();
+        }
+    });
+
+    container.appendChild(btn);
+    DOMElements.widgetMessages.appendChild(container);
+    scrollToBottom();
+}
+
 // ===== INDICADORES =====
 function showTypingIndicator() {
     if (DOMElements.typingIndicator) {
@@ -745,7 +795,7 @@ async function sendToBackend(message) {
         
         if (response.ok) {
             const data = await response.json();
-            return data.response;
+            return data; // Retorna objeto completo para checar retry
         }
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
