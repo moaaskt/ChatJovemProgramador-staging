@@ -1140,3 +1140,72 @@ input:focus,
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ===== UX Polish: Contrast & Legibility ===== */
+.chatbot-widget {
+  /* Ajuste leve para melhorar legibilidade dentro do widget */
+  --text-secondary: hsl(220deg 10% 35%);
+  --bg-tertiary: hsl(220deg 20% 96%);
+  --bg-hover: hsl(220deg 20% 92%);
+}
+
+.message-bubble {
+  /* Sombra sutil para destaque sem perder acessibilidade */
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.widget-input input::placeholder {
+  /* Melhor contraste do placeholder */
+  color: var(--text-secondary);
+  opacity: 0.9;
+}
+
+/* Glow roxo no focus do input */
+.widget-input input:focus {
+  box-shadow: 0 0 0 3px rgba(136, 84, 208, 0.35), 0 0 10px rgba(136, 84, 208, 0.6);
+}
+
+/* Animação de fechamento do widget */
+.chatbot-widget.closing {
+  animation: slideOutDown 0.28s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes slideOutDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+/* Botão enviar em estado de loading */
+#widget-send-btn.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+#widget-send-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.85);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: rotate 0.8s linear infinite;
+}
+
+#widget-send-btn.loading > i,
+#widget-send-btn.loading > svg {
+  opacity: 0;
+}
+
+#widget-send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
