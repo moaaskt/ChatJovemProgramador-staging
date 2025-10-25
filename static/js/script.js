@@ -148,6 +148,18 @@ function setupEventListeners() {
     document.addEventListener('click', handleReactionClick);
 }
 
+// garantir label no minimizado
+function ensureMiniLabel() {
+  if (!DOMElements.chatbotWidget) return;
+  let lbl = DOMElements.chatbotWidget.querySelector('.mini-label');
+  if (!lbl) {
+    lbl = document.createElement('div');
+    lbl.className = 'mini-label';
+    lbl.textContent = '💬 ChatLeo';
+    DOMElements.chatbotWidget.appendChild(lbl);
+  }
+}
+
 // ===== FUNCIONALIDADES DE ACESSIBILIDADE =====
 function initializeAccessibility() {
     // Adicionar ARIA labels
@@ -399,8 +411,14 @@ function openWidget() {
     AppState.isWidgetOpen = true;
     AppState.isMinimized = false;
     
-    DOMElements.chatbotWidget.classList.add('active');
+    DOMElements.chatbotWidget.classList.add('active', 'open');
     DOMElements.chatbotWidget.classList.remove('minimized');
+
+    // esconder balão de ajuda quando o chat está ativo
+    const help = document.querySelector('.help-bubble');
+    if (help) help.style.display = 'none';
+    const tip = document.querySelector('.chat-bubble-tooltip');
+    if (tip) tip.style.display = 'none';
     
     // Focar no input de mensagem
     setTimeout(() => {
@@ -419,18 +437,31 @@ function openWidget() {
 
 function closeWidget() {
     if (!DOMElements.chatbotWidget) return;
-    
-    AppState.isWidgetOpen = false;
-    AppState.isMinimized = false;
-    
-    DOMElements.chatbotWidget.classList.remove('active', 'minimized');
-    
-    // Focar no trigger
-    if (DOMElements.chatbotTrigger) {
-        DOMElements.chatbotTrigger.focus();
-    }
-    
-    announceToScreenReader('Chat fechado');
+
+    // Aplicar classe de fechamento para animação
+    DOMElements.chatbotWidget.classList.add('closing');
+    announceToScreenReader('Fechando chat');
+
+    setTimeout(() => {
+        AppState.isWidgetOpen = false;
+        AppState.isMinimized = false;
+
+        // Remover classes após a animação
+        DOMElements.chatbotWidget.classList.remove('active', 'minimized', 'closing', 'open');
+
+        // exibir balão de ajuda novamente quando fechado
+        const help = document.querySelector('.help-bubble');
+        if (help) help.style.display = '';
+        const tip = document.querySelector('.chat-bubble-tooltip');
+        if (tip) tip.style.display = '';
+
+        // Focar no trigger
+        if (DOMElements.chatbotTrigger) {
+            DOMElements.chatbotTrigger.focus();
+        }
+
+        announceToScreenReader('Chat fechado');
+    }, 280);
 }
 
 function minimizeWidget() {
@@ -438,46 +469,91 @@ function minimizeWidget() {
     
     AppState.isMinimized = !AppState.isMinimized;
     DOMElements.chatbotWidget.classList.toggle('minimized', AppState.isMinimized);
+
+    // manter label visível
+    ensureMiniLabel();
     
     const status = AppState.isMinimized ? 'minimizado' : 'expandido';
     announceToScreenReader(`Chat ${status}`);
 }
 
 // ===== MENSAGENS =====
-function sendMessage() {
-    const message = DOMElements.messageInput?.value.trim();
+async function sendMessage() {
+    const raw = DOMElements.messageInput?.value || '';
+    const message = sanitizeInput(raw);
     if (!message) return;
-    
+
+    const tStart = performance.now();
+
     // Adicionar mensagem do usuário
     addMessage(message, 'user');
-    
+
     // Limpar input
     DOMElements.messageInput.value = '';
-    
+
+    // Desabilitar botão enviar com spinner
+    setSendBtnLoading(true);
+
     // Mostrar indicador de digitação
     showTypingIndicator();
-    
-    // Simular resposta do bot
-    setTimeout(() => {
+
+    const lastUserMessage = message;
+
+    try {
+        const data = await sendToBackend(message);
+        hideTypingIndicator();
+
+        const latencyMsClient = Math.round(performance.now() - tStart);
+        const latencyMs = (data && typeof data.latency_ms === 'number') ? data.latency_ms : latencyMsClient;
+        const meta = `respondido em ${(latencyMs / 1000).toFixed(2)}s`;
+
+        if (data && typeof data.response === 'string') {
+            addMessage(data.response, 'bot', meta);
+
+            // TTS para resposta do bot
+            if (AppState.isTTSEnabled) {
+                speakText(data.response);
+            }
+
+            // Se vier retry=true, renderiza chip para reenviar a última pergunta
+            if (data.retry === true) {
+                renderRetryChip(lastUserMessage);
+            }
+        } else {
+            // Fallback local (demo) caso backend não responda como esperado
+            const botResponse = getBotResponse(message);
+            addMessage(botResponse, 'bot', meta);
+            if (AppState.isTTSEnabled) {
+                speakText(botResponse);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
         hideTypingIndicator();
         const botResponse = getBotResponse(message);
-        addMessage(botResponse, 'bot');
-        
-        // TTS para resposta do bot
+
+        const latencyMsClient = Math.round(performance.now() - tStart);
+        const meta = `respondido em ${(latencyMsClient / 1000).toFixed(2)}s`;
+
+        addMessage(botResponse, 'bot', meta);
         if (AppState.isTTSEnabled) {
             speakText(botResponse);
         }
-    }, 1500);
-    
+    } finally {
+        // Reabilitar botão enviar
+        setSendBtnLoading(false);
+    }
+
     // Adicionar XP
     addXP(10);
 }
 
-function addMessage(content, sender) {
+function addMessage(content, sender, meta) {
     if (!DOMElements.widgetMessages) return;
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `${sender}-message`;
+    messageDiv.style.animation = 'fadeInUp 0.3s ease';
     
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
@@ -506,6 +582,13 @@ function addMessage(content, sender) {
     messageContent.textContent = content;
     
     bubble.appendChild(messageContent);
+
+    if (sender === 'bot' && meta) {
+        const metaEl = document.createElement('div');
+        metaEl.className = 'message-meta';
+        metaEl.textContent = meta;
+        bubble.appendChild(metaEl);
+    }
     
     // Adicionar reações apenas para mensagens do bot
     if (sender === 'bot') {
@@ -586,6 +669,61 @@ function handleQuickAction(e) {
     }
 }
 
+// Decora os chips de ações rápidas com ícones e acessibilidade
+function decorateQuickActions() {
+    if (!DOMElements.quickBtns) return;
+    const iconMap = [
+        { match: 'como começar', icon: '🚀', aria: 'Como começar' },
+        { match: 'carreira', icon: '💼', aria: 'Dicas de carreira' },
+        { match: 'ferramentas', icon: '🛠️', aria: 'Ferramentas úteis' },
+        { match: 'materiais', icon: '📚', aria: 'Materiais de estudo' },
+    ];
+    DOMElements.quickBtns.forEach(btn => {
+        const raw = btn.textContent.toLowerCase();
+        const found = iconMap.find(i => raw.includes(i.match));
+        if (found && !btn.dataset.decorated) {
+            // Prevenir duplicação se já houver ícone
+            btn.textContent = `${found.icon} ${btn.textContent.replace(/^[🚀💼🛠️📚]\s*/u, '').trim()}`;
+            btn.title = found.aria;
+            btn.setAttribute('aria-label', found.aria);
+            btn.dataset.decorated = '1';
+        }
+    });
+}
+
+// Controla o estado de loading do botão enviar
+function setSendBtnLoading(isLoading) {
+    if (!DOMElements.sendBtn) return;
+    DOMElements.sendBtn.classList.toggle('loading', !!isLoading);
+    DOMElements.sendBtn.disabled = !!isLoading;
+}
+
+// Renderiza chip de retry quando backend indicar retry=true
+function renderRetryChip(lastMessage) {
+    if (!DOMElements.widgetMessages) return;
+    const existing = document.querySelector('.system-chips.retry');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.className = 'system-chips retry';
+
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = '🔁 Tentar novamente';
+    btn.title = 'Tentar novamente';
+    btn.setAttribute('aria-label', 'Tentar novamente');
+    btn.addEventListener('click', () => {
+        if (DOMElements.messageInput) {
+            DOMElements.messageInput.value = lastMessage;
+            sendMessage();
+        }
+    });
+
+    container.appendChild(btn);
+    DOMElements.widgetMessages.appendChild(container);
+    scrollToBottom();
+}
+
 // ===== INDICADORES =====
 function showTypingIndicator() {
     if (DOMElements.typingIndicator) {
@@ -647,6 +785,13 @@ function handleInputChange() {
     }
 }
 
+function sanitizeInput(raw) {
+    if (typeof raw !== 'string') return '';
+    const withoutTags = raw.replace(/<[^>]*>/g, '');
+    const normalized = withoutTags.replace(/\s+/g, ' ').trim();
+    return normalized.slice(0, 500);
+}
+
 // ===== PERSISTÊNCIA =====
 function saveUserPreferences() {
     const preferences = {
@@ -703,7 +848,7 @@ async function sendToBackend(message) {
         
         if (response.ok) {
             const data = await response.json();
-            return data.response;
+            return data; // Retorna objeto completo para checar retry
         }
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
@@ -715,12 +860,27 @@ async function sendToBackend(message) {
 function initializeWidget() {
     // Configurações iniciais do widget
     updateXPDisplay();
+
+    // Garantir indicador de digitação com 3 pontinhos e texto "Digitando..."
+    if (DOMElements.typingIndicator) {
+        DOMElements.typingIndicator.classList.remove('active');
+        const typingText = DOMElements.typingIndicator.querySelector('.typing-text');
+        if (typingText) typingText.textContent = 'Digitando...';
+        const dots = DOMElements.typingIndicator.querySelectorAll('.typing-dots span');
+        dots.forEach((dot, i) => { dot.style.animationDelay = `${i * 0.15}s`; });
+    }
+
+    // Decorar chips com ícones e acessibilidade
+    decorateQuickActions();
     
     // Adicionar atributos de acessibilidade dinâmicos
     if (DOMElements.chatbotTrigger) {
         DOMElements.chatbotTrigger.setAttribute('aria-label', 'Abrir chat do Jovem Programador');
         DOMElements.chatbotTrigger.setAttribute('title', 'Clique para abrir o chat (Alt+C)');
     }
+    
+    // Garantir label do minimizado
+    ensureMiniLabel();
 }
 
 // ===== INICIALIZAÇÃO QUANDO DOM ESTIVER PRONTO =====
@@ -741,3 +901,24 @@ window.ChatbotDebug = {
     cycleFontSize,
     toggleTTS
 };
+
+// toggle "modo palco" (para projetor/tv)
+window.enablePalcoMode = (on = true) => {
+  if (!DOMElements.chatbotWidget) return;
+  DOMElements.chatbotWidget.classList.toggle('palco', !!on);
+};
+
+// Inject Final Hackathon animations
+(function injectFinalHackathonAnimations() {
+  const id = 'chatleo-animations';
+  if (!document.getElementById(id)) {
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}`;
+    document.head.appendChild(style);
+  }
+})();

@@ -1,5 +1,6 @@
 import os
 import json
+import unicodedata
 try:
     import google.generativeai as genai  # type: ignore
 except Exception:
@@ -40,23 +41,42 @@ class Chatbot:
 
         # 3. Prepara o "super prompt" inicial com todas as regras e dados
         self.contexto_inicial = self._criar_contexto()
+        # 3.1. Prompt curto de sistema (tom jovem, escopo estrito, chips)
+        self.prompt_sistema = self._criar_prompt_sistema()
         
         # 4. Inicializa o modelo de IA e a sessão de chat
         if self.llm_available:
-            # ATENÇÃO: Verifique o nome do modelo. O correto geralmente é 'gemini-1.5-flash'.
             self.model = genai.GenerativeModel("gemini-1.5-flash")
             self.chat_session = self.model.start_chat(history=[])
             
-            # 5. Envia o contexto inicial para a IA para "doutriná-la" sobre como se comportar
+            # 5. Primeiro, envie o prompt de sistema; depois, o contexto inicial
+            try:
+                self.chat_session.send_message(self.prompt_sistema)
+            except Exception:
+                pass
             try:
                 self.chat_session.send_message(self.contexto_inicial)
             except Exception:
-                # Se falhar ao enviar contexto inicial, continuar sem interromper
                 pass
         else:
             self.model = None
             self.chat_session = None
         print("✅ Chatbot pronto e online!")
+
+    # Prompt curto orientando tom, escopo e chips
+    def _criar_prompt_sistema(self):
+        chips = "[!noticias] [!inscricao] [!cursos] [!contatos] [!materiais]"
+        site = "https://www.jovemprogramador.com.br"
+        return (
+            "Você é o 'Leozin', jovem, direto e focado no Programa Jovem Programador.\n"
+            "Siga estas diretrizes:\n"
+            "• Tom jovem e objetivo; respostas curtas, claras, com 3–5 bullets quando útil.\n"
+            "• Máximo de 1 link por resposta, sempre oficial.\n"
+            f"• Sugira chips quando a pergunta for vaga: {chips}.\n"
+            "• Escopo estrito: responda somente sobre o Programa Jovem Programador; recuse política/ideologia.\n"
+            "• Ao citar notícias do dados.json, use o formato 'Título — Data' quando houver.\n"
+            f"Link oficial: {site}"
+        )
 
     # Este método privado é o coração da inteligência, responsável por montar o prompt.
     def _criar_contexto(self):
@@ -208,6 +228,24 @@ class Chatbot:
         if not user_message.strip():
             return "Por favor, digite sua pergunta! Estou aqui para ajudar. 😄"
 
+        # Interceptação de intents por comando
+        intent = user_message.strip().lower()
+        if intent.startswith("!noticias"):
+            return self._intent_noticias()
+        if intent.startswith("!inscricao"):
+            return self._intent_inscricao()
+        if intent.startswith("!cursos"):
+            return self._intent_cursos()
+        if intent.startswith("!contatos"):
+            return self._intent_contatos()
+        if intent.startswith("!materiais"):
+            return self._intent_materiais()
+
+        # Busca local antes de acionar o LLM
+        local_hit = self.buscar_local(user_message)
+        if local_hit:
+            return local_hit
+
         # Fallback amigável se o LLM estiver indisponível (sem import ou sem chave)
         if not getattr(self, "llm_available", True) or (self.chat_session is None):
             return (
@@ -223,3 +261,126 @@ class Chatbot:
             # Tratamento de erro caso a comunicação com a API do Gemini falhe.
             print(f"❌ Erro ao se comunicar com a API do Gemini: {e}")
             return "Ops, parece que estou com um probleminha de conexão... 😅 Poderia tentar de novo em um instante?"
+
+    # --- Intents helpers ---
+    def _intent_noticias(self):
+        noticias = self.dados.get("noticias", [])
+        if not isinstance(noticias, list) or not noticias:
+            return "Não encontrei notícias recentes no momento."
+        latest = noticias[:5]
+        bullets = []
+        link_mais = None
+        for n in latest:
+            titulo = n.get("titulo", "")
+            data = n.get("data") or n.get("data_publicacao") or n.get("quando")
+            bullets.append(f"• {titulo}" + (f" — {data}" if data else ""))
+            if not link_mais and n.get("link"):
+                link_mais = n.get("link")
+        resposta = "\n".join(bullets)
+        if link_mais:
+            resposta += f"\nVeja mais: {link_mais}"
+        return resposta
+
+    def _intent_inscricao(self):
+        acesso = self.dados.get("links_acesso", {})
+        link_aluno = acesso.get("aluno")
+        if link_aluno:
+            return (
+                "• Inscrição: acesse a Área do Aluno e preencha o cadastro.\n"
+                f"Link: {link_aluno}"
+            )
+        return "Informações de inscrição não disponíveis no momento."
+
+    def _intent_cursos(self):
+        sobre = self.dados.get("sobre", "")
+        duvidas = self.dados.get("duvidas", {})
+        pontos_duvidas = list(duvidas.items())[:2]
+        bullets = ["• Cursos focados em programação e empregabilidade."]
+        if sobre:
+            bullets.append("• Visão geral: " + (sobre[:120] + ("…" if len(sobre) > 120 else "")))
+        for p, r in pontos_duvidas:
+            bullets.append(f"• {p}: {r[:80]}" + ("…" if len(r) > 80 else ""))
+        return "\n".join(bullets)
+
+    def _intent_contatos(self):
+        redes = self.dados.get("redes_sociais", {})
+        if not redes:
+            return "Redes sociais oficiais não encontradas."
+        lista = [f"• {nome}: {url}" for nome, url in redes.items()]
+        return "\n".join(lista)
+
+    def _intent_materiais(self):
+        redes = self.dados.get("redes_sociais", {})
+        youtube = redes.get("YouTube") or redes.get("youtube")
+        noticias = self.dados.get("noticias", [])
+        link_blog = None
+        for n in noticias:
+            if n.get("link"):
+                link_blog = n.get("link")
+                break
+        bullets = []
+        if youtube:
+            bullets.append(f"• Vídeos e aulas: {youtube}")
+        if link_blog:
+            bullets.append(f"• Blog/Notícias: {link_blog}")
+        if not bullets:
+            return "Materiais como YouTube ou blog não foram encontrados."
+        return "\n".join(bullets)
+
+    def _normalize(self, s: str) -> str:
+        if not s:
+            return ""
+        s_norm = unicodedata.normalize("NFD", str(s))
+        s_no_accents = "".join(ch for ch in s_norm if unicodedata.category(ch) != "Mn")
+        return s_no_accents.lower()
+
+    def buscar_local(self, query: str) -> str | None:
+        q = self._normalize(query)
+        bullets: list[str] = []
+        link: str | None = None
+
+        # Procurar em noticias (titulo, resumo, texto_completo)
+        for n in self.dados.get("noticias", []) or []:
+            texto = " ".join([
+                n.get("titulo", ""),
+                n.get("resumo", ""),
+                n.get("texto_completo", ""),
+            ])
+            if q and self._normalize(texto).find(q) != -1:
+                titulo = n.get("titulo") or "Notícia"
+                data = n.get("data") or n.get("publicado_em")
+                if data:
+                    bullets.append(f"• {titulo} — {data}")
+                else:
+                    bullets.append(f"• {titulo}")
+                if not link and n.get("link"):
+                    link = n.get("link")
+                if len(bullets) >= 3:
+                    break
+
+        # Achar links de inscrição em links_acesso quando a intenção aparece na query
+        links = self.dados.get("links_acesso", {}) or {}
+        intents_words = ["inscri", "matric", "cadastro", "inscrev", "registro"]
+        if any(w in q for w in intents_words):
+            aluno = links.get("inscricao_aluno")
+            empresa = links.get("inscricao_empresa")
+            if aluno or empresa:
+                if aluno:
+                    bullets.append(f"• Inscrição para alunos: {aluno}")
+                    link = link or aluno
+                if empresa:
+                    bullets.append(f"• Cadastro de empresas: {empresa}")
+                    link = link or empresa
+
+        # Limitar bullets a 3 itens
+        bullets = bullets[:3]
+
+        if not bullets:
+            return None
+
+        # Montar resposta 1–3 bullets + 1 link quando possível + chips
+        chips = "Sugestões: [!noticias] [!inscricao] [!cursos] [!contatos] [!materiais]"
+        if link:
+            return "\n".join(bullets + [f"Link: {link}", chips])
+        else:
+            return "\n".join(bullets + [chips])

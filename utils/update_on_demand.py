@@ -7,13 +7,10 @@ from typing import List, Dict
 
 import requests
 from requests.exceptions import RequestException
+import unicodedata
 
-# Importa o scraper existente
-try:
-    from utils.scraper import salvar_dados  # executado a partir da raiz do projeto
-except Exception:
-    # fallback caso o script seja executado dentro de utils/
-    from scraper import salvar_dados  # type: ignore
+# Importação do scraper será feita sob demanda dentro de update_data
+# para evitar dependências desnecessárias no modo offline.
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +29,11 @@ def has_internet(url: str = "https://www.jovemprogramador.com.br/") -> bool:
 
 
 def normalize_title(title: str) -> str:
-    return " ".join(title.lower().strip().split())
+    if not title:
+        return ""
+    s = unicodedata.normalize("NFD", title)
+    s = "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+    return " ".join(s.lower().strip().split())
 
 
 def dedupe_noticias(noticias: List[Dict]) -> List[Dict]:
@@ -77,7 +78,12 @@ def safe_write_json(path: str, data: Dict) -> None:
 def update_data() -> Dict:
     """Tenta atualizar via scraper e aplica dedupe em noticias."""
     logging.info("Iniciando atualização on-demand...")
-    salvar_dados()  # escreve dados.json
+    # Importar salvar_dados sob demanda para não quebrar o modo offline
+    try:
+        from utils.scraper import salvar_dados as _salvar_dados  # executado da raiz
+    except Exception:
+        from scraper import salvar_dados as _salvar_dados  # type: ignore
+    _salvar_dados()  # escreve dados.json
     data = safe_load_json(DATA_PATH)
     # Dedupe de notícias
     noticias = data.get("noticias", [])

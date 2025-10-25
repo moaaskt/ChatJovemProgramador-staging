@@ -93,6 +93,12 @@ python app.py
 ```
 Pronto! Agora você pode conversar com o "Leozin".
 
+## Antes da apresentação
+Para garantir que os dados estejam atualizados e deduplicados, execute:
+```bash
+python utils/update_on_demand.py --n 5
+```
+
 ## 🤝 Contribuidores
 
 Este projeto foi desenvolvido com a colaboração de uma equipe incrível. Agradecimentos a todos que contribuíram!
