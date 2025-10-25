@@ -563,25 +563,140 @@ footer {
     align-items: center;
 }
 
+/* === Final Hackathon: UX fine-tuning === */
+/* 1) Input height, font-size, padding, radius */
 .widget-input input {
-    flex: 1;
-    background: var(--bg-tertiary);
-    border: none;
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--border-radius-full);
-    color: var(--text-primary);
-    font-size: var(--font-sm);
-    outline: none;
-    transition: all var(--transition-fast);
+  flex: 1;
+  height: 46px;
+  font-size: 15px;
+  padding: 0 16px;
+  border-radius: 14px;
 }
 
-.widget-input input:focus {
-    background: var(--bg-hover);
-    box-shadow: 0 0 0 2px var(--primary-color);
+/* Container padding */
+.widget-input {
+  padding: 10px 12px 16px;
 }
 
-.widget-input input::placeholder {
-    color: var(--text-muted);
+/* 2) Send button size and hover */
+#widget-send-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+#widget-send-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 10px rgba(168,85,247,0.5);
+}
+
+/* 3) Minimized state polish */
+.chatbot-widget.minimized {
+  height: 56px !important;
+  overflow: hidden;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+}
+.chatbot-widget.minimized .widget-header {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+}
+.chatbot-widget.minimized .widget-header h3,
+.chatbot-widget.minimized .widget-header .widget-status {
+  display: none;
+}
+
+/* 4) Transitions and open animation */
+.chatbot-widget {
+  width: clamp(320px, 42vw, 520px);
+  transition: all 0.4s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(168,85,247,0.15);
+  box-shadow: 0 0 16px rgba(168,85,247,0.15);
+  border-radius: 20px;
+  overflow: hidden;
+  z-index: 9999; /* acima de tooltips do trigger */
+}
+
+/* header menos saturado (harmonia com o fundo) */
+.widget-header {
+  background: linear-gradient(135deg, #9b4fe0 0%, #7b3bb9 100%);
+}
+
+/* bolha do bot mais legível em telas claras/escuras */
+.message-bubble {
+  background: rgba(30, 30, 45, 0.93);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+}
+
+/* chips responsivos (quebram em 2 colunas no mobile) */
+.widget-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+.quick-btn {
+  flex: 0 1 auto;
+  min-width: 48%;
+}
+
+/* input e botão já foram ajustados; só garantir largura total */
+.widget-input { padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); }
+.widget-input input { width: 100%; }
+
+/* ====== MODO MINIMIZADO INTENCIONAL ====== */
+.chatbot-widget.minimized {
+  height: 56px !important;
+  overflow: hidden;
+  border-radius: 18px;
+  animation: miniShrink 0.12s ease;
+}
+@keyframes miniShrink {
+  from { transform: scale(1); filter: blur(0px); }
+  to   { transform: scale(0.98); filter: blur(0.3px); }
+}
+/* label “ChatLeo” visível no minimizado */
+.mini-label {
+  position: absolute;
+  left: 56px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #fff;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.chatbot-widget:not(.minimized) .mini-label { display: none; }
+
+/* ====== MOBILE ≤ 480px ====== */
+@media (max-width: 480px) {
+  .chatbot-widget {
+    width: 92vw !important;
+    right: 4vw !important;
+    bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+  .widget-header { flex-wrap: wrap; padding: 8px 10px; }
+  .quick-btn { min-width: 48%; } /* 2 colunas */
+  .widget-input input { font-size: 14px; }
+  /* impedir sobreposição do “balão de ajuda” ao abrir o chat */
+  .help-bubble { z-index: 9998; }             /* abaixo do widget */
+  .chatbot-widget.active ~ .help-bubble { display: none; }
+}
+
+/* ====== TABLET ≤ 768px ====== */
+@media (max-width: 768px) {
+  .chatbot-widget { width: 86vw; right: 7vw; }
+}
+
+/* ====== MODO PALCO (para projetor/tv) ====== */
+.chatbot-widget.palco {
+  filter: brightness(1.08) contrast(1.15) saturate(1.05);
+  box-shadow: 0 0 20px rgba(168,85,247,0.25);
+  border-color: rgba(168,85,247,0.22);
 }
 
 #widget-send-btn {
@@ -599,8 +714,8 @@ footer {
 }
 
 #widget-send-btn:hover {
-    transform: scale(1.1);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 0 8px rgba(102, 0, 255, 0.5);
+    transform: scale(1.05);
 }
 
 #widget-send-btn:active {
@@ -1157,8 +1272,8 @@ input:focus,
 }
 
 .message-bubble {
-  /* Sombra sutil para destaque sem perder acessibilidade */
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
 }
 
 .widget-input input::placeholder {
