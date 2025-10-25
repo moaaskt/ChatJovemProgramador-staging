@@ -7,6 +7,7 @@ from typing import List, Dict
 
 import requests
 from requests.exceptions import RequestException
+import unicodedata
 
 # Importa o scraper existente
 try:
@@ -32,7 +33,11 @@ def has_internet(url: str = "https://www.jovemprogramador.com.br/") -> bool:
 
 
 def normalize_title(title: str) -> str:
-    return " ".join(title.lower().strip().split())
+    if not title:
+        return ""
+    s = unicodedata.normalize("NFD", title)
+    s = "".join(ch for ch in s if unicodedata.category(ch) != "Mn")
+    return " ".join(s.lower().strip().split())
 
 
 def dedupe_noticias(noticias: List[Dict]) -> List[Dict]:
