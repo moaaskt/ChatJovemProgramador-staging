@@ -1,6 +1,9 @@
 import os
 import json
-import google.generativeai as genai
+try:
+    import google.generativeai as genai  # type: ignore
+except Exception:
+    genai = None  # type: ignore
 from dotenv import load_dotenv
 
 # Carrega as variáveis de ambiente (como a sua API key) do arquivo .env
@@ -14,31 +17,45 @@ class Chatbot:
 
         # 1. Configura a chave da API do Google Gemini de forma segura a partir do arquivo .env
         api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError(
-                "API Key do Gemini não encontrada! Verifique seu arquivo .env"
-            )
-        genai.configure(api_key=api_key)
+        self.llm_available = True
+        if (genai is None) or (not api_key):
+            self.llm_available = False
+        else:
+            try:
+                genai.configure(api_key=api_key)
+            except Exception:
+                self.llm_available = False
 
         # 2. Carrega toda a base de conhecimento do arquivo dados.json para a memória (self.dados)
         try:
-            with open("dados.json", "r", encoding="utf-8") as f:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            root_dir = os.path.dirname(base_dir)
+            dados_path = os.path.join(root_dir, "dados.json")
+            with open(dados_path, "r", encoding="utf-8") as f:
                 self.dados = json.load(f)
         except FileNotFoundError:
-            raise FileNotFoundError(
-                "Arquivo 'dados.json' não encontrado! Execute o scraper.py primeiro."
-            )
+            # Não interrompe a execução; usa fallback com base vazia
+            self.dados = {}
+            self.dados_indisponiveis = True
 
         # 3. Prepara o "super prompt" inicial com todas as regras e dados
         self.contexto_inicial = self._criar_contexto()
         
         # 4. Inicializa o modelo de IA e a sessão de chat
-        # ATENÇÃO: Verifique o nome do modelo. O correto geralmente é 'gemini-1.5-flash'.
-        self.model = genai.GenerativeModel("gemini-2.0-flash") 
-        self.chat_session = self.model.start_chat(history=[])
-        
-        # 5. Envia o contexto inicial para a IA para "doutriná-la" sobre como se comportar
-        self.chat_session.send_message(self.contexto_inicial)
+        if self.llm_available:
+            # ATENÇÃO: Verifique o nome do modelo. O correto geralmente é 'gemini-1.5-flash'.
+            self.model = genai.GenerativeModel("gemini-1.5-flash")
+            self.chat_session = self.model.start_chat(history=[])
+            
+            # 5. Envia o contexto inicial para a IA para "doutriná-la" sobre como se comportar
+            try:
+                self.chat_session.send_message(self.contexto_inicial)
+            except Exception:
+                # Se falhar ao enviar contexto inicial, continuar sem interromper
+                pass
+        else:
+            self.model = None
+            self.chat_session = None
         print("✅ Chatbot pronto e online!")
 
     # Este método privado é o coração da inteligência, responsável por montar o prompt.
@@ -190,6 +207,13 @@ class Chatbot:
         # Validação simples para não enviar mensagens vazias para a API
         if not user_message.strip():
             return "Por favor, digite sua pergunta! Estou aqui para ajudar. 😄"
+
+        # Fallback amigável se o LLM estiver indisponível (sem import ou sem chave)
+        if not getattr(self, "llm_available", True) or (self.chat_session is None):
+            return (
+                "Estou temporariamente sem conexão com o serviço de IA. 😅\n"
+                "Use as ações rápidas ou tente novamente em instantes."
+            )
 
         try:
             # Envia apenas a pergunta do usuário para a sessão de chat, que já tem o contexto.
