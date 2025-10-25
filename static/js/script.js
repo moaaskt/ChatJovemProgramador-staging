@@ -148,6 +148,18 @@ function setupEventListeners() {
     document.addEventListener('click', handleReactionClick);
 }
 
+// garantir label no minimizado
+function ensureMiniLabel() {
+  if (!DOMElements.chatbotWidget) return;
+  let lbl = DOMElements.chatbotWidget.querySelector('.mini-label');
+  if (!lbl) {
+    lbl = document.createElement('div');
+    lbl.className = 'mini-label';
+    lbl.textContent = '💬 ChatLeo';
+    DOMElements.chatbotWidget.appendChild(lbl);
+  }
+}
+
 // ===== FUNCIONALIDADES DE ACESSIBILIDADE =====
 function initializeAccessibility() {
     // Adicionar ARIA labels
@@ -399,8 +411,14 @@ function openWidget() {
     AppState.isWidgetOpen = true;
     AppState.isMinimized = false;
     
-    DOMElements.chatbotWidget.classList.add('active');
+    DOMElements.chatbotWidget.classList.add('active', 'open');
     DOMElements.chatbotWidget.classList.remove('minimized');
+
+    // esconder balão de ajuda quando o chat está ativo
+    const help = document.querySelector('.help-bubble');
+    if (help) help.style.display = 'none';
+    const tip = document.querySelector('.chat-bubble-tooltip');
+    if (tip) tip.style.display = 'none';
     
     // Focar no input de mensagem
     setTimeout(() => {
@@ -429,7 +447,13 @@ function closeWidget() {
         AppState.isMinimized = false;
 
         // Remover classes após a animação
-        DOMElements.chatbotWidget.classList.remove('active', 'minimized', 'closing');
+        DOMElements.chatbotWidget.classList.remove('active', 'minimized', 'closing', 'open');
+
+        // exibir balão de ajuda novamente quando fechado
+        const help = document.querySelector('.help-bubble');
+        if (help) help.style.display = '';
+        const tip = document.querySelector('.chat-bubble-tooltip');
+        if (tip) tip.style.display = '';
 
         // Focar no trigger
         if (DOMElements.chatbotTrigger) {
@@ -445,6 +469,9 @@ function minimizeWidget() {
     
     AppState.isMinimized = !AppState.isMinimized;
     DOMElements.chatbotWidget.classList.toggle('minimized', AppState.isMinimized);
+
+    // manter label visível
+    ensureMiniLabel();
     
     const status = AppState.isMinimized ? 'minimizado' : 'expandido';
     announceToScreenReader(`Chat ${status}`);
@@ -526,6 +553,7 @@ function addMessage(content, sender, meta) {
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `${sender}-message`;
+    messageDiv.style.animation = 'fadeInUp 0.3s ease';
     
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
@@ -850,6 +878,9 @@ function initializeWidget() {
         DOMElements.chatbotTrigger.setAttribute('aria-label', 'Abrir chat do Jovem Programador');
         DOMElements.chatbotTrigger.setAttribute('title', 'Clique para abrir o chat (Alt+C)');
     }
+    
+    // Garantir label do minimizado
+    ensureMiniLabel();
 }
 
 // ===== INICIALIZAÇÃO QUANDO DOM ESTIVER PRONTO =====
@@ -870,3 +901,24 @@ window.ChatbotDebug = {
     cycleFontSize,
     toggleTTS
 };
+
+// toggle "modo palco" (para projetor/tv)
+window.enablePalcoMode = (on = true) => {
+  if (!DOMElements.chatbotWidget) return;
+  DOMElements.chatbotWidget.classList.toggle('palco', !!on);
+};
+
+// Inject Final Hackathon animations
+(function injectFinalHackathonAnimations() {
+  const id = 'chatleo-animations';
+  if (!document.getElementById(id)) {
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}`;
+    document.head.appendChild(style);
+  }
+})();
