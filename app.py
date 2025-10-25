@@ -4,6 +4,13 @@ from flask_cors import CORS
 from utils.responder import Chatbot
 import textwrap
 from datetime import datetime
+import os
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG if os.getenv("APP_DEBUG") == "1" else logging.INFO,
+    format="[%(levelname)s] %(message)s"
+)
 
 # --- Classe de Cores (Foco em Alto Contraste) ---
 class Cores:
@@ -90,11 +97,11 @@ def main_terminal():
 
 # --- Ponto de Entrada do Script ---
 if __name__ == '__main__':
-    # Para rodar o chatbot no terminal, descomente a linha abaixo:
-    main_terminal()
-    
-    
-    # Para rodar o servidor web, descomente a linha abaixo:
-    
-    # app.run(debug=True, port=5000)
+    # Executa terminal se APP_TTY=1, caso contrário, inicia servidor web para a demo
+    import os
+    use_tty = os.getenv('APP_TTY') == '1'
+    if use_tty:
+        main_terminal()
+    else:
+        app.run(debug=True, port=5000)
     
