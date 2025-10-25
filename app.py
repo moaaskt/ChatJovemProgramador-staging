@@ -42,7 +42,11 @@ def chat():
         return jsonify({'response': "Desculpe, o chatbot está temporariamente fora de serviço."}), 500
     user_message = request.json.get('message', '')
     bot_response = chatbot_web.gerar_resposta(user_message)
-    return jsonify({'response': bot_response})
+    # Retry quando houver fallback de indisponibilidade ou resposta vazia
+    retry = False
+    if (not bot_response) or ('temporariamente sem conexão' in bot_response):
+        retry = True
+    return jsonify({'response': bot_response, 'retry': retry})
 
 
 # --- Função para Teste no Terminal (VERSÃO APRESENTAÇÃO) ---
