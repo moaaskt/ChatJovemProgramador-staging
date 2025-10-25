@@ -452,8 +452,11 @@ function minimizeWidget() {
 
 // ===== MENSAGENS =====
 async function sendMessage() {
-    const message = DOMElements.messageInput?.value.trim();
+    const raw = DOMElements.messageInput?.value || '';
+    const message = sanitizeInput(raw);
     if (!message) return;
+
+    const tStart = performance.now();
 
     // Adicionar mensagem do usuário
     addMessage(message, 'user');
@@ -473,8 +476,12 @@ async function sendMessage() {
         const data = await sendToBackend(message);
         hideTypingIndicator();
 
+        const latencyMsClient = Math.round(performance.now() - tStart);
+        const latencyMs = (data && typeof data.latency_ms === 'number') ? data.latency_ms : latencyMsClient;
+        const meta = `respondido em ${(latencyMs / 1000).toFixed(2)}s`;
+
         if (data && typeof data.response === 'string') {
-            addMessage(data.response, 'bot');
+            addMessage(data.response, 'bot', meta);
 
             // TTS para resposta do bot
             if (AppState.isTTSEnabled) {
@@ -488,7 +495,7 @@ async function sendMessage() {
         } else {
             // Fallback local (demo) caso backend não responda como esperado
             const botResponse = getBotResponse(message);
-            addMessage(botResponse, 'bot');
+            addMessage(botResponse, 'bot', meta);
             if (AppState.isTTSEnabled) {
                 speakText(botResponse);
             }
@@ -497,7 +504,11 @@ async function sendMessage() {
         console.error('Erro ao enviar mensagem:', error);
         hideTypingIndicator();
         const botResponse = getBotResponse(message);
-        addMessage(botResponse, 'bot');
+
+        const latencyMsClient = Math.round(performance.now() - tStart);
+        const meta = `respondido em ${(latencyMsClient / 1000).toFixed(2)}s`;
+
+        addMessage(botResponse, 'bot', meta);
         if (AppState.isTTSEnabled) {
             speakText(botResponse);
         }
@@ -510,7 +521,7 @@ async function sendMessage() {
     addXP(10);
 }
 
-function addMessage(content, sender) {
+function addMessage(content, sender, meta) {
     if (!DOMElements.widgetMessages) return;
     
     const messageDiv = document.createElement('div');
@@ -543,6 +554,13 @@ function addMessage(content, sender) {
     messageContent.textContent = content;
     
     bubble.appendChild(messageContent);
+
+    if (sender === 'bot' && meta) {
+        const metaEl = document.createElement('div');
+        metaEl.className = 'message-meta';
+        metaEl.textContent = meta;
+        bubble.appendChild(metaEl);
+    }
     
     // Adicionar reações apenas para mensagens do bot
     if (sender === 'bot') {
@@ -737,6 +755,13 @@ function handleInputChange() {
     } else {
         DOMElements.sendBtn?.classList.remove('active');
     }
+}
+
+function sanitizeInput(raw) {
+    if (typeof raw !== 'string') return '';
+    const withoutTags = raw.replace(/<[^>]*>/g, '');
+    const normalized = withoutTags.replace(/\s+/g, ' ').trim();
+    return normalized.slice(0, 500);
 }
 
 // ===== PERSISTÊNCIA =====
