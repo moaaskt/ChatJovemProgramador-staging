@@ -49,6 +49,11 @@ function initializeApp() {
     initializeTTS();
     initializeWidget();
     loadUserPreferences();
+
+    // Ativar animações do trigger e agendar nudge
+    enableTriggerAnims();
+    observeTriggerVisibility();
+    scheduleIdleNudge();
     
     console.log('🤖 Chatbot Widget inicializado com acessibilidade completa!');
 }
@@ -419,6 +424,9 @@ function openWidget() {
     if (help) help.style.display = 'none';
     const tip = document.querySelector('.chat-bubble-tooltip');
     if (tip) tip.style.display = 'none';
+
+    // confete na primeira abertura
+    confettiOnce();
     
     // Focar no input de mensagem
     setTimeout(() => {
@@ -882,6 +890,77 @@ function initializeWidget() {
     // Garantir label do minimizado
     ensureMiniLabel();
 }
+
+// Detectar preferência de movimento reduzido
+const PREFERS_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Ativa animações principais no trigger
+function enableTriggerAnims() {
+  const trig = document.getElementById('chatbot-trigger') || document.querySelector('.chatbot-trigger');
+  if (!trig || PREFERS_REDUCED) return;
+  trig.classList.add('trigger-anim', 'trigger-sheen');
+}
+
+// Liga/desliga sheen quando visível (economia)
+function observeTriggerVisibility() {
+  const trig = document.getElementById('chatbot-trigger') || document.querySelector('.chatbot-trigger');
+  if (!trig || PREFERS_REDUCED) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) trig.classList.add('trigger-sheen');
+      else trig.classList.remove('trigger-sheen');
+    });
+  }, { threshold: 0.3 });
+  io.observe(trig);
+}
+
+// Confete simples na primeira abertura da sessão
+function confettiOnce() {
+  if (localStorage.getItem('chatleo-confetti-done') === '1') return;
+  localStorage.setItem('chatleo-confetti-done', '1');
+  try {
+    const c = document.createElement('canvas');
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    c.className = 'confetti-canvas';
+    document.body.appendChild(c);
+    const ctx = c.getContext('2d');
+    const pieces = Array.from({ length: 80 }).map(() => ({
+      x: Math.random() * c.width,
+      y: c.height + Math.random() * 60,
+      r: 3 + Math.random() * 4,
+      vx: (Math.random() - 0.5) * 2,
+      vy: -3 - Math.random() * 3,
+      col: `hsl(${Math.floor(Math.random() * 360)}, 90%, 60%)`
+    }));
+    let t = 0, raf;
+    const step = () => {
+      ctx.clearRect(0, 0, c.width, c.height);
+      pieces.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.05;
+        ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+      if ((t += 1) < 140) raf = requestAnimationFrame(step);
+      else { cancelAnimationFrame(raf); c.remove(); }
+    };
+    step();
+  } catch { /* silencioso */ }
+}
+
+// “Nudge” após inatividade (boing curto)
+let idleTimer;
+function scheduleIdleNudge() {
+  if (PREFERS_REDUCED) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    const trig = document.getElementById('chatbot-trigger') || document.querySelector('.chatbot-trigger');
+    if (!trig) return;
+    trig.style.animation = 'triggerBoing 260ms cubic-bezier(.2,.9,.25,1.4)';
+    setTimeout(() => (trig.style.animation = ''), 280);
+  }, 12000);
+}
+['mousemove','keydown','touchstart','scroll'].forEach(evt => 
+  window.addEventListener(evt, scheduleIdleNudge, { passive: true })
+);
 
 // ===== INICIALIZAÇÃO QUANDO DOM ESTIVER PRONTO =====
 if (document.readyState === 'loading') {
