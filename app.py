@@ -6,6 +6,7 @@ import textwrap
 from datetime import datetime
 import os
 import logging
+from time import perf_counter
 
 logging.basicConfig(
     level=logging.DEBUG if os.getenv("APP_DEBUG") == "1" else logging.INFO,
@@ -38,15 +39,38 @@ def index():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    if not chatbot_web:
-        return jsonify({'response': "Desculpe, o chatbot está temporariamente fora de serviço."}), 500
-    user_message = request.json.get('message', '')
-    bot_response = chatbot_web.gerar_resposta(user_message)
-    # Retry quando houver fallback de indisponibilidade ou resposta vazia
-    retry = False
-    if (not bot_response) or ('temporariamente sem conexão' in bot_response):
-        retry = True
-    return jsonify({'response': bot_response, 'retry': retry})
+    start = perf_counter()
+    debug_enabled = os.getenv("APP_DEBUG") == "1"
+    try:
+        if not chatbot_web:
+            latency_ms = round((perf_counter() - start) * 1000)
+            if debug_enabled:
+                app.logger.debug(f"/api/chat indisponível; latency_ms={latency_ms}")
+            return jsonify({
+                'response': "Desculpe, o chatbot está temporariamente fora de serviço.",
+                'retry': True,
+                'latency_ms': latency_ms,
+            }), 502
+        user_message = request.json.get('message', '')
+        bot_response = chatbot_web.gerar_resposta(user_message)
+        # Retry quando houver fallback de indisponibilidade ou resposta vazia
+        retry = False
+        if (not bot_response) or ('temporariamente sem conexão' in bot_response):
+            retry = True
+        latency_ms = round((perf_counter() - start) * 1000)
+        if debug_enabled:
+            app.logger.debug(f"/api/chat ok; latency_ms={latency_ms}; retry={retry}")
+        return jsonify({'response': bot_response, 'retry': retry, 'latency_ms': latency_ms})
+    except Exception as e:
+        latency_ms = round((perf_counter() - start) * 1000)
+        app.logger.error(f"/api/chat erro: {e}")
+        if debug_enabled:
+            app.logger.debug(f"/api/chat falhou; latency_ms={latency_ms}")
+        return jsonify({
+            'response': "Estou temporariamente sem conexão. Tente novamente em instantes.",
+            'retry': True,
+            'latency_ms': latency_ms,
+        }), 502
 
 
 # --- Função para Teste no Terminal (VERSÃO APRESENTAÇÃO) ---
