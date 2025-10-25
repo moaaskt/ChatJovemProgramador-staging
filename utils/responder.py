@@ -1,5 +1,6 @@
 import os
 import json
+import unicodedata
 try:
     import google.generativeai as genai  # type: ignore
 except Exception:
@@ -240,6 +241,11 @@ class Chatbot:
         if intent.startswith("!materiais"):
             return self._intent_materiais()
 
+        # Busca local antes de acionar o LLM
+        local_hit = self.buscar_local(user_message)
+        if local_hit:
+            return local_hit
+
         # Fallback amigável se o LLM estiver indisponível (sem import ou sem chave)
         if not getattr(self, "llm_available", True) or (self.chat_session is None):
             return (
@@ -320,3 +326,61 @@ class Chatbot:
         if not bullets:
             return "Materiais como YouTube ou blog não foram encontrados."
         return "\n".join(bullets)
+
+    def _normalize(self, s: str) -> str:
+        if not s:
+            return ""
+        s_norm = unicodedata.normalize("NFD", str(s))
+        s_no_accents = "".join(ch for ch in s_norm if unicodedata.category(ch) != "Mn")
+        return s_no_accents.lower()
+
+    def buscar_local(self, query: str) -> str | None:
+        q = self._normalize(query)
+        bullets: list[str] = []
+        link: str | None = None
+
+        # Procurar em noticias (titulo, resumo, texto_completo)
+        for n in self.dados.get("noticias", []) or []:
+            texto = " ".join([
+                n.get("titulo", ""),
+                n.get("resumo", ""),
+                n.get("texto_completo", ""),
+            ])
+            if q and self._normalize(texto).find(q) != -1:
+                titulo = n.get("titulo") or "Notícia"
+                data = n.get("data") or n.get("publicado_em")
+                if data:
+                    bullets.append(f"• {titulo} — {data}")
+                else:
+                    bullets.append(f"• {titulo}")
+                if not link and n.get("link"):
+                    link = n.get("link")
+                if len(bullets) >= 3:
+                    break
+
+        # Achar links de inscrição em links_acesso quando a intenção aparece na query
+        links = self.dados.get("links_acesso", {}) or {}
+        intents_words = ["inscri", "matric", "cadastro", "inscrev", "registro"]
+        if any(w in q for w in intents_words):
+            aluno = links.get("inscricao_aluno")
+            empresa = links.get("inscricao_empresa")
+            if aluno or empresa:
+                if aluno:
+                    bullets.append(f"• Inscrição para alunos: {aluno}")
+                    link = link or aluno
+                if empresa:
+                    bullets.append(f"• Cadastro de empresas: {empresa}")
+                    link = link or empresa
+
+        # Limitar bullets a 3 itens
+        bullets = bullets[:3]
+
+        if not bullets:
+            return None
+
+        # Montar resposta 1–3 bullets + 1 link quando possível + chips
+        chips = "Sugestões: [!noticias] [!inscricao] [!cursos] [!contatos] [!materiais]"
+        if link:
+            return "\n".join(bullets + [f"Link: {link}", chips])
+        else:
+            return "\n".join(bullets + [chips])
