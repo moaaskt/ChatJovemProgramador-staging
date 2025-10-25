@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import re
+import unicodedata
 
 
 #  raspagem do sobre
@@ -140,6 +141,10 @@ def raspar_noticias():
                     f"https://www.jovemprogramador.com.br/{link_tag['href']}"
                 )
 
+                # resumo opcional do card da lista
+                resumo_tag = container.find("p")
+                resumo = resumo_tag.get_text(strip=True) if resumo_tag else ""
+
                 print(
                     f"    -> Raspando conteúdo do artigo {i+1}/{total_noticias}: {titulo}"
                 )
@@ -165,15 +170,31 @@ def raspar_noticias():
                                 "Não foi possível extrair o texto completo do artigo."
                             )
 
-                        # 8. Adiciona o título, link e texto completo à lista de notícias
-                        #    para que possamos usar depois. ele armazena tudo de forma organizada.
-                        noticias_completas.append(
-                            {
-                                "titulo": titulo,
-                                "link": link_absoluto,
-                                "texto_completo": texto_completo,
-                            }
-                        )
+                        # data opcional do artigo
+                        data_text = ""
+                        time_tag = soup_artigo.find("time")
+                        if time_tag:
+                            data_text = time_tag.get("datetime") or time_tag.get_text(strip=True)
+                        else:
+                            date_el = soup_artigo.find(attrs={"class": re.compile(r"(date|data)")})
+                            if date_el:
+                                data_text = date_el.get_text(strip=True)
+                            else:
+                                m = re.search(r"\b(\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2})\b", response_artigo.text)
+                                if m:
+                                    data_text = m.group(1)
+
+                        # 8. Monta o objeto da notícia com campos opcionais
+                        doc = {
+                            "titulo": titulo,
+                            "link": link_absoluto,
+                            "texto_completo": texto_completo,
+                        }
+                        if resumo:
+                            doc["resumo"] = resumo
+                        if data_text:
+                            doc["data"] = data_text
+                        noticias_completas.append(doc)
                 except Exception as e_artigo:
 
                     # 9. Se der algum erro ao acessar o artigo, ele registra o erro
@@ -575,6 +596,39 @@ def raspar_links_acesso():
         return {"links_acesso": {}}
 
 
+# funções auxiliares de deduplicação de notícias
+
+def _normalize_text(s: str) -> str:
+    if not s:
+        return ""
+    # Remover acentos e normalizar para comparação
+    s_norm = unicodedata.normalize("NFD", s)
+    s_norm = "".join(ch for ch in s_norm if unicodedata.category(ch) != "Mn")
+    return s_norm.strip().lower()
+
+
+def dedupe_noticias(noticias):
+    """Remove duplicatas por link e por título normalizado."""
+    if not isinstance(noticias, list):
+        return noticias
+    seen_links = set()
+    seen_titles = set()
+    resultado = []
+    for n in noticias:
+        link = (n.get("link") or "").strip()
+        titulo_norm = _normalize_text(n.get("titulo") or "")
+        # Se já vimos o link ou o título normalizado, pula
+        if link and link in seen_links:
+            continue
+        if titulo_norm and titulo_norm in seen_titles:
+            continue
+        resultado.append(n)
+        if link:
+            seen_links.add(link)
+        if titulo_norm:
+            seen_titles.add(titulo_norm)
+    return resultado
+
 # dito isso, salvar tudo
 
 
@@ -593,6 +647,10 @@ def salvar_dados():
         "parceiros": raspar_parceiros()["parceiros"],
         "links_acesso": raspar_links_acesso()["links_acesso"],
     }
+
+    # Deduplicar notícias por link e título normalizado antes de salvar
+    if isinstance(dados.get("noticias"), list):
+        dados["noticias"] = dedupe_noticias(dados["noticias"])
 
     with open("dados.json", "w", encoding="utf-8") as f:
         json.dump(dados, f, ensure_ascii=False, indent=2)
