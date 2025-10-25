@@ -1331,3 +1331,73 @@ input:focus,
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ===== Trigger base (ajuste o seletor se necessário) ===== */
+#chatbot-trigger, .chatbot-trigger {
+  position: fixed;
+  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 10000;
+  will-change: transform, filter, box-shadow;
+}
+
+/* ===== Animações padrão (float + pulse) ===== */
+.trigger-anim {
+  animation: triggerFloat 3.2s ease-in-out infinite,
+             triggerPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes triggerFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes triggerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(168,85,247,0.00); }
+  50%      { box-shadow: 0 0 24px 6px rgba(168,85,247,0.28); }
+}
+
+/* ===== Sheen (brilho que varre) ===== */
+.trigger-sheen { position: relative; overflow: visible; }
+.trigger-sheen::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.5) 15%,
+    rgba(255,255,255,0) 30%
+  );
+  filter: blur(4px);
+  animation: triggerSheen 4.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes triggerSheen { to { transform: rotate(1turn); } }
+
+/* ===== Hover “boing” ===== */
+#chatbot-trigger:hover, .chatbot-trigger:hover {
+  animation: triggerBoing 240ms cubic-bezier(.2, .9, .25, 1.4);
+}
+@keyframes triggerBoing {
+  0%   { transform: scale(1); }
+  60%  { transform: scale(1.13); }
+  100% { transform: scale(1.04); }
+}
+
+/* ===== Confete inicial (canvas overlay) ===== */
+.confetti-canvas {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10001;
+}
+
+/* ===== Respeitar prefers-reduced-motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .trigger-anim,
+  .trigger-sheen::after {
+    animation: none !important;
+  }
+}
