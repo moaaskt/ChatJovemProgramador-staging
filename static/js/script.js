@@ -425,8 +425,8 @@ function openWidget() {
     const tip = document.querySelector('.chat-bubble-tooltip');
     if (tip) tip.style.display = 'none';
 
-    // confete na primeira abertura
-    confettiOnce();
+    // zera badge de não lidas
+    setUnread(0);
     
     // Focar no input de mensagem
     setTimeout(() => {
@@ -914,37 +914,6 @@ function observeTriggerVisibility() {
   io.observe(trig);
 }
 
-// Confete simples na primeira abertura da sessão
-function confettiOnce() {
-  if (localStorage.getItem('chatleo-confetti-done') === '1') return;
-  localStorage.setItem('chatleo-confetti-done', '1');
-  try {
-    const c = document.createElement('canvas');
-    c.width = window.innerWidth;
-    c.height = window.innerHeight;
-    c.className = 'confetti-canvas';
-    document.body.appendChild(c);
-    const ctx = c.getContext('2d');
-    const pieces = Array.from({ length: 80 }).map(() => ({
-      x: Math.random() * c.width,
-      y: c.height + Math.random() * 60,
-      r: 3 + Math.random() * 4,
-      vx: (Math.random() - 0.5) * 2,
-      vy: -3 - Math.random() * 3,
-      col: `hsl(${Math.floor(Math.random() * 360)}, 90%, 60%)`
-    }));
-    let t = 0, raf;
-    const step = () => {
-      ctx.clearRect(0, 0, c.width, c.height);
-      pieces.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.05;
-        ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-      });
-      if ((t += 1) < 140) raf = requestAnimationFrame(step);
-      else { cancelAnimationFrame(raf); c.remove(); }
-    };
-    step();
-  } catch { /* silencioso */ }
-}
 
 // “Nudge” após inatividade (boing curto)
 let idleTimer;
@@ -978,7 +947,9 @@ window.ChatbotDebug = {
     speakText,
     toggleHighContrast,
     cycleFontSize,
-    toggleTTS
+    toggleTTS,
+    setUnread,
+    onBotMessageArrived
 };
 
 // toggle "modo palco" (para projetor/tv)
@@ -1001,3 +972,48 @@ window.enablePalcoMode = (on = true) => {
     document.head.appendChild(style);
   }
 })();
+
+// Criar badge e manter trigger visível
+function ensureTriggerBadge() {
+  const trig = document.querySelector('#chatbot-trigger, .chatbot-trigger');
+  if (!trig) return;
+  trig.style.opacity = '1';
+  trig.style.visibility = 'visible';
+  let badge = trig.querySelector('.chatbot-badge');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.className = 'chatbot-badge';
+    badge.textContent = '1';
+    trig.appendChild(badge);
+  }
+  return badge;
+}
+
+// Atualiza contador de não lidas
+function setUnread(n = 0) {
+  const trig = document.querySelector('#chatbot-trigger, .chatbot-trigger');
+  const badge = ensureTriggerBadge();
+  if (!trig || !badge) return;
+  n = Math.max(0, n);
+  badge.textContent = n > 99 ? '99+' : String(n);
+  trig.classList.toggle('has-unread', n > 0);
+  badge.style.display = n ? '' : 'none';
+}
+
+// Ao receber msg do bot (chat fechado): incrementa
+function onBotMessageArrived() {
+  const trig = document.querySelector('#chatbot-trigger, .chatbot-trigger');
+  const count = parseInt(trig?.querySelector('.chatbot-badge')?.textContent || '0', 10);
+  setUnread(count + 1);
+}
+
+// Inicializa
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    ensureTriggerBadge();
+    setUnread(0);
+  });
+} else {
+  ensureTriggerBadge();
+  setUnread(0);
+}
