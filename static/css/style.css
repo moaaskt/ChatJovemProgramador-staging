@@ -5,8 +5,8 @@
     --primary-dark: #4f46e5;
     --primary-light: #818cf8;
     --secondary-color: #f59e0b;
-    --accent-color: #b910b9;
-    --danger-color: #ef4444;
+    --accent-color: #00ffb3;
+    --danger-color: #ff0062;
     
     /* Cores de fundo */
     --bg-primary: #170f2a;
@@ -22,7 +22,7 @@
     
     /* Gradientes */
     --gradient-primary: linear-gradient(135deg, #6600ff 0%, #e241a2 100%);
-    --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    --gradient-secondary: linear-gradient(135deg, #f5ca0b 0%, #f94b16 100%);
     --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
     
     /* Sombras */
