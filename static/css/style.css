@@ -21,7 +21,7 @@
     --text-muted: #94a3b8;
     
     /* Gradientes */
-    --gradient-primary: linear-gradient(135deg, #6600ff 0%, #f143ab 100%);
+    --gradient-primary: linear-gradient(135deg, #6600ff 0%, #e241a2 100%);
     --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
     --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
     
@@ -623,7 +623,7 @@ footer {
 
 /* header menos saturado (harmonia com o fundo) */
 .widget-header {
-  background: linear-gradient(135deg, #9b4fe0 0%, #7b3bb9 100%);
+  background: linear-gradient(135deg, #6600ff 0%, #e241a2 100%);
 }
 
 /* bolha do bot mais legível em telas claras/escuras */
