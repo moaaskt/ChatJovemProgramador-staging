@@ -76,6 +76,22 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
 }
+
+/* ====== ANIMAÇÃO ===== */
+
+/* imagem inicia invisível */
+#chatleo-animations {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.8s ease-out;
+}
+
+/* quando entrar na tela */
+#chatleo-animations.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
 /* ====== RODA-PÉ ===== */
 footer {
     background-color: #0f172a ;

@@ -922,3 +922,21 @@ window.enablePalcoMode = (on = true) => {
     document.head.appendChild(style);
   }
 })();
+
+// =========== ANIMAÇÃO ===========
+
+document.addEventListener("DOMContentLoaded", () => {
+    const image = document.getElementById("chatleo-animations");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                entry.target.classList.add("show");
+            }
+        });
+    }, {
+        threshold: 0.3 // 30% do elemento visível
+    });
+
+    observer.observe(image);
+});
