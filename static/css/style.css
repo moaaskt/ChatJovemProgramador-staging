@@ -80,14 +80,15 @@ body {
 /* ====== ANIMAÇÃO ===== */
 
 /* imagem inicia invisível */
-#chatleo-animations {
+/* todos os elementos que receberem a classe .chatleo-animations iniciam invisíveis */
+.chatleo-animations {
     opacity: 0;
     transform: translateY(20px) scale(0.95);
     transition: all 0.8s ease-out;
 }
 
-/* quando entrar na tela */
-#chatleo-animations.show {
+/* quando entrarem na tela */
+.chatleo-animations.show {
     opacity: 1;
     transform: translateY(0) scale(1);
 }

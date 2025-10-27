@@ -926,17 +926,18 @@ window.enablePalcoMode = (on = true) => {
 // =========== ANIMAÇÃO ===========
 
 document.addEventListener("DOMContentLoaded", () => {
-    const image = document.getElementById("chatleo-animations");
+    const elements = document.querySelectorAll(".chatleo-animations");
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if(entry.isIntersecting){
                 entry.target.classList.add("show");
+                observer.unobserve(entry.target); // para não repetir a animação
             }
         });
     }, {
         threshold: 0.3 // 30% do elemento visível
     });
 
-    observer.observe(image);
+    elements.forEach(el => observer.observe(el));
 });
