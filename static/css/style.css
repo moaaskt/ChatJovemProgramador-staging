@@ -87,6 +87,9 @@ body {
     transition: all 0.8s ease-out;
 }
 
+/* ========= CHAT SE MEXER ========== */
+
+
 /* quando entrarem na tela */
 .chatleo-animations.show {
     opacity: 1;
