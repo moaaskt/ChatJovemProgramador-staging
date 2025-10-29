@@ -1224,22 +1224,28 @@ input:focus,
     font-size: 14px;
 }
 
-/* Ajustes de tamanho de fonte */
+/* Tamanhos de fonte para acessibilidade */
+
 .font-small {
     font-size: 0.85em;
+    transition: font-size 0.3s ease;
 }
 
 .font-normal {
     font-size: 1em;
+    transition: font-size 0.3s ease;
 }
 
 .font-large {
     font-size: 1.15em;
+    transition: font-size 0.3s ease;
 }
 
 .font-extra-large {
     font-size: 1.3em;
+    transition: font-size 0.3s ease;
 }
+
 
 /* Modo alto contraste */
 .high-contrast {

@@ -943,5 +943,24 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ======== CHAT SE MEXER ========
+// ======== FUNÇÃO PARA TAMANHO DA LETRA ========
 
+const fontBtn = document.getElementById('font-size-btn');
+
+// Seleciona todos os h3 e p dentro de qualquer botão
+const textElements = document.querySelectorAll('article.botao button h3, article.botao button p');
+
+let fontState = 1; // 1 = normal, 2 = grande, 3 = extra grande
+
+fontBtn.addEventListener('click', () => {
+    fontState++;
+    if (fontState > 3) fontState = 1;
+
+    textElements.forEach(el => {
+        el.classList.remove('font-normal', 'font-large', 'font-extra-large');
+
+        if (fontState === 1) el.classList.add('font-normal');
+        else if (fontState === 2) el.classList.add('font-large');
+        else if (fontState === 3) el.classList.add('font-extra-large');
+    });
+});
