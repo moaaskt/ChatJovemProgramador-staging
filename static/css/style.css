@@ -114,11 +114,11 @@ body {
 
 .botao {
     color: white;
-    width: 340px;
+    width: 360px;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: 460px;
     box-sizing: border-box;
 }
 
@@ -1246,6 +1246,9 @@ input:focus,
     transition: font-size 0.3s ease;
 }
 
+article.botao button p {
+    font-size: 1rem;
+}
 
 /* Modo alto contraste */
 .high-contrast {

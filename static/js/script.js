@@ -299,11 +299,11 @@ function cycleFontSize() {
     const nextIndex = (currentIndex + 1) % sizes.length;
     AppState.currentFontSize = sizes[nextIndex];
     
-    // Aplicar tamanho da fonte
+    // Aplicar tamanho da fonte no body (chat)
     document.body.className = document.body.className.replace(/font-\w+/g, '');
     document.body.classList.add(`font-${AppState.currentFontSize}`);
     
-    // Atualizar botão
+    // Atualizar botão do chat
     if (DOMElements.fontSizeBtn) {
         const icon = DOMElements.fontSizeBtn.querySelector('.font-icon');
         if (icon) {
@@ -316,10 +316,18 @@ function cycleFontSize() {
             icon.textContent = sizeLabels[AppState.currentFontSize];
         }
     }
-    
+
+    // 🔹 Atualizar textos dos botões dos artigos
+    const textElements = document.querySelectorAll('article.botao button h3, article.botao button p');
+    textElements.forEach(el => {
+        el.classList.remove('font-small', 'font-normal', 'font-large', 'font-extra-large');
+        el.classList.add(`font-${AppState.currentFontSize}`);
+    });
+
     announceToScreenReader(`Tamanho da fonte alterado para ${AppState.currentFontSize}`);
     saveUserPreferences();
 }
+
 
 // ===== CONTROLE DE CONTRASTE =====
 function toggleHighContrast() {
@@ -944,23 +952,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // ======== FUNÇÃO PARA TAMANHO DA LETRA ========
-
 const fontBtn = document.getElementById('font-size-btn');
-
-// Seleciona todos os h3 e p dentro de qualquer botão
 const textElements = document.querySelectorAll('article.botao button h3, article.botao button p');
-
-let fontState = 1; // 1 = normal, 2 = grande, 3 = extra grande
+let fontState = 1;
 
 fontBtn.addEventListener('click', () => {
     fontState++;
     if (fontState > 3) fontState = 1;
 
     textElements.forEach(el => {
-        el.classList.remove('font-normal', 'font-large', 'font-extra-large');
+        el.style.transition = "font-size 0.3s ease";
 
-        if (fontState === 1) el.classList.add('font-normal');
-        else if (fontState === 2) el.classList.add('font-large');
-        else if (fontState === 3) el.classList.add('font-extra-large');
+        switch (fontState) {
+            case 1:
+                el.style.fontSize = "1rem";
+                break;
+            case 2:
+                el.style.fontSize = "1.3rem";
+                break;
+            case 3:
+                el.style.fontSize = "1.6rem";
+                break;
+        }
     });
 });
+
