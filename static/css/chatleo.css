@@ -28,3 +28,6 @@
 .chatleo-bubble.show-tip .chatleo-bubble__tooltip{
   opacity:1; transform:translateY(0);
 }
+
+/* Suaviza pintura e animações do container do widget */
+#chatbot-widget, .chatbot-widget{will-change:opacity,transform}

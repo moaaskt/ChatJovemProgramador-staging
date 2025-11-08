@@ -10,6 +10,15 @@ const AppState = {
     ttsVoice: null
 };
 
+// ===== TRANSIÇÃO/LOCK PARA EVITAR FLICKER =====
+const CHATLEO_TRANSITION_MS = 240;
+let ChatleoLock = false;
+function withChatleoLock(fn){
+  if (ChatleoLock) return;
+  ChatleoLock = true;
+  try { fn(); } finally { setTimeout(()=>{ ChatleoLock=false; }, CHATLEO_TRANSITION_MS); }
+}
+
 // ===== ELEMENTOS DOM =====
 const DOMElements = {
     // Trigger do chatbot
@@ -88,29 +97,29 @@ function mapDOMElements() {
 const bubbleRoot = () => (DOMElements.chatbotTrigger || DOMElements.chatBubble);
 
 function setupEventListeners() {
-    // Trigger do chatbot
-    if (DOMElements.chatbotTrigger) {
-        DOMElements.chatbotTrigger.addEventListener('click', toggleWidget);
-        DOMElements.chatbotTrigger.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleWidget();
-            }
-        });
-    }
-    
-    // Bolha raiz: reforça A11y e ação sem duplicar listeners do trigger
-    if (DOMElements.chatBubble && DOMElements.chatBubble !== DOMElements.chatbotTrigger) {
-        DOMElements.chatBubble.setAttribute('role', 'button');
-        DOMElements.chatBubble.setAttribute('aria-label', 'Abrir chat');
-        DOMElements.chatBubble.setAttribute('tabindex', '0');
-        DOMElements.chatBubble.addEventListener('click', toggleWidget);
-        DOMElements.chatBubble.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleWidget();
-            }
-        });
+    // Root único para abrir/fechar (trigger ou bolha), com lock e sem duplicação
+    const root = bubbleRoot();
+    if (root) {
+        // A11y base
+        root.setAttribute('role', 'button');
+        root.setAttribute('aria-label', 'Abrir chat');
+        root.setAttribute('tabindex', '0');
+        
+        if (!root.dataset.chatleoBound) {
+            root.dataset.chatleoBound = '1';
+            root.addEventListener('click', (e) => {
+                e.stopPropagation();
+                withChatleoLock(toggleWidget);
+            });
+            root.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    withChatleoLock(toggleWidget);
+                }
+            });
+        }
+        // Remover possível binding antigo direto no trigger
+        try { DOMElements.chatbotTrigger?.removeEventListener('click', toggleWidget); } catch(_){}
     }
     
     // Controles do header
@@ -156,8 +165,8 @@ function setupEventListeners() {
         });
     });
     
-    // Navegação por teclado global
-    document.addEventListener('keydown', handleGlobalKeydown);
+    // Navegação por teclado global (não-passiva para permitir preventDefault)
+    document.addEventListener('keydown', handleGlobalKeydown, { passive: false });
     
     // Clique fora para fechar
     document.addEventListener('click', handleClickOutside);
@@ -362,21 +371,21 @@ function toggleHighContrast() {
 function handleGlobalKeydown(e) {
     // ESC para fechar widget
     if (e.key === 'Escape' && AppState.isWidgetOpen) {
-        closeWidget();
+        withChatleoLock(closeWidget);
         return;
     }
     
     // Alt + C para abrir/fechar chat
     if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
-        toggleWidget();
+        withChatleoLock(toggleWidget);
         return;
     }
     
     // Alt + M para minimizar
     if (e.altKey && e.key.toLowerCase() === 'm' && AppState.isWidgetOpen) {
         e.preventDefault();
-        minimizeWidget();
+        withChatleoLock(minimizeWidget);
         return;
     }
     
