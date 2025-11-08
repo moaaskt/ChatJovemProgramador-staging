@@ -6,9 +6,11 @@
     <title>ChatJovemProgramador - Widget</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/chatleo.css">
 </head>
 <body>
     
@@ -45,19 +47,15 @@
                 </section>
             </main>
         </div>
-        <!-- Botão Flutuante do Chatbot -->
-        <div class="chatbot-trigger" id="chatbot-trigger">
-            <div class="chat-bubble">
-                <div class="chat-bubble-icon">
-                    <img src="assets/logo.png" alt="" width="60px" height="60px" >
-                </div>
-                <div class="chat-bubble-notification" id="chat-notification">
-                    <span>1</span>
-                </div>
+        <!-- Botão/Bolha Flutuante -->
+        <div id="chatbot-trigger" class="chatbot-trigger chatleo-bubble" role="button" aria-label="Abrir chat" aria-expanded="false" tabindex="0">
+          <div class="chat-bubble chatleo-bubble__avatar" aria-hidden="true">
+            <div class="chat-bubble-icon">
+              <img src="assets/logo.png" alt="" width="60" height="60">
             </div>
-            <div class="chat-bubble-tooltip">
-                <span>💬 Precisa de ajuda? Clique aqui!</span>
-            </div>
+            <div class="chat-bubble-notification chatleo-bubble__badge" id="chatleo-badge" hidden><span>0</span></div>
+          </div>
+          <div class="chat-bubble-tooltip chatleo-bubble__tooltip"><span>💬 Precisa de ajuda? Clique aqui!</span></div>
         </div>
         <!-- Widget do Chatbot (Oculto inicialmente) -->
         <div class="chatbot-widget" id="chatbot-widget">

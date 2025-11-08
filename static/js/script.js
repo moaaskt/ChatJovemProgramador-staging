@@ -56,7 +56,8 @@ function initializeApp() {
 function mapDOMElements() {
     // Trigger do chatbot
     DOMElements.chatbotTrigger = document.getElementById('chatbot-trigger');
-    DOMElements.chatBubble = document.querySelector('.chat-bubble');
+    // Mapear bolha raiz (chatleo-bubble)
+    DOMElements.chatBubble = document.querySelector('.chatleo-bubble');
     
     // Widget principal
     DOMElements.chatbotWidget = document.getElementById('chatbot-widget');
@@ -88,6 +89,20 @@ function setupEventListeners() {
     if (DOMElements.chatbotTrigger) {
         DOMElements.chatbotTrigger.addEventListener('click', toggleWidget);
         DOMElements.chatbotTrigger.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleWidget();
+            }
+        });
+    }
+    
+    // Bolha raiz: reforça A11y e ação sem duplicar listeners do trigger
+    if (DOMElements.chatBubble && DOMElements.chatBubble !== DOMElements.chatbotTrigger) {
+        DOMElements.chatBubble.setAttribute('role', 'button');
+        DOMElements.chatBubble.setAttribute('aria-label', 'Abrir chat');
+        DOMElements.chatBubble.setAttribute('tabindex', '0');
+        DOMElements.chatBubble.addEventListener('click', toggleWidget);
+        DOMElements.chatBubble.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 toggleWidget();
@@ -402,6 +417,12 @@ function openWidget() {
     DOMElements.chatbotWidget.classList.add('active');
     DOMElements.chatbotWidget.classList.remove('minimized');
     
+    // Remover estado da bolha e limpar badge
+    const bubble = DOMElements.chatbotTrigger || DOMElements.chatBubble;
+    bubble?.classList.remove('chatleo-bubble--active');
+    updateNotificationBadge(0);
+    bubble?.setAttribute('aria-expanded', 'true');
+    
     // Focar no input de mensagem
     setTimeout(() => {
         if (DOMElements.messageInput) {
@@ -439,8 +460,17 @@ function minimizeWidget() {
     AppState.isMinimized = !AppState.isMinimized;
     DOMElements.chatbotWidget.classList.toggle('minimized', AppState.isMinimized);
     
-    const status = AppState.isMinimized ? 'minimizado' : 'expandido';
-    announceToScreenReader(`Chat ${status}`);
+    // Estado visual da bolha
+    const bubble = DOMElements.chatbotTrigger || DOMElements.chatBubble;
+    bubble?.classList.toggle('chatleo-bubble--active', AppState.isMinimized);
+    if (AppState.isMinimized) {
+        AppState.isWidgetOpen = false;
+        DOMElements.chatbotWidget.classList.remove('active');
+        bubble?.setAttribute('aria-expanded', 'false');
+        announceToScreenReader('Chat minimizado');
+    } else {
+        announceToScreenReader('Chat expandido');
+    }
 }
 
 // ===== MENSAGENS =====
@@ -616,6 +646,30 @@ function updateXPDisplay() {
 function scrollToBottom() {
     if (DOMElements.widgetMessages) {
         DOMElements.widgetMessages.scrollTop = DOMElements.widgetMessages.scrollHeight;
+    }
+}
+
+// ===== NOTIFICAÇÕES (BADGE) =====
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('chatleo-badge') || document.getElementById('chat-notification');
+    if (!badge) return;
+    const span = badge.querySelector('span') || badge;
+    const next = Math.max(0, Number(count) || 0);
+    if (span && span.textContent !== undefined) span.textContent = String(next);
+    if (next === 0) {
+        badge.setAttribute('hidden', '');
+    } else {
+        badge.removeAttribute('hidden');
+    }
+}
+
+function notifyIncomingMessage() {
+    if (!AppState.isWidgetOpen) {
+        const badge = document.getElementById('chatleo-badge') || document.getElementById('chat-notification');
+        const current = Number((badge?.textContent || '0').trim()) || 0;
+        updateNotificationBadge(current + 1);
+        const bubble = DOMElements.chatbotTrigger || DOMElements.chatBubble;
+        bubble?.classList.add('chatleo-bubble--active');
     }
 }
 
