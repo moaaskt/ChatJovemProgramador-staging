@@ -9,3 +9,22 @@
 @media (max-width:768px){.chatleo-bubble{bottom:20px;right:20px}.chatleo-bubble__avatar{width:60px;height:60px}}
 @media (max-width:480px){.chatleo-bubble{bottom:.75rem;right:.75rem}.chatleo-bubble__avatar{width:55px;height:55px}}
 @keyframes chatleo-pulse{0%,100%{box-shadow:0 10px 25px rgba(123,47,247,.35),0 0 15px rgba(33,212,253,.35)}50%{box-shadow:0 10px 25px rgba(123,47,247,.35),0 0 35px rgba(33,212,253,.55)}}
+
+/* Estado visual da bolha quando o chat está aberto (permanece visível) */
+.chatleo-bubble.is-hidden{opacity:.6;pointer-events:none;animation:none;filter:grayscale(.2);cursor:default;transition:opacity .3s ease}
+
+/* Acessibilidade: reduz animações */
+@media (prefers-reduced-motion: reduce){
+  .chatleo-bubble__avatar{animation:none}
+}
+
+/* Safe area em iOS (evita sobrepor barra/home) */
+.chatleo-bubble{
+  bottom: max(16px, calc(16px + env(safe-area-inset-bottom)));
+  right: max(16px, calc(16px + env(safe-area-inset-right)));
+}
+
+/* Tooltip exibida por onboarding */
+.chatleo-bubble.show-tip .chatleo-bubble__tooltip{
+  opacity:1; transform:translateY(0);
+}

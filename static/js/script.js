@@ -84,6 +84,9 @@ function mapDOMElements() {
     DOMElements.xpDisplay = document.querySelector('.widget-xp');
 }
 
+// Seleção consistente da bolha raiz (trigger ou .chatleo-bubble)
+const bubbleRoot = () => (DOMElements.chatbotTrigger || DOMElements.chatBubble);
+
 function setupEventListeners() {
     // Trigger do chatbot
     if (DOMElements.chatbotTrigger) {
@@ -161,6 +164,20 @@ function setupEventListeners() {
     
     // Reações nas mensagens
     document.addEventListener('click', handleReactionClick);
+
+    // Onboarding da tooltip: apenas na primeira visita
+    (function tipOnce(){
+        try{
+            if (!localStorage.getItem('chatleo_tip')){
+                const b = bubbleRoot();
+                b?.classList.add('show-tip');
+                setTimeout(()=>{
+                    b?.classList.remove('show-tip');
+                    localStorage.setItem('chatleo_tip','1');
+                }, 4000);
+            }
+        }catch(_){/* noop */}
+    })();
 }
 
 // ===== FUNCIONALIDADES DE ACESSIBILIDADE =====
@@ -417,11 +434,12 @@ function openWidget() {
     DOMElements.chatbotWidget.classList.add('active');
     DOMElements.chatbotWidget.classList.remove('minimized');
     
-    // Remover estado da bolha e limpar badge
-    const bubble = DOMElements.chatbotTrigger || DOMElements.chatBubble;
-    bubble?.classList.remove('chatleo-bubble--active');
+    // Esconder bolha quando o chat estiver aberto e limpar badge
+    const b = bubbleRoot();
+    b?.classList.remove('chatleo-bubble--active');
+    b?.classList.add('is-hidden');
+    b?.setAttribute('aria-expanded', 'true');
     updateNotificationBadge(0);
-    bubble?.setAttribute('aria-expanded', 'true');
     
     // Focar no input de mensagem
     setTimeout(() => {
@@ -446,6 +464,13 @@ function closeWidget() {
     
     DOMElements.chatbotWidget.classList.remove('active', 'minimized');
     
+    // Mostrar bolha novamente e atualizar ARIA
+    const b = bubbleRoot();
+    b?.classList.remove('is-hidden');
+    b?.classList.remove('chatleo-bubble--active');
+    if (b) b.style.animation = '';
+    b?.setAttribute('aria-expanded', 'false');
+    
     // Focar no trigger
     if (DOMElements.chatbotTrigger) {
         DOMElements.chatbotTrigger.focus();
@@ -461,12 +486,13 @@ function minimizeWidget() {
     DOMElements.chatbotWidget.classList.toggle('minimized', AppState.isMinimized);
     
     // Estado visual da bolha
-    const bubble = DOMElements.chatbotTrigger || DOMElements.chatBubble;
-    bubble?.classList.toggle('chatleo-bubble--active', AppState.isMinimized);
+    const b = bubbleRoot();
+    b?.classList.remove('is-hidden');
+    b?.classList.toggle('chatleo-bubble--active', AppState.isMinimized);
     if (AppState.isMinimized) {
         AppState.isWidgetOpen = false;
         DOMElements.chatbotWidget.classList.remove('active');
-        bubble?.setAttribute('aria-expanded', 'false');
+        b?.setAttribute('aria-expanded', 'false');
         announceToScreenReader('Chat minimizado');
     } else {
         announceToScreenReader('Chat expandido');
