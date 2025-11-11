@@ -57,7 +57,7 @@ git clone [https://github.com/moaaskt/ChatJovemProgramador.git](https://github.c
 cd ChatJovemProgramador
 ```
 
-#### 2. Crie e Ative um Ambiente Virtual
+#### 2. Crie e Ative um Ambiente Virtual.
 ```bash
 # Criar o ambiente
 python -m venv venv
