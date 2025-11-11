@@ -50,6 +50,11 @@ const DOMElements = {
     xpDisplay: null
 };
 
+// Avatares configuráveis via data-atributos do HTML
+const widgetRoot = document.getElementById('chatbot-widget');
+const BOT_AVATAR = widgetRoot?.dataset?.botAvatar || '/static/assets/logo.png';
+const USER_AVATAR = widgetRoot?.dataset?.userAvatar || '/static/assets/logo-user.png';
+
 // ===== INICIALIZAÇÃO =====
 function initializeApp() {
     mapDOMElements();
@@ -550,14 +555,14 @@ function addMessage(content, sender) {
 
     if (sender === 'bot') {
         const img = document.createElement('img');
-        img.src = '/static/assets/logo.png';
+        img.src = BOT_AVATAR;
         img.alt = 'Logo do bot';
         img.width = 35;
         img.height = 35;
         avatar.appendChild(img);
     } else {
         const img = document.createElement('img');
-        img.src = '/static/assets/logo-user.png';
+        img.src = USER_AVATAR;
         img.alt = 'Logo do usuário';
         img.width = 20;
         img.height = 23;
@@ -573,24 +578,8 @@ function addMessage(content, sender) {
     
     bubble.appendChild(messageContent);
     
-    // Adicionar reações apenas para mensagens do usuário
-    if (sender !== 'bot') {
-        const reactions = document.createElement('div');
-        reactions.className = 'message-reactions';
-        
-        const reactionEmojis = ['👍', '❤️', '😊', '🤔'];
-        reactionEmojis.forEach(emoji => {
-            const reactionBtn = document.createElement('button');
-            reactionBtn.className = 'reaction-btn';
-            reactionBtn.textContent = emoji;
-            reactionBtn.setAttribute('aria-label', `Reagir com ${emoji}`);
-            reactionBtn.setAttribute('tabindex', '0');
-            reactions.appendChild(reactionBtn);
-        });
-        
-        bubble.appendChild(reactions);
-    }
-    
+    // Reações desativadas (UI-only): não anexar botões de reação
+
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(bubble);
     
@@ -599,13 +588,21 @@ function addMessage(content, sender) {
     // Salvar no histórico
     AppState.messageHistory.push({ content, sender, timestamp: Date.now() });
     
-    // Scroll para baixo
-    scrollToBottom();
+    // Scroll para baixo (robusto)
+    scrollMessagesToBottom();
     
     // Anunciar nova mensagem
     if (sender === 'bot') {
         announceToScreenReader(`Nova mensagem do assistente: ${content}`);
     }
+}
+
+// Scroll robusto até o final da lista de mensagens
+function scrollMessagesToBottom() {
+    const list = document.querySelector('.widget-messages');
+    if (!list) return;
+    list.scrollTop = list.scrollHeight;
+    requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
 }
 
 function getBotResponse(userMessage) {
@@ -805,6 +802,8 @@ async function sendToBackend(message) {
 function initializeWidget() {
     // Configurações iniciais do widget
     updateXPDisplay();
+    // Garantir que a lista de mensagens esteja alinhada no final ao iniciar
+    scrollMessagesToBottom();
     
     // Adicionar atributos de acessibilidade dinâmicos
     if (DOMElements.chatbotTrigger) {

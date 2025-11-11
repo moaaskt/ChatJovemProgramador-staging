@@ -51,19 +51,23 @@
         <div id="chatbot-trigger" class="chatbot-trigger chatleo-bubble" role="button" aria-label="Abrir chat" aria-expanded="false" tabindex="0">
           <div class="chat-bubble chatleo-bubble__avatar" aria-hidden="true">
             <div class="chat-bubble-icon">
-              <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="" width="60" height="60">
+             <img src="">
+
             </div>
             <div class="chat-bubble-notification chatleo-bubble__badge" id="chatleo-badge" hidden><span>0</span></div>
           </div>
           <div class="chat-bubble-tooltip chatleo-bubble__tooltip"><span>💬 Precisa de ajuda? Clique aqui!</span></div>
         </div>
         <!-- Widget do Chatbot (Oculto inicialmente) -->
-        <div class="chatbot-widget" id="chatbot-widget">
+        <div class="chatbot-widget" id="chatbot-widget"
+             data-bot-avatar="{{ url_for('static', filename='assets/logo.png') }}"
+             data-user-avatar="{{ url_for('static', filename='assets/logo-user.png') }}">
             <!-- Header do Widget -->
             <div class="widget-header">
                 <div class="widget-header-left">
                     <div class="widget-mascot">
-                        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="35px" height="35px">
+                        <img src="../static/assets/logo.png">
+
                     </div>
                     <div class="widget-title">
                         <h3>ChatLeo</h3>
@@ -97,7 +101,8 @@
                     <div class="welcome-message">
                         <div class="bot-message">
                             <div class="message-avatar">
-                                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="35px" height="35px">
+                               <img src="../static/assets/logo.png">
+
                             </div>
                             <div class="message-bubble">
                                 <div class="message-content">
@@ -110,10 +115,11 @@
                 </div>
         
                 <!-- Indicador de digitação -->
-                <div class="typing-indicator" id="widget-typing-indicator" aria-label="O bot está pensando">
+                <div class="typing-indicator" id="widget-typing-indicator" aria-label="O bot está pensando" hidden>
                     <div class="bot-message">
                         <div class="message-avatar">
-                            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="35px" height="35px">
+                            <img src="{{ url_for('static', filename='assets/logo.png') }}">
+
                         </div>
                         <div class="message-bubble typing">
                             <div class="typing-dots">
@@ -160,7 +166,8 @@
         <div class="accessibility-feedback" id="accessibility-feedback" aria-live="assertive"></div>
         <footer class="footer">
             <div> 
-          <img src="{{ url_for('static', filename='assets/senac-logo.png') }}" alt="senac-logo" width="250">
+          <img src="{{ url_for('static', filename='assets/logo.png') }}">
+
           <p>Site desenvolvido por alunos do SENAC PALHOÇA</p>
         </div>
         <br>

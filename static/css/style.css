@@ -761,7 +761,7 @@ footer {
 /* ===== Ajustes finais de layout do chat (override) ===== */
 :root {
     --chat-header-h: 64px;     /* altura do header do chat */
-    --chat-composer-h: 120px;  /* área de input + quick buttons */
+    --chat-composer-min-h: 88px; /* altura mínima do composer (botoes + input) */
 }
 
 .chatbot-widget,
@@ -774,35 +774,39 @@ footer {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0; /* importante para permitir o flex child rolar */
     overflow: hidden;
 }
 
 .widget-header {
-    height: var(--chat-header-h);
     flex: 0 0 var(--chat-header-h);
+    min-height: var(--chat-header-h);
 }
 
 .widget-messages {
     flex: 1 1 auto;
-    height: calc(100% - var(--chat-header-h) - var(--chat-composer-h));
+    min-height: 0;          /* evita “sobra” de espaço */
     overflow-y: auto;
+    padding-bottom: 12px;   /* respiro acima do composer */
 }
 
 .widget-input-container,
 .widget-composer {
-    min-height: var(--chat-composer-h);
+    min-height: var(--chat-composer-min-h);
     flex: 0 0 auto;
 }
 
 @media (max-width: 768px) {
     .widget-messages {
-        height: calc(100% - var(--chat-header-h) - var(--chat-composer-h));
+        flex: 1 1 auto;
+        min-height: 0;
     }
 }
 
 @media (max-height: 600px) and (max-width: 768px) {
     .widget-messages {
-        height: calc(100% - var(--chat-header-h) - var(--chat-composer-h));
+        flex: 1 1 auto;
+        min-height: 0;
     }
 }
 
