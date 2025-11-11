@@ -758,6 +758,53 @@ footer {
         display: none; /* Hide quick actions on very small screens */
     }
 }
+/* ===== Ajustes finais de layout do chat (override) ===== */
+:root {
+    --chat-header-h: 64px;     /* altura do header do chat */
+    --chat-composer-h: 120px;  /* área de input + quick buttons */
+}
+
+.chatbot-widget,
+#chatbot-widget {
+    display: flex;
+    flex-direction: column;
+}
+
+.chatbot-widget .widget-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.widget-header {
+    height: var(--chat-header-h);
+    flex: 0 0 var(--chat-header-h);
+}
+
+.widget-messages {
+    flex: 1 1 auto;
+    height: calc(100% - var(--chat-header-h) - var(--chat-composer-h));
+    overflow-y: auto;
+}
+
+.widget-input-container,
+.widget-composer {
+    min-height: var(--chat-composer-h);
+    flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+    .widget-messages {
+        height: calc(100% - var(--chat-header-h) - var(--chat-composer-h));
+    }
+}
+
+@media (max-height: 600px) and (max-width: 768px) {
+    .widget-messages {
+        height: calc(100% - var(--chat-header-h) - var(--chat-composer-h));
+    }
+}
 
 /* Touch-friendly improvements */
 @media (hover: none) and (pointer: coarse) {

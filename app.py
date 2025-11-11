@@ -25,6 +25,16 @@ except Exception as e:
     print(f"CRÍTICO: Não foi possível inicializar o chatbot para a web. Erro: {e}")
     chatbot_web = None
 
+# Logs de modelos disponíveis e modelo selecionado
+try:
+    if chatbot_web:
+        print("[Gemini] Modelos disponíveis para generateContent:")
+        for m in getattr(chatbot_web, 'available_models', []):
+            print(f" - {m}")
+        print(f"[Gemini] Modelo em uso: {getattr(chatbot_web, 'model_name', 'desconhecido')}")
+except Exception as e:
+    print("[Gemini] Falha ao logar modelos disponíveis:", e)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -36,6 +46,15 @@ def chat():
     user_message = request.json.get('message', '')
     bot_response = chatbot_web.gerar_resposta(user_message)
     return jsonify({'response': bot_response})
+
+@app.route('/health')
+def health():
+    status = {
+        'status': 'ok' if chatbot_web else 'unavailable',
+        'model': getattr(chatbot_web, 'model_name', None),
+        'available_models': getattr(chatbot_web, 'available_models', []),
+    }
+    return jsonify(status)
 
 
 # --- Função para Teste no Terminal (VERSÃO APRESENTAÇÃO) ---
@@ -91,10 +110,8 @@ def main_terminal():
 # --- Ponto de Entrada do Script ---
 if __name__ == '__main__':
     # Para rodar o chatbot no terminal, descomente a linha abaixo:
-    main_terminal()
-    
-    
+    # main_terminal()
+
     # Para rodar o servidor web, descomente a linha abaixo:
-    
-    # app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, host='0.0.0.0')
     

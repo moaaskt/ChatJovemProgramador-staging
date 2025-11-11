@@ -51,7 +51,7 @@
         <div id="chatbot-trigger" class="chatbot-trigger chatleo-bubble" role="button" aria-label="Abrir chat" aria-expanded="false" tabindex="0">
           <div class="chat-bubble chatleo-bubble__avatar" aria-hidden="true">
             <div class="chat-bubble-icon">
-              <img src="assets/logo.png" alt="" width="60" height="60">
+              <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="" width="60" height="60">
             </div>
             <div class="chat-bubble-notification chatleo-bubble__badge" id="chatleo-badge" hidden><span>0</span></div>
           </div>
@@ -63,7 +63,7 @@
             <div class="widget-header">
                 <div class="widget-header-left">
                     <div class="widget-mascot">
-                        <img src="assets/logo.png" alt="Logo" width="35px" height="35px">
+                        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="35px" height="35px">
                     </div>
                     <div class="widget-title">
                         <h3>ChatLeo</h3>
@@ -97,17 +97,13 @@
                     <div class="welcome-message">
                         <div class="bot-message">
                             <div class="message-avatar">
-                                <img src="assets/logo.png" alt="Logo" width="35px" height="35px">
+                                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="35px" height="35px">
                             </div>
                             <div class="message-bubble">
                                 <div class="message-content">
                                     Olá! 👋 Sou o assistente do Jovem Programador. Como posso te ajudar hoje? 🚀
                                 </div>
-                                <div class="message-reactions">
-                                    <button class="reaction-btn" data-reaction="👍" aria-label="Gostei">👍</button>
-                                    <button class="reaction-btn" data-reaction="👎" aria-label="Não gostei">👎</button>
-                                    <button class="reaction-btn" data-reaction="❤️" aria-label="Amei">❤️</button>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -117,7 +113,7 @@
                 <div class="typing-indicator" id="widget-typing-indicator" aria-label="O bot está pensando">
                     <div class="bot-message">
                         <div class="message-avatar">
-                            <img src="assets/logo.png" alt="Logo" width="35px" height="35px">
+                            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="35px" height="35px">
                         </div>
                         <div class="message-bubble typing">
                             <div class="typing-dots">
@@ -164,7 +160,7 @@
         <div class="accessibility-feedback" id="accessibility-feedback" aria-live="assertive"></div>
         <footer class="footer">
             <div> 
-          <img src="assets/senac-logo.png" alt="senac-logo" width="250">
+          <img src="{{ url_for('static', filename='assets/senac-logo.png') }}" alt="senac-logo" width="250">
           <p>Site desenvolvido por alunos do SENAC PALHOÇA</p>
         </div>
         <br>

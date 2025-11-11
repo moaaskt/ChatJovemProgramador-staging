@@ -13,11 +13,10 @@ class Chatbot:
         print("🤖 Inicializando o Chatbot com Gemini...")
 
         # 1. Configura a chave da API do Google Gemini de forma segura a partir do arquivo .env
+        load_dotenv()
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            raise ValueError(
-                "API Key do Gemini não encontrada! Verifique seu arquivo .env"
-            )
+            raise RuntimeError("GEMINI_API_KEY ausente no .env")
         genai.configure(api_key=api_key)
 
         # 2. Carrega toda a base de conhecimento do arquivo dados.json para a memória (self.dados)
@@ -31,14 +30,86 @@ class Chatbot:
 
         # 3. Prepara o "super prompt" inicial com todas as regras e dados
         self.contexto_inicial = self._criar_contexto()
-        
-        # 4. Inicializa o modelo de IA e a sessão de chat
-        # ATENÇÃO: Verifique o nome do modelo. O correto geralmente é 'gemini-1.5-flash'.
-        self.model = genai.GenerativeModel("gemini-2.0-flash") 
-        self.chat_session = self.model.start_chat(history=[])
-        
+
+        # 4. Logar versão do SDK e tentar inicializar dinamicamente um modelo suportado
+        sdk_version = getattr(genai, "__version__", "desconhecida")
+        print(f"[Gemini] SDK version: {sdk_version}")
+
+        # Tentar listar modelos e armazenar nomes (todos) e os que suportam generateContent
+        self.available_models = []
+        self.available_models_supported = []
+        try:
+            for m in genai.list_models():
+                name = getattr(m, "name", "")
+                self.available_models.append(name)
+                if getattr(m, "supported_generation_methods", None) and "generateContent" in m.supported_generation_methods:
+                    self.available_models_supported.append(name)
+        except Exception as e:
+            print("[Gemini] Falha ao listar modelos:", e)
+        if self.available_models:
+            print("[Gemini] Modelos listados:")
+            for nm in self.available_models:
+                print(" -", nm)
+        if self.available_models_supported:
+            print("[Gemini] Modelos com generateContent:")
+            for nm in self.available_models_supported:
+                print(" -", nm)
+
+
+     # utils/responder.py (Linha 80)
+        CANDIDATOS = [
+    "gemini-pro-latest",  # Use este!
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+            ]
+
+        initialized = False
+        for c in CANDIDATOS:
+            if self._try_model(c):
+                initialized = True
+                break
+        if not initialized:
+            # Fallback dinâmico: tentar os modelos listados que suportam generateContent
+            for nm in self.available_models_supported:
+                # Passar nome possivelmente já prefixado; o helper tratará
+                cleaned = nm
+                if cleaned.startswith("models/"):
+                    cleaned = cleaned[len("models/"):]
+                if self._try_model(cleaned):
+                    initialized = True
+                    break
+        if not initialized:
+            raise RuntimeError("Nenhum modelo Gemini disponível")
+
+        print(f"[Gemini] Modelo selecionado: {self.model_name}")
+
         # 5. Envia o contexto inicial para a IA para "doutriná-la" sobre como se comportar
-        self.chat_session.send_message(self.contexto_inicial)
+        sent = False
+        try:
+            self.chat_session.send_message(self.contexto_inicial)
+            sent = True
+        except Exception as e:
+            print("[Gemini] Falha ao enviar contexto com", getattr(self, 'model_name', None), "->", e)
+            # Tentar fallback para outro modelo suportado
+            for nm in self.available_models_supported:
+                # Evitar tentar o mesmo modelo novamente
+                if nm == getattr(self, 'model_name', None):
+                    continue
+                cleaned = nm
+                if cleaned.startswith("models/"):
+                    cleaned = cleaned[len("models/"):]
+                if self._try_model(cleaned):
+                    try:
+                        self.chat_session.send_message(self.contexto_inicial)
+                        sent = True
+                        break
+                    except Exception as e2:
+                        print("[Gemini] Contexto falhou com", getattr(self, 'model_name', None), "->", e2)
+                        continue
+
+        if not sent:
+            raise RuntimeError("Nenhum modelo Gemini disponível para envio de contexto inicial")
+
         print("✅ Chatbot pronto e online!")
 
     # Este método privado é o coração da inteligência, responsável por montar o prompt.
@@ -185,17 +256,29 @@ class Chatbot:
         """
         return contexto
 
+    def _try_model(self, name: str) -> bool:
+        try:
+            n = name if name.startswith("models/") else f"models/{name}"
+            self.model = genai.GenerativeModel(n)
+            self.chat_session = self.model.start_chat(history=[])
+            self.model_name = n
+            print("[Gemini] Modelo inicializado com:", n)
+            return True
+        except Exception as e:
+            print("[Gemini] Falha com", name, "->", e)
+            return False
+
     # Este método é chamado toda vez que o usuário envia uma nova mensagem.
-    def gerar_resposta(self, user_message):
+    def gerar_resposta(self, pergunta: str) -> str:
         # Validação simples para não enviar mensagens vazias para a API
-        if not user_message.strip():
+        if not pergunta.strip():
             return "Por favor, digite sua pergunta! Estou aqui para ajudar. 😄"
 
         try:
-            # Envia apenas a pergunta do usuário para a sessão de chat, que já tem o contexto.
-            response = self.chat_session.send_message(user_message)
-            return response.text
+            composed = f"Usuário: {pergunta}"
+            resp = self.chat_session.send_message(composed)
+            text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
+            return text if isinstance(text, str) else (str(text) if text else "Não consegui responder agora.")
         except Exception as e:
-            # Tratamento de erro caso a comunicação com a API do Gemini falhe.
-            print(f"❌ Erro ao se comunicar com a API do Gemini: {e}")
-            return "Ops, parece que estou com um probleminha de conexão... 😅 Poderia tentar de novo em um instante?"
+            print(f"[Gemini] erro:", e)
+            return "Não consegui responder agora. Tente novamente mais tarde."

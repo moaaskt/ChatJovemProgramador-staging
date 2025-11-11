@@ -522,17 +522,18 @@ function sendMessage() {
     // Mostrar indicador de digitação
     showTypingIndicator();
     
-    // Simular resposta do bot
-    setTimeout(() => {
-        hideTypingIndicator();
-        const botResponse = getBotResponse(message);
-        addMessage(botResponse, 'bot');
-        
-        // TTS para resposta do bot
-        if (AppState.isTTSEnabled) {
-            speakText(botResponse);
+    // Buscar resposta real no backend
+    (async () => {
+        try {
+            const botResponse = await sendToBackend(message);
+            hideTypingIndicator();
+            addMessage(botResponse || 'Desculpe, estou indisponível no momento.', 'bot');
+            if (AppState.isTTSEnabled && botResponse) speakText(botResponse);
+        } catch (err) {
+            hideTypingIndicator();
+            addMessage('Erro ao conectar ao assistente. Tente novamente.', 'bot');
         }
-    }, 1500);
+    })();
     
     // Adicionar XP
     addXP(10);
@@ -549,14 +550,14 @@ function addMessage(content, sender) {
 
     if (sender === 'bot') {
         const img = document.createElement('img');
-        img.src = 'assets/logo.png'; // Caminho da tua imagem
+        img.src = '/static/assets/logo.png';
         img.alt = 'Logo do bot';
         img.width = 35;
         img.height = 35;
         avatar.appendChild(img);
     } else {
         const img = document.createElement('img');
-        img.src = 'assets/logo-user.png'; // Caminho da tua imagem
+        img.src = '/static/assets/logo-user.png';
         img.alt = 'Logo do usuário';
         img.width = 20;
         img.height = 23;
@@ -572,8 +573,8 @@ function addMessage(content, sender) {
     
     bubble.appendChild(messageContent);
     
-    // Adicionar reações apenas para mensagens do bot
-    if (sender === 'bot') {
+    // Adicionar reações apenas para mensagens do usuário
+    if (sender !== 'bot') {
         const reactions = document.createElement('div');
         reactions.className = 'message-reactions';
         
@@ -782,7 +783,7 @@ function loadUserPreferences() {
 // ===== INTEGRAÇÃO COM BACKEND =====
 async function sendToBackend(message) {
     try {
-        const response = await fetch('/chat', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
