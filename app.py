@@ -3,7 +3,11 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from utils.responder import Chatbot
 import textwrap
+import os
+import time
+import random
 from datetime import datetime
+from services.firestore import init_admin, get_or_create_conversation, save_message
 
 # --- Classe de Cores (Foco em Alto Contraste) ---
 class Cores:
@@ -19,6 +23,17 @@ class Cores:
 
 app = Flask(__name__)
 CORS(app)
+
+# Inicializa Firestore (se habilitado)
+init_admin()
+
+# Flag para habilitar/desabilitar Firestore
+AI_FIRESTORE_ENABLED = os.getenv("AI_FIRESTORE_ENABLED", "false").lower() == "true"
+if AI_FIRESTORE_ENABLED:
+    print("[Firestore] Persistência de conversas HABILITADA")
+else:
+    print("[Firestore] Persistência de conversas DESABILITADA (AI_FIRESTORE_ENABLED=false)")
+
 try:
     chatbot_web = Chatbot()
 except Exception as e:
@@ -43,9 +58,47 @@ def index():
 def chat():
     if not chatbot_web:
         return jsonify({'response': "Desculpe, o chatbot está temporariamente fora de serviço."}), 500
+    
+    # Extrai mensagem do usuário (retrocompatível)
     user_message = request.json.get('message', '')
+    if not user_message:
+        return jsonify({'response': "Por favor, digite sua mensagem!"}), 400
+    
+    # Gera ou recupera session_id (retrocompatível)
+    session_id = request.json.get('session_id')
+    if not session_id:
+        # Fallback: gera session_id no formato "sess_" + epoch + rand
+        epoch = int(time.time() * 1000)
+        rand = random.randint(1000, 9999)
+        session_id = f"sess_{epoch}_{rand}"
+    
+    # Salva mensagem do usuário no Firestore (se habilitado)
+    if AI_FIRESTORE_ENABLED:
+        try:
+            get_or_create_conversation(session_id)
+            save_message(session_id, "user", user_message)
+            print(f"[Firestore] Mensagem do usuário salva: session_id={session_id}")
+        except Exception as e:
+            # Erro não deve interromper o fluxo do chat
+            print(f"[Firestore] Erro ao salvar mensagem do usuário: {e}")
+    
+    # Chama IA (comportamento original mantido)
     bot_response = chatbot_web.gerar_resposta(user_message)
-    return jsonify({'response': bot_response})
+    
+    # Salva resposta do bot no Firestore (se habilitado)
+    if AI_FIRESTORE_ENABLED:
+        try:
+            save_message(session_id, "assistant", bot_response)
+            print(f"[Firestore] Resposta do bot salva: session_id={session_id}")
+        except Exception as e:
+            # Erro não deve interromper o fluxo do chat
+            print(f"[Firestore] Erro ao salvar resposta do bot: {e}")
+    
+    # Resposta HTTP (retrocompatível: adiciona session_id mas mantém 'response')
+    return jsonify({
+        'response': bot_response,
+        'session_id': session_id
+    })
 
 @app.route('/health')
 def health():
