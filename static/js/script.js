@@ -10,6 +10,26 @@ const AppState = {
     ttsVoice: null
 };
 
+// ===== SESSION ID MANAGEMENT =====
+function getOrCreateSessionId() {
+    /**
+     * Gera ou recupera session_id do localStorage.
+     * Persiste entre recarregamentos da página.
+     */
+    const STORAGE_KEY = 'chat_session_id';
+    let sessionId = localStorage.getItem(STORAGE_KEY);
+    
+    if (!sessionId) {
+        // Gera novo session_id: sess_ + timestamp + random
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 11);
+        sessionId = `sess_${timestamp}_${random}`;
+        localStorage.setItem(STORAGE_KEY, sessionId);
+    }
+    
+    return sessionId;
+}
+
 // ===== TRANSIÇÃO/LOCK PARA EVITAR FLICKER =====
 const CHATLEO_TRANSITION_MS = 240;
 let ChatleoLock = false;
@@ -780,16 +800,24 @@ function loadUserPreferences() {
 // ===== INTEGRAÇÃO COM BACKEND =====
 async function sendToBackend(message) {
     try {
+        const sessionId = getOrCreateSessionId();
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ 
+                message,
+                session_id: sessionId
+            })
         });
         
         if (response.ok) {
             const data = await response.json();
+            // Atualiza session_id no localStorage se backend retornou um diferente
+            if (data.session_id && data.session_id !== sessionId) {
+                localStorage.setItem('chat_session_id', data.session_id);
+            }
             return data.response;
         }
     } catch (error) {
