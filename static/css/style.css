@@ -485,6 +485,19 @@ footer {
     line-height: 1.5;
 }
 
+/* Links dentro do conteúdo da mensagem (bot) */
+.message-content a {
+    color: inherit;                /* usa a mesma cor de texto da mensagem */
+    text-decoration: underline;    /* indica que é clicável, mas dentro do tema */
+    text-decoration-thickness: 1px;
+    word-break: break-all;         /* URLs longas quebram linha dentro da bolha */
+}
+
+.message-content a:hover {
+    text-decoration: underline;
+    opacity: 0.9;                  /* leve feedback no hover */
+}
+
 .message-reactions {
     display: flex;
     gap: var(--space-2);
