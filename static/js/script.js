@@ -75,6 +75,12 @@ const widgetRoot = document.getElementById('chatbot-widget');
 const BOT_AVATAR = widgetRoot?.dataset?.botAvatar || '/static/assets/logo.png';
 const USER_AVATAR = widgetRoot?.dataset?.userAvatar || '/static/assets/logo-user.png';
 
+const bubbleImg = document.querySelector('.chatleo-bubble__avatar img');
+if (bubbleImg) {
+    bubbleImg.src = BOT_AVATAR;
+    bubbleImg.alt = "Abrir chat";
+}
+
 // ===== INICIALIZAÇÃO =====
 function initializeApp() {
     mapDOMElements();
