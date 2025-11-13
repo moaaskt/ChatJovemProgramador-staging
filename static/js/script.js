@@ -681,12 +681,22 @@ function showTypingIndicator() {
         DOMElements.typingIndicator.classList.add('active');
         announceToScreenReader('O assistente está digitando');
     }
+    const indicator = document.getElementById('widget-typing-indicator');
+    if (!indicator) return;
+    indicator.classList.add('active');
+    indicator.removeAttribute('hidden');
+    indicator.setAttribute('aria-hidden', 'false');
 }
 
 function hideTypingIndicator() {
     if (DOMElements.typingIndicator) {
         DOMElements.typingIndicator.classList.remove('active');
     }
+    const indicator = document.getElementById('widget-typing-indicator');
+    if (!indicator) return;
+    indicator.classList.remove('active');
+    indicator.setAttribute('hidden', 'true');
+    indicator.setAttribute('aria-hidden', 'true');
 }
 
 // ===== SISTEMA XP =====
