@@ -1,0 +1,386 @@
+{
+  "frontend_files": [
+    {
+      "path": "static/js/script.js",
+      "send_handler_fn": {
+        "name": "sendMessage",
+        "line_start": 517,
+        "line_end": 545,
+        "description": "Handler principal que é chamado quando usuário envia mensagem. Chama addMessage() para renderizar, depois sendToBackend() para obter resposta da IA.",
+        "flow": [
+          "1. Valida mensagem (linha 518-519)",
+          "2. Renderiza mensagem do usuário via addMessage() (linha 522)",
+          "3. Limpa input (linha 525)",
+          "4. Mostra typing indicator (linha 528)",
+          "5. Chama sendToBackend() assincronamente (linha 533)",
+          "6. Renderiza resposta do bot via addMessage() (linha 535)",
+          "7. Adiciona XP (linha 544)"
+        ]
+      },
+      "render_fn": {
+        "name": "addMessage",
+        "line_start": 547,
+        "line_end": 598,
+        "description": "Renderiza mensagem no DOM e salva no AppState.messageHistory (linha 589). Não persiste em banco.",
+        "key_line": 589,
+        "note": "AppState.messageHistory é apenas em memória, perdido ao recarregar página"
+      },
+      "session_id_logic": {
+        "status": "NÃO EXISTE",
+        "current_behavior": "Cada mensagem é independente. Chatbot mantém sessão interna via self.chat_session (Gemini), mas não há session_id rastreável pelo frontend.",
+        "suggestion": "Gerar session_id no frontend na primeira mensagem e persistir em localStorage. Enviar session_id no payload para backend."
+      },
+      "backend_call_fn": {
+        "name": "sendToBackend",
+        "line_start": 781,
+        "line_end": 800,
+        "description": "Faz fetch POST para /api/chat com { message }. Não envia session_id atualmente.",
+        "endpoint": "/api/chat",
+        "method": "POST",
+        "payload_structure": {
+          "current": "{ message: string }",
+          "suggested": "{ message: string, session_id?: string }"
+        }
+      },
+      "state_management": {
+        "AppState": {
+          "location": "linha 2-11",
+          "messageHistory": "linha 6 - array em memória",
+          "persistence": "Nenhuma - perdido ao recarregar"
+        },
+        "localStorage_usage": {
+          "chatleo_tip": "linha 185, 190 - apenas para tooltip onboarding",
+          "chatbot-preferences": "linha 745, 750 - apenas preferências de acessibilidade"
+        }
+      }
+    }
+  ],
+  "backend_files": [
+    {
+      "path": "app.py",
+      "routes": [
+        {
+          "path": "/api/chat",
+          "method": "POST",
+          "line_start": 42,
+          "line_end": 48,
+          "handler": "chat()",
+          "current_flow": [
+            "1. Valida se chatbot_web existe (linha 44)",
+            "2. Extrai user_message do request.json (linha 46)",
+            "3. Chama chatbot_web.gerar_resposta(user_message) (linha 47)",
+            "4. Retorna JSON com resposta (linha 48)"
+          ],
+          "request_structure": {
+            "current": "{ message: string }",
+            "missing": "session_id, timestamp, user_metadata"
+          },
+          "response_structure": {
+            "current": "{ response: string }",
+            "missing": "session_id, message_id, timestamp"
+          }
+        },
+        {
+          "path": "/health",
+          "method": "GET",
+          "line_start": 50,
+          "line_end": 57,
+          "description": "Health check endpoint - não relacionado ao chat"
+        }
+      ],
+      "ai_call_fn": {
+        "path": "utils/responder.py",
+        "class": "Chatbot",
+        "method": "gerar_resposta",
+        "line_start": 272,
+        "line_end": 284,
+        "description": "Método que chama Gemini API via self.chat_session.send_message(). Mantém contexto de conversa internamente no Gemini, mas não persiste histórico.",
+        "flow": [
+          "1. Valida pergunta não vazia (linha 274)",
+          "2. Formata mensagem como 'Usuário: {pergunta}' (linha 278)",
+          "3. Envia para Gemini via chat_session.send_message() (linha 279)",
+          "4. Extrai texto da resposta (linha 280)",
+          "5. Retorna string (linha 281)"
+        ],
+        "session_management": {
+          "type": "Gemini internal session",
+          "location": "self.chat_session (linha 263, 89, 103)",
+          "persistence": "Nenhuma - perdido ao reiniciar servidor",
+          "note": "Cada instância de Chatbot mantém uma sessão Gemini, mas é compartilhada entre todos os usuários (problema de escalabilidade)"
+        }
+      },
+      "initialization": {
+        "chatbot_instance": {
+          "variable": "chatbot_web",
+          "line": 23,
+          "scope": "Global - instância única compartilhada",
+          "issue": "Todas as requisições compartilham a mesma sessão Gemini (não escalável)"
+        }
+      }
+    }
+  ],
+  "firebase_presence": [
+    {
+      "path": "test-firebase.html",
+      "type": "client",
+      "status": "TESTE ISOLADO - NÃO INTEGRADO",
+      "description": "Arquivo de teste com configuração Firebase. Usa Firebase JS SDK v12.5.0. Configuração exposta no código (não seguro para produção).",
+      "firebase_config": {
+        "apiKey": "AIzaSyCl1i15UBxBGnyW9tA4P82k4D7ZEp5Q1Hg",
+        "projectId": "chat-jovem-programador-v2",
+        "location": "linha 16-23"
+      },
+      "integration_level": "NENHUMA - arquivo separado, não importado em script.js ou app.py"
+    }
+  ],
+  "suggested_hooks": {
+    "frontend": {
+      "before_send_hook_line": {
+        "location": "static/js/script.js:522",
+        "context": "Após addMessage(message, 'user') mas ANTES de sendToBackend()",
+        "action": "Salvar mensagem do usuário no Firestore com session_id",
+        "code_snippet": "// Após linha 522, antes de linha 528\nconst sessionId = getOrCreateSessionId();\nawait saveUserMessageToFirestore(sessionId, message);",
+        "dependencies": [
+          "Inicializar Firebase client SDK",
+          "Função getOrCreateSessionId() - gerar ou recuperar do localStorage",
+          "Função saveUserMessageToFirestore() - salvar em collection 'messages'"
+        ]
+      },
+      "after_reply_hook_line": {
+        "location": "static/js/script.js:535",
+        "context": "Após receber botResponse de sendToBackend(), antes de addMessage()",
+        "action": "Salvar resposta do bot no Firestore",
+        "code_snippet": "// Após linha 533, antes de linha 535\nconst sessionId = getOrCreateSessionId();\nawait saveBotMessageToFirestore(sessionId, botResponse);",
+        "note": "Alternativa: Backend pode salvar resposta diretamente, evitando chamada extra do frontend"
+      },
+      "session_id_generation": {
+        "location": "static/js/script.js:59 (initializeApp)",
+        "suggestion": "Adicionar função para gerar/recuperar session_id na inicialização",
+        "implementation": "function getOrCreateSessionId() {\n  let sessionId = localStorage.getItem('chat_session_id');\n  if (!sessionId) {\n    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);\n    localStorage.setItem('chat_session_id', sessionId);\n  }\n  return sessionId;\n}"
+      }
+    },
+    "backend": {
+      "new_route": {
+        "path": "/api/chat",
+        "modification": "MODIFICAR ROTA EXISTENTE (não criar nova)",
+        "line": 42,
+        "changes": [
+          "1. Extrair session_id do request.json (opcional para backward compatibility)",
+          "2. Salvar mensagem do usuário no Firestore ANTES de chamar IA",
+          "3. Chamar chatbot_web.gerar_resposta() (mantém comportamento atual)",
+          "4. Salvar resposta do bot no Firestore",
+          "5. Retornar resposta (mantém formato atual)"
+        ],
+        "feature_flag": "Usar AI_FIRESTORE_ENABLED para habilitar/desabilitar salvamento"
+      },
+      "service_module": {
+        "path": "services/firestore.py",
+        "description": "Novo módulo para abstrair operações Firestore",
+        "functions": [
+          "save_message(session_id, message, sender, timestamp)",
+          "get_session_messages(session_id, limit)",
+          "create_session(session_id, metadata)"
+        ],
+        "dependencies": [
+          "firebase-admin (server-side)",
+          "Service account key JSON (variável de ambiente)"
+        ]
+      },
+      "modification_points": {
+        "app.py": {
+          "line": 42,
+          "change": "Adicionar import de firestore service e feature flag check",
+          "before_ai_call": "Salvar mensagem do usuário (linha 46-47)",
+          "after_ai_call": "Salvar resposta do bot (linha 47-48)"
+        }
+      }
+    }
+  },
+  "risks": [
+    {
+      "category": "CORS",
+      "risk_level": "MÉDIO",
+      "description": "CORS está configurado como CORS(app) sem restrições (linha 21 app.py). Firebase client SDK pode precisar de configuração adicional.",
+      "mitigation": "Manter CORS permissivo para desenvolvimento, adicionar whitelist de origens em produção. Firebase SDK funciona com CORS padrão."
+    },
+    {
+      "category": "Auth",
+      "risk_level": "ALTO",
+      "description": "Nenhuma autenticação implementada. Qualquer usuário pode enviar mensagens. Backend não valida origem das requisições.",
+      "mitigation": "Implementar autenticação Firebase Auth no frontend (opcional para MVP). Backend pode usar Firebase Admin SDK para validar tokens."
+    },
+    {
+      "category": "Payload Size",
+      "risk_level": "BAIXO",
+      "description": "Mensagens limitadas a 500 caracteres no frontend (linha 152 index.html). Firestore tem limite de 1MB por documento.",
+      "mitigation": "Validação já existe no frontend. Adicionar validação no backend também. Limitar tamanho de mensagens salvas."
+    },
+    {
+      "category": "Dependencies",
+      "risk_level": "MÉDIO",
+      "description": "Projeto não tem firebase-admin ou firebase no requirements.txt. Versão do SDK no test-firebase.html (12.5.0) pode estar desatualizada.",
+      "mitigation": "Adicionar firebase-admin==6.x ao requirements.txt. Atualizar Firebase JS SDK no frontend para versão mais recente."
+    },
+    {
+      "category": "Session Management",
+      "risk_level": "ALTO",
+      "description": "Backend usa instância global chatbot_web com sessão Gemini compartilhada. Todos os usuários compartilham o mesmo contexto de conversa.",
+      "mitigation": "Criar instância de Chatbot por session_id ou usar histórico do Firestore para reconstruir contexto por sessão."
+    },
+    {
+      "category": "Error Handling",
+      "risk_level": "MÉDIO",
+      "description": "Se Firestore falhar, chat pode quebrar. Não há fallback se salvamento falhar.",
+      "mitigation": "Usar try/except para salvar no Firestore. Se falhar, logar erro mas continuar fluxo normal do chat (graceful degradation)."
+    },
+    {
+      "category": "Backward Compatibility",
+      "risk_level": "BAIXO",
+      "description": "Adicionar session_id como campo opcional mantém compatibilidade. Frontend antigo continuará funcionando.",
+      "mitigation": "Tornar session_id opcional no backend. Se não fornecido, gerar um no backend."
+    },
+    {
+      "category": "Cost",
+      "risk_level": "MÉDIO",
+      "description": "Firestore cobra por leituras/escritas. Cada mensagem = 2 writes (user + bot). Pode ser caro em alta escala.",
+      "mitigation": "Implementar batching de mensagens ou usar Firestore apenas para sessões ativas. Considerar cache para mensagens antigas."
+    }
+  ],
+  "next_steps": [
+    {
+      "step": 1,
+      "task": "Adicionar dependências Firebase",
+      "actions": [
+        "Adicionar 'firebase-admin>=6.0.0' ao requirements.txt",
+        "Criar arquivo .env.example com FIREBASE_SERVICE_ACCOUNT_KEY (path para JSON)",
+        "Documentar como obter service account key do Firebase Console"
+      ]
+    },
+    {
+      "step": 2,
+      "task": "Criar módulo services/firestore.py",
+      "actions": [
+        "Implementar inicialização do Firebase Admin SDK",
+        "Criar função save_message(session_id, message, sender, timestamp)",
+        "Criar função get_session_messages(session_id, limit=50)",
+        "Adicionar tratamento de erros e logging"
+      ]
+    },
+    {
+      "step": 3,
+      "task": "Modificar backend (app.py)",
+      "actions": [
+        "Adicionar import de services.firestore",
+        "Adicionar variável de ambiente AI_FIRESTORE_ENABLED",
+        "Modificar rota /api/chat para:",
+        "  - Extrair session_id do request (ou gerar se não existir)",
+        "  - Salvar mensagem do usuário ANTES de chamar IA (se flag ativa)",
+        "  - Chamar chatbot_web.gerar_resposta() (mantém comportamento)",
+        "  - Salvar resposta do bot DEPOIS (se flag ativa)",
+        "  - Retornar resposta normalmente"
+      ]
+    },
+    {
+      "step": 4,
+      "task": "Modificar frontend (script.js)",
+      "actions": [
+        "Adicionar inicialização Firebase client SDK no initializeApp()",
+        "Criar função getOrCreateSessionId()",
+        "Criar função saveUserMessageToFirestore()",
+        "Modificar sendMessage() para salvar mensagem do usuário ANTES de sendToBackend()",
+        "Modificar sendToBackend() para incluir session_id no payload",
+        "Opcional: Salvar resposta do bot no frontend (ou deixar backend fazer)"
+      ]
+    },
+    {
+      "step": 5,
+      "task": "Adicionar feature flag",
+      "actions": [
+        "Criar variável de ambiente AI_FIRESTORE_ENABLED=true/false",
+        "Verificar flag no backend antes de salvar no Firestore",
+        "Permitir desabilitar Firestore sem quebrar chat"
+      ]
+    },
+    {
+      "step": 6,
+      "task": "Testes",
+      "actions": [
+        "Testar fluxo completo: enviar mensagem → verificar no Firestore",
+        "Testar com flag desabilitada (deve funcionar normalmente)",
+        "Testar com session_id ausente (deve gerar automaticamente)",
+        "Testar tratamento de erros (Firestore offline, etc.)"
+      ]
+    },
+    {
+      "step": 7,
+      "task": "Documentação",
+      "actions": [
+        "Atualizar README com instruções de configuração Firebase",
+        "Documentar estrutura de dados no Firestore",
+        "Adicionar exemplos de queries para análise"
+      ]
+    }
+  ],
+  "data_structure": {
+    "firestore_collections": {
+      "messages": {
+        "document_id": "auto-generated",
+        "fields": {
+          "session_id": "string (indexed)",
+          "message": "string",
+          "sender": "string (user|bot)",
+          "timestamp": "timestamp",
+          "metadata": {
+            "user_agent": "string (opcional)",
+            "ip_address": "string (opcional, hash)",
+            "response_time_ms": "number (opcional)"
+          }
+        },
+        "indexes": ["session_id", "timestamp"]
+      },
+      "sessions": {
+        "document_id": "session_id",
+        "fields": {
+          "created_at": "timestamp",
+          "last_message_at": "timestamp",
+          "message_count": "number",
+          "user_metadata": {
+            "user_agent": "string",
+            "referrer": "string (opcional)"
+          }
+        }
+      }
+    }
+  },
+  "integration_points_summary": {
+    "frontend_before_send": {
+      "file": "static/js/script.js",
+      "line": 522,
+      "action": "Salvar mensagem do usuário no Firestore",
+      "critical": false,
+      "note": "Pode ser feito no backend também"
+    },
+    "backend_before_ai": {
+      "file": "app.py",
+      "line": 46,
+      "action": "Salvar mensagem do usuário no Firestore",
+      "critical": true,
+      "note": "Melhor local - garante que mensagem é salva mesmo se IA falhar"
+    },
+    "backend_after_ai": {
+      "file": "app.py",
+      "line": 47,
+      "action": "Salvar resposta do bot no Firestore",
+      "critical": true,
+      "note": "Salvar após obter resposta, antes de retornar"
+    },
+    "frontend_after_reply": {
+      "file": "static/js/script.js",
+      "line": 535,
+      "action": "Opcional - salvar resposta do bot (redundante se backend já salvou)",
+      "critical": false,
+      "note": "Pode ser útil para offline-first ou se backend falhar"
+    }
+  }
+}
+

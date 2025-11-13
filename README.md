@@ -74,11 +74,28 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 4. Configure a Chave da API
-Crie um arquivo chamado `.env` na raiz do projeto e adicione sua chave da API do Google Gemini:
-```
+#### 4. Configure as Variáveis de Ambiente
+Crie um arquivo chamado `.env` na raiz do projeto e adicione as seguintes variáveis:
+
+```env
+# Chave da API do Google Gemini (obrigatória)
 GEMINI_API_KEY="SUA_CHAVE_SECRETA_AQUI"
+
+# Configuração do Firestore (opcional - para persistência de conversas)
+AI_FIRESTORE_ENABLED=false
+FIREBASE_CREDENTIALS='{"type":"service_account",...}'
+FIREBASE_PROJECT_ID="seu-projeto-id"
 ```
+
+**Sobre o Firestore:**
+- Se `AI_FIRESTORE_ENABLED=false` (padrão), o chat funciona normalmente sem persistência.
+- Para habilitar persistência, defina `AI_FIRESTORE_ENABLED=true` e configure `FIREBASE_CREDENTIALS`.
+- `FIREBASE_CREDENTIALS` deve ser uma string JSON com as credenciais do Service Account do Firebase.
+- Para obter as credenciais:
+  1. Acesse [Firebase Console](https://console.firebase.google.com/)
+  2. Vá em Project Settings → Service Accounts
+  3. Clique em "Generate new private key"
+  4. Copie o JSON completo e cole como string em `FIREBASE_CREDENTIALS` (ou use o caminho do arquivo)
 
 #### 5. Execute o Scraper
 Este comando irá criar o arquivo `dados.json` com as informações mais recentes do site.
@@ -136,6 +153,50 @@ Este projeto foi desenvolvido com a colaboração de uma equipe incrível. Agrad
     </td>
   </tr>
 </table>
+
+---
+
+## 🔥 Persistência de Conversas (Firestore)
+
+O projeto suporta persistência de conversas no Firestore através de uma feature flag.
+
+### Estrutura de Dados
+
+As conversas são armazenadas na seguinte estrutura:
+
+```
+conversations/
+  {session_id}/
+    - session_id: string
+    - iniciadoEm: timestamp
+    - ultimaMensagemEm: timestamp
+    messages/
+      {auto-id}/
+        - papel: "user" | "assistant"
+        - texto: string
+        - criadoEm: timestamp
+        - meta: object (opcional)
+```
+
+### Feature Flag
+
+- **`AI_FIRESTORE_ENABLED`**: Controla se as mensagens são salvas no Firestore
+  - `true`: Habilita persistência (requer `FIREBASE_CREDENTIALS` configurado)
+  - `false`: Desabilita persistência (comportamento padrão, chat funciona normalmente)
+
+### Retrocompatibilidade
+
+- O chat funciona normalmente mesmo com `AI_FIRESTORE_ENABLED=false`
+- Se o Firestore falhar, o chat continua funcionando (graceful degradation)
+- O `session_id` é gerado automaticamente pelo frontend e enviado ao backend
+- Backend gera `session_id` como fallback se não receber do frontend
+
+### Índices Firestore Recomendados
+
+Para consultas futuras, recomenda-se criar os seguintes índices:
+
+1. **Collection Group `messages`**: Índice em `criadoEm` (para consultas de todas as mensagens)
+2. **Collection `conversations`**: Índice em `ultimaMensagemEm` (para ordenar conversas)
 
 ---
 
