@@ -600,7 +600,12 @@ function addMessage(content, sender) {
     
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
-    messageContent.textContent = content;
+    if (sender === 'bot') {
+        const frag = linkifyText(content);
+        messageContent.appendChild(frag);
+    } else {
+        messageContent.textContent = content;
+    }
     
     bubble.appendChild(messageContent);
     
@@ -744,6 +749,33 @@ function notifyIncomingMessage() {
         const bubble = DOMElements.chatbotTrigger || DOMElements.chatBubble;
         bubble?.classList.add('chatleo-bubble--active');
     }
+}
+
+function linkifyText(text) {
+    const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    text.replace(urlRegex, (match, offset) => {
+        if (offset > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
+        }
+        let url = match;
+        if (url.startsWith('www.')) {
+            url = 'https://' + url;
+        }
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = match;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer nofollow';
+        fragment.appendChild(a);
+        lastIndex = offset + match.length;
+        return match;
+    });
+    if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+    }
+    return fragment;
 }
 
 function handleClickOutside(e) {
