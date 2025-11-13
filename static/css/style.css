@@ -487,17 +487,22 @@ footer {
 
 /* Links dentro do conteúdo da mensagem (bot) */
 .message-content a {
-    color: inherit;                /* usa a mesma cor de texto da mensagem */
-    text-decoration: underline;    /* indica que é clicável, mas dentro do tema */
+    display: block;                /* cada link vira uma linha */
+    margin-bottom: 4px;            /* espacinho entre eles */
+    color: inherit;                /* mesma cor do texto da mensagem */
+    text-decoration: underline;    /* indica que é link */
     text-decoration-thickness: 1px;
-    word-break: break-all;         /* URLs longas quebram linha dentro da bolha */
+    word-break: break-word;        /* quebra bonito sem destruir as palavras */
+}
+
+.message-content a:last-child {
+    margin-bottom: 0;              /* último sem espaço extra */
 }
 
 .message-content a:hover {
     text-decoration: underline;
-    opacity: 0.9;                  /* leve feedback no hover */
+    opacity: 0.9;
 }
-
 .message-reactions {
     display: flex;
     gap: var(--space-2);
