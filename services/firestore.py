@@ -11,6 +11,7 @@ from firebase_admin import initialize_app, credentials, firestore
 from firebase_admin.exceptions import FirebaseError
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG) 
 
 # Flag global para verificar se Firestore está habilitado
 _firestore_enabled = None
@@ -59,6 +60,7 @@ def init_admin():
         
         _db = firestore.client()
         logger.info("[Firestore] Inicializado com sucesso")
+        logger.info(f"[Firestore] Projeto conectado: {_db.project}")
         
     except json.JSONDecodeError as e:
         logger.error(f"[Firestore] Erro ao parsear FIREBASE_CREDENTIALS: {e}")
@@ -84,6 +86,7 @@ def get_or_create_conversation(session_id):
     try:
         now = datetime.utcnow()
         conv_ref = _db.collection("conversations").document(session_id)
+        logger.info(f"[Firestore] Salvando conversa em: {conv_ref.path}")
         
         conv_data = {
             "session_id": session_id,
@@ -135,6 +138,14 @@ def save_message(session_id, role, text, meta=None):
             message_data["meta"] = meta
         
         messages_ref = _db.collection("conversations").document(session_id).collection("messages")
+        messages_ref = (
+            _db.collection("conversations")
+               .document(session_id)
+               .collection("messages")
+        )
+        logger.info(f"[Firestore] Salvando mensagem em: conversations/{session_id}/messages")
+        messages_ref.add(message_data)
+        logger.info(f"[Firestore] Mensagem gravada com sucesso no Firestore")
         messages_ref.add(message_data)
         
         logger.debug(f"[Firestore] Mensagem salva: {session_id}/{role}")
