@@ -677,15 +677,19 @@ function handleQuickAction(e) {
 
 // ===== INDICADORES =====
 function showTypingIndicator() {
+    const indicator = document.getElementById('widget-typing-indicator');
+    if (!indicator) return;
+    if (DOMElements.widgetMessages && DOMElements.typingIndicator) {
+        DOMElements.widgetMessages.appendChild(DOMElements.typingIndicator);
+    }
     if (DOMElements.typingIndicator) {
         DOMElements.typingIndicator.classList.add('active');
         announceToScreenReader('O assistente está digitando');
     }
-    const indicator = document.getElementById('widget-typing-indicator');
-    if (!indicator) return;
     indicator.classList.add('active');
     indicator.removeAttribute('hidden');
     indicator.setAttribute('aria-hidden', 'false');
+    scrollMessagesToBottom();
 }
 
 function hideTypingIndicator() {
