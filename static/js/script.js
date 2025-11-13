@@ -751,6 +751,16 @@ function notifyIncomingMessage() {
     }
 }
 
+const FRIENDLY_NAMES = {
+    "facebook.com": "Facebook",
+    "instagram.com": "Instagram",
+    "linkedin.com": "LinkedIn",
+    "tiktok.com": "TikTok",
+    "jovemprogramador.com.br": "Site oficial",
+    "portal.sc.senac.br": "Portal Senac",
+    "programajovemprogramador.com.br": "Programa Jovem Programador",
+};
+
 function linkifyText(text) {
     const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
     const fragment = document.createDocumentFragment();
@@ -765,7 +775,14 @@ function linkifyText(text) {
         }
         const a = document.createElement('a');
         a.href = url;
-        a.textContent = match;
+        let label = match;
+        try {
+            const domain = new URL(url).hostname.replace('www.', '');
+            label = FRIENDLY_NAMES[domain] || domain;
+        } catch (_) {
+            label = match;
+        }
+        a.textContent = label;
         a.target = '_blank';
         a.rel = 'noopener noreferrer nofollow';
         fragment.appendChild(a);
