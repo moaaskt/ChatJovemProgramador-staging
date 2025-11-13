@@ -113,22 +113,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
-        
-                <!-- Indicador de digitação -->
-                <div class="typing-indicator" id="widget-typing-indicator" aria-label="O bot está pensando" hidden>
-                    <div class="bot-message">
-                        <div class="message-avatar">
-                            <img src="../static/assets/logo.png" alt="Abrir chat">
-
-                        </div>
-                        <div class="message-bubble typing">
-                            <div class="typing-dots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                    <div class="typing-indicator" id="widget-typing-indicator" aria-label="O bot está pensando" hidden>
+                        <div class="bot-message">
+                            <div class="message-avatar">
+                                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo do bot">
                             </div>
-                            <span class="typing-text">O bot está pensando 🤔</span>
+                            <div class="message-bubble typing">
+                                <div class="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="typing-text">O bot está pensando 🤔</span>
+                            </div>
                         </div>
                     </div>
                 </div>
