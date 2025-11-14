@@ -39,6 +39,8 @@ function withChatleoLock(fn){
   try { fn(); } finally { setTimeout(()=>{ ChatleoLock=false; }, CHATLEO_TRANSITION_MS); }
 }
 
+let isWaiting = false;
+
 // ===== ELEMENTOS DOM =====
 const DOMElements = {
     // Trigger do chatbot
@@ -79,6 +81,30 @@ const bubbleImg = document.querySelector('.chatleo-bubble__avatar img');
 if (bubbleImg) {
     bubbleImg.src = BOT_AVATAR;
     bubbleImg.alt = "Abrir chat";
+}
+
+function setLocked(locked) {
+    isWaiting = locked;
+    const input = DOMElements.messageInput;
+    const send = DOMElements.sendBtn;
+    const quick1 = Array.from(DOMElements.quickBtns || []);
+    const quick2 = Array.from(document.querySelectorAll('.chatleo-quick-button'));
+    const quickAll = [...quick1, ...quick2];
+    if (input) {
+        input.disabled = locked;
+        input.classList.toggle('is-disabled', locked);
+        input.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    }
+    if (send) {
+        send.disabled = locked;
+        send.classList.toggle('is-disabled', locked);
+        send.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    }
+    quickAll.forEach(btn => {
+        btn.disabled = locked;
+        btn.classList.toggle('is-disabled', locked);
+        btn.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    });
 }
 
 // ===== INICIALIZAÇÃO =====
@@ -450,6 +476,7 @@ function handleTabNavigation(e) {
 }
 
 function handleInputKeydown(e) {
+    if (isWaiting) { e.preventDefault(); return; }
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
@@ -541,19 +568,13 @@ function minimizeWidget() {
 
 // ===== MENSAGENS =====
 function sendMessage() {
+    if (isWaiting) return;
     const message = DOMElements.messageInput?.value.trim();
     if (!message) return;
-    
-    // Adicionar mensagem do usuário
     addMessage(message, 'user');
-    
-    // Limpar input
     DOMElements.messageInput.value = '';
-    
-    // Mostrar indicador de digitação
     showTypingIndicator();
-    
-    // Buscar resposta real no backend
+    setLocked(true);
     (async () => {
         try {
             const botResponse = await sendToBackend(message);
@@ -563,10 +584,10 @@ function sendMessage() {
         } catch (err) {
             hideTypingIndicator();
             addMessage('Erro ao conectar ao assistente. Tente novamente.', 'bot');
+        } finally {
+            setLocked(false);
         }
     })();
-    
-    // Adicionar XP
     addXP(10);
 }
 
@@ -668,12 +689,11 @@ function showWelcomeMessage() {
 
 // ===== AÇÕES RÁPIDAS =====
 function handleQuickAction(e) {
-    const button = e.target.closest('.quick-btn');
+    if (isWaiting) return;
+    const target = e && e.target ? e.target : null;
+    const button = (target && target.closest('.quick-btn')) || (target && target.closest('.chatleo-quick-button')) || this;
     if (!button) return;
-    
     const message = button.textContent.trim();
-    
-    // Simular clique no input e envio
     if (DOMElements.messageInput) {
         DOMElements.messageInput.value = message;
         sendMessage();

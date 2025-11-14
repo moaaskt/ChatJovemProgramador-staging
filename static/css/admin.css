@@ -474,6 +474,10 @@ button {
   scrollbar-width: thin;
   /* Firefox */
   scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
+  scroll-padding-bottom: 84px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 #chat-viewer::-webkit-scrollbar {
@@ -651,4 +655,21 @@ button {
     font-size: 0.78rem;          /* levemente menor, mas legível */
     line-height: 1.2;
     display: block;              /* garante que quebre linha certinho */
+}
+
+@media screen and (max-width: 768px) {
+  #chat-viewer { max-height: none; scroll-padding-bottom: 96px; }
+  .bubble-row { margin-bottom: 14px; }
+  .bubble-user,
+  .bubble-bot {
+    max-width: 92%;
+    font-size: 12.5px;
+    padding: 12px 14px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  #chat-viewer { scroll-padding-bottom: 112px; }
+  .bubble-user,
+  .bubble-bot { max-width: 95%; }
 }
