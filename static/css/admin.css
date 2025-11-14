@@ -6,8 +6,8 @@
 
 :root {
   --app-bg-dark: #01081f;
-  --app-bg-before: linear-gradient(180deg, rgba(1,8,31,0) 0%, rgba(1,8,31,1) 100%);
-  --app-bg-before-2: linear-gradient(0deg, rgba(1,8,31,0) 0%, rgba(1,8,31,1) 100%);
+  --app-bg-before: linear-gradient(180deg, rgba(1, 8, 31, 0) 0%, rgba(1, 8, 31, 1) 100%);
+  --app-bg-before-2: linear-gradient(0deg, rgba(1, 8, 31, 0) 0%, rgba(1, 8, 31, 1) 100%);
   --app-bg-light: #151c32;
   --app-logo: #3d7eff;
   --accent: #4da3ff;
@@ -23,8 +23,8 @@
   --applicant-icon: #61e1a1;
   --close-bg: #fff8e5;
   --close-icon: #fdbc64;
-  --draft-bg:  #fed8b3;
-  --draft-icon:  #e9780e;
+  --draft-bg: #fed8b3;
+  --draft-icon: #e9780e;
   --text-strong: #ffffff;
   --text-normal: #e6e8ff;
   --text-soft: #c7cbea;
@@ -100,7 +100,9 @@ a {
   cursor: pointer;
 }
 
-button { cursor: pointer; }
+button {
+  cursor: pointer;
+}
 
 .nav-list {
   margin-top: 40px;
@@ -167,7 +169,7 @@ button { cursor: pointer; }
   overflow-x: hidden;
   background-color: var(--app-bg-light);
   padding: 24px;
-  background: radial-gradient(circle, rgba(5,19,64,1) 1%, rgba(4,15,50,1) 100%);
+  background: radial-gradient(circle, rgba(5, 19, 64, 1) 1%, rgba(4, 15, 50, 1) 100%);
 }
 
 /* HEADER DA PÁGINA */
@@ -215,7 +217,7 @@ button { cursor: pointer; }
   flex-direction: column;
 }
 
-.chart-row.two .small .chart-container + .chart-container {
+.chart-row.two .small .chart-container+.chart-container {
   margin-top: 16px;
 }
 
@@ -293,7 +295,10 @@ button { cursor: pointer; }
   transition: all 0.3s ease;
   color: var(--text-normal);
 }
-.card-section a { color: var(--accent); }
+
+.card-section a {
+  color: var(--accent);
+}
 
 .recent-table-wrapper {
   min-height: 220px;
@@ -339,7 +344,9 @@ button { cursor: pointer; }
   padding: 8px 12px;
 }
 
-.table-dark tbody td { vertical-align: middle; }
+.table-dark tbody td {
+  vertical-align: middle;
+}
 
 /* CHART AREA */
 
@@ -372,14 +379,24 @@ button { cursor: pointer; }
   padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
-.chat-header-info span { color: var(--text-strong); }
+
+.chat-header-info span {
+  color: var(--text-strong);
+}
+
 .chat-header-info small,
-.chat-header small { color: var(--text-muted); display: block; }
+.chat-header small {
+  color: var(--text-muted);
+  display: block;
+}
 
 .sessions-panel h2,
 .chat-panel h2,
 .panel-title,
-.page-title { color: var(--text-strong); margin: 0 0 6px; }
+.page-title {
+  color: var(--text-strong);
+  margin: 0 0 6px;
+}
 
 .conversations-subtitle {
   font-size: 12px;
@@ -429,8 +446,15 @@ button { cursor: pointer; }
   align-items: center;
   gap: 10px;
 }
+
 .sessions-panel #conv-list .list-group-item small,
-.sessions-panel #conv-list .list-group-item .text-muted { color: var(--text-muted); }
+.sessions-panel #conv-list .list-group-item .text-muted {
+  color: var(--text-soft);
+  /* ou var(--text-normal) se quiser ainda mais forte */
+  opacity: 0.9;
+  /* garante que não fique transparente */
+}
+
 .sessions-panel #conv-list .list-group-item:hover {
   background: rgba(255, 255, 255, 0.12);
 }
@@ -449,12 +473,24 @@ button { cursor: pointer; }
   border-radius: 12px;
   padding: 12px;
   scroll-behavior: smooth;
-  scrollbar-width: thin; /* Firefox */
+  scrollbar-width: thin;
+  /* Firefox */
   scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
 }
-#chat-viewer::-webkit-scrollbar { width: 8px; }
-#chat-viewer::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.08); border-radius: 8px; }
-#chat-viewer::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 8px; }
+
+#chat-viewer::-webkit-scrollbar {
+  width: 8px;
+}
+
+#chat-viewer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+#chat-viewer::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 8px;
+}
 
 .bubble-user,
 .bubble-bot {
@@ -467,7 +503,10 @@ button { cursor: pointer; }
   line-height: 1.4;
 }
 
-.bubble-row { display: flex; margin-bottom: 12px; }
+.bubble-row {
+  display: flex;
+  margin-bottom: 12px;
+}
 
 .bubble-user {
   background: #216cff;
@@ -503,7 +542,9 @@ button { cursor: pointer; }
 }
 
 @media (max-width: 992px) {
-  .conversations-shell { grid-template-columns: 1fr; }
+  .conversations-shell {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* RESPONSIVO */
