@@ -1,0 +1,109 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="container-fluid py-2">
+    <div class="dashboard-shell">
+        <h2 class="mb-1">Conversas</h2>
+        <p class="text-muted mb-4">Histórico de sessões do ChatLeo</p>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <div class="card-section">
+                    <h4 class="mb-3">Sessões recentes</h4>
+                    <div id="conv-list" class="list-group small" style="max-height: 420px; overflow-y: auto;"></div>
+                </div>
+            </div>
+            <div class="col-12 col-md-8">
+                <div class="card-section">
+                    <h4 class="mb-2">Detalhes da conversa</h4>
+                    <span id="conv-session-label" class="text-muted"></span>
+                    <div id="chat-viewer" class="chat-viewer mt-3">
+                        <div class="text-muted small">Selecione uma conversa.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-viewer { background: #020617; border-radius: 12px; padding: 12px; max-height:420px; overflow-y:auto; }
+    .bubble-row { display:flex; margin-bottom:8px; }
+    .bubble-user { margin-left:auto; max-width:80%; background:#4c1d95; color:#e5e7eb; border-radius:16px 16px 4px 16px; padding:8px; }
+    .bubble-bot { margin-right:auto; max-width:80%; background:#111827; color:#e5e7eb; border-radius:16px 16px 16px 4px; padding:8px; }
+    .bubble-meta { font-size:0.7rem; color:#9ca3af; margin-top:2px; }
+</style>
+
+<script>
+ function formatTimestamp(ts) {
+    if (!ts || !ts._seconds) return "";
+    return new Date(ts._seconds * 1000).toLocaleString("pt-BR");
+ }
+ 
+ function loadConversations() {
+    fetch("/admin/api/conversations")
+      .then(r => r.json())
+      .then(data => {
+         const list = document.getElementById("conv-list");
+         list.innerHTML = "";
+         data.conversations.forEach(c => {
+             const totalUser = c.total_user_messages || 0;
+             const totalBot = c.total_bot_messages || 0;
+             const total = totalUser + totalBot;
+ 
+             const div = document.createElement("div");
+             div.className = "list-group-item list-group-item-action bg-dark text-light border-secondary mb-1";
+             div.onclick = () => loadConversation(c.session_id);
+ 
+             div.innerHTML = `
+              <div class="fw-semibold small text-truncate">${c.session_id}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">
+                 Criado: ${formatTimestamp(c.created_at)}<br>
+                 Mensagens: ${total} (${totalUser} usuário / ${totalBot} bot)
+              </div>
+             `;
+             list.appendChild(div);
+         });
+      });
+ }
+ 
+ function loadConversation(sessionId) {
+    document.getElementById("conv-session-label").innerText = sessionId;
+    const viewer = document.getElementById("chat-viewer");
+    viewer.innerHTML = "<div class='text-muted small'>Carregando...</div>";
+ 
+    fetch(`/admin/api/conversations/${sessionId}/messages`)
+      .then(r => r.json())
+      .then(data => {
+         viewer.innerHTML = "";
+         if (!data.messages.length) {
+             viewer.innerHTML = "<div class='text-muted small'>Nenhuma mensagem.</div>";
+             return;
+         }
+ 
+         data.messages.forEach(msg => {
+             const role = msg.role === "user" ? "user" : "bot";
+             const row = document.createElement("div");
+             row.className = "bubble-row";
+ 
+             const bubble = document.createElement("div");
+             bubble.className = role === "user" ? "bubble-user" : "bubble-bot";
+             bubble.textContent = msg.content || "";
+ 
+             const meta = document.createElement("div");
+             meta.className = "bubble-meta";
+             meta.textContent = formatTimestamp(msg.created_at);
+             bubble.appendChild(meta);
+ 
+             row.appendChild(bubble);
+             viewer.appendChild(row);
+         });
+ 
+         viewer.scrollTop = viewer.scrollHeight;
+      });
+ }
+ 
+ document.addEventListener("DOMContentLoaded", loadConversations);
+ </script>
+
+{% endblock %}
