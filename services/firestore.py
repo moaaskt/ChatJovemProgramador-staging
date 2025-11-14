@@ -6,7 +6,7 @@ Todas as funções retornam silenciosamente se AI_FIRESTORE_ENABLED=false.
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from firebase_admin import initialize_app, credentials, firestore
 from firebase_admin.exceptions import FirebaseError
 
@@ -84,23 +84,35 @@ def get_or_create_conversation(session_id):
         return False
     
     try:
-        now = datetime.utcnow()
         conv_ref = _db.collection("conversations").document(session_id)
         logger.info(f"[Firestore] Salvando conversa em: {conv_ref.path}")
-        
-        conv_data = {
-            "session_id": session_id,
-            "ultimaMensagemEm": now
-        }
-        
-        # Se documento não existe, adiciona iniciadoEm
-        if not conv_ref.get().exists:
-            conv_data["iniciadoEm"] = now
-        
-        conv_ref.set(conv_data, merge=True)
+
+        doc = conv_ref.get()
+        if not doc.exists:
+            # Documento novo: definir campos completos (mantendo compatibilidade)
+            conv_ref.set({
+                "session_id": session_id,
+                # campos legados
+                "iniciadoEm": firestore.SERVER_TIMESTAMP,
+                "ultimaMensagemEm": firestore.SERVER_TIMESTAMP,
+                # campos padronizados para analytics
+                "created_at": firestore.SERVER_TIMESTAMP,
+                "updated_at": firestore.SERVER_TIMESTAMP,
+                "total_user_messages": 0,
+                "total_bot_messages": 0,
+                "channel": "web",
+                "status": "open",
+            }, merge=True)
+        else:
+            # Documento existente: atualizar última atividade
+            conv_ref.update({
+                "ultimaMensagemEm": firestore.SERVER_TIMESTAMP,
+                "updated_at": firestore.SERVER_TIMESTAMP,
+            })
+
         logger.debug(f"[Firestore] Conversa {session_id} atualizada")
         return True
-        
+
     except Exception as e:
         logger.error(f"[Firestore] Erro ao salvar conversa {session_id}: {e}")
         return False
@@ -127,31 +139,142 @@ def save_message(session_id, role, text, meta=None):
         return False
     
     try:
-        now = datetime.utcnow()
+        # Normalizar role
+        normalized_role = role
+        if role == "assistant":
+            normalized_role = "bot"
+        elif role == "user":
+            normalized_role = "user"
+
+        # Montar dados da mensagem (novos + compatibilidade)
         message_data = {
-            "papel": role,
+            # novos campos padronizados
+            "role": normalized_role,
+            "content": text,
+            "created_at": firestore.SERVER_TIMESTAMP,
+            # campos antigos (compatibilidade)
+            "papel": normalized_role,
             "texto": text,
-            "criadoEm": now
+            "criadoEm": firestore.SERVER_TIMESTAMP,
         }
-        
-        if meta:
-            message_data["meta"] = meta
-        
-        messages_ref = _db.collection("conversations").document(session_id).collection("messages")
-        messages_ref = (
-            _db.collection("conversations")
-               .document(session_id)
-               .collection("messages")
-        )
+
+        if meta is not None:
+            message_data["metadata"] = meta
+
+        conversation_ref = _db.collection("conversations").document(session_id)
+        messages_ref = conversation_ref.collection("messages")
+
         logger.info(f"[Firestore] Salvando mensagem em: conversations/{session_id}/messages")
         messages_ref.add(message_data)
         logger.info(f"[Firestore] Mensagem gravada com sucesso no Firestore")
-        messages_ref.add(message_data)
-        
-        logger.debug(f"[Firestore] Mensagem salva: {session_id}/{role}")
+
+        # Atualizar contadores e timestamps da conversa
+        updates = {
+            "ultimaMensagemEm": firestore.SERVER_TIMESTAMP,
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        }
+        if normalized_role == "user":
+            updates["total_user_messages"] = firestore.Increment(1)
+        elif normalized_role == "bot":
+            updates["total_bot_messages"] = firestore.Increment(1)
+
+        conversation_ref.update(updates)
+
+        logger.debug(f"[Firestore] Mensagem salva: {session_id}/{normalized_role}")
         return True
-        
+
     except Exception as e:
         logger.error(f"[Firestore] Erro ao salvar mensagem {session_id}/{role}: {e}")
         return False
+
+
+def get_conversation_counts():
+    try:
+        convs = _db.collection("conversations").stream()
+        total = 0
+        for _ in convs:
+            total += 1
+        return {"total_conversations": total}
+    except Exception as e:
+        logger.error(f"[Firestore] Erro ao contar conversas: {e}")
+        return {"total_conversations": 0}
+
+
+def get_message_counts_by_role():
+    try:
+        user_count = 0
+        bot_count = 0
+
+        messages = _db.collection_group("messages").stream()
+        for msg in messages:
+            data = msg.to_dict()
+            role = data.get("role")
+            if role == "user":
+                user_count += 1
+            elif role == "bot":
+                bot_count += 1
+
+        return {
+            "user_messages": user_count,
+            "bot_messages": bot_count,
+        }
+    except Exception as e:
+        logger.error(f"[Firestore] Erro ao agrupar mensagens: {e}")
+        return {
+            "user_messages": 0,
+            "bot_messages": 0,
+        }
+
+
+def get_daily_conversation_counts(days=7):
+    try:
+        today = datetime.utcnow()
+        start = today - timedelta(days=days)
+
+        convs = (
+            _db.collection("conversations")
+               .where("created_at", ">=", start)
+               .stream()
+        )
+
+        stats = {}
+        for doc in convs:
+            data = doc.to_dict()
+            ts = data.get("created_at")
+            if not ts:
+                continue
+
+            d = ts.date().isoformat() if hasattr(ts, "date") else str(ts)
+            stats[d] = stats.get(d, 0) + 1
+
+        return stats
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em daily_conversation_counts: {e}")
+        return {}
+
+
+def get_recent_conversations(limit=10):
+    try:
+        convs = (
+            _db.collection("conversations")
+               .order_by("updated_at", direction=firestore.Query.DESCENDING)
+               .limit(limit)
+               .stream()
+        )
+
+        results = []
+        for c in convs:
+            d = c.to_dict()
+            results.append({
+                "session_id": d.get("session_id"),
+                "created_at": d.get("created_at"),
+                "updated_at": d.get("updated_at"),
+                "total_user_messages": d.get("total_user_messages", 0),
+                "total_bot_messages": d.get("total_bot_messages", 0),
+            })
+
+        return results
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em recent_conversations: {e}")
+        return []
 
