@@ -26,14 +26,6 @@
     </div>
 </div>
 
-<style>
-    .chat-viewer { background: #020617; border-radius: 12px; padding: 12px; max-height:420px; overflow-y:auto; }
-    .bubble-row { display:flex; margin-bottom:8px; }
-    .bubble-user { margin-left:auto; max-width:80%; background:#4c1d95; color:#e5e7eb; border-radius:16px 16px 4px 16px; padding:8px; }
-    .bubble-bot { margin-right:auto; max-width:80%; background:#111827; color:#e5e7eb; border-radius:16px 16px 16px 4px; padding:8px; }
-    .bubble-meta { font-size:0.7rem; color:#9ca3af; margin-top:2px; }
-</style>
-
 <script>
  function formatTimestamp(ts) {
     if (!ts || !ts._seconds) return "";
@@ -103,7 +95,7 @@
       });
  }
  
- document.addEventListener("DOMContentLoaded", loadConversations);
- </script>
+document.addEventListener("DOMContentLoaded", loadConversations);
+</script>
 
 {% endblock %}
