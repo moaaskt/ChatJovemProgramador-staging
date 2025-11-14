@@ -639,3 +639,8 @@ button {
     width: 100%;
   }
 }
+
+.sessions-panel #conv-list .list-group-item .text-muted {
+  color: #cdd9ff;
+  opacity: 1;
+}
