@@ -7,12 +7,23 @@
 </head>
 <body class="bg-dark text-light">
 
-    <nav class="navbar navbar-dark bg-black border-bottom border-secondary px-3">
-        <span class="navbar-brand">ChatLeo Admin</span>
-    </nav>
+    <div class="d-flex">
+        <aside class="bg-black border-end border-secondary min-vh-100 p-3" style="width: 260px;">
+            <div class="mb-4">
+                <h5 class="mb-0">ChatLeo Admin</h5>
+                <small class="text-muted">Painel do chatbot</small>
+            </div>
 
-    <div class="container py-4">
-        {% block content %}{% endblock %}
+            <nav class="nav flex-column gap-1">
+                <a href="/admin" class="nav-link text-light px-0">Dashboard</a>
+                <a href="#" class="nav-link text-secondary px-0 disabled">Conversas (em breve)</a>
+                <a href="#" class="nav-link text-secondary px-0 disabled">Configurações (em breve)</a>
+            </nav>
+        </aside>
+
+        <main class="flex-grow-1 p-4">
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
 </body>
