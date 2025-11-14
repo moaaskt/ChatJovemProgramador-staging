@@ -449,10 +449,8 @@ button {
 
 .sessions-panel #conv-list .list-group-item small,
 .sessions-panel #conv-list .list-group-item .text-muted {
-  color: var(--text-soft);
-  /* ou var(--text-normal) se quiser ainda mais forte */
-  opacity: 0.9;
-  /* garante que não fique transparente */
+  color: #ff4d4d;
+  opacity: 1;
 }
 
 .sessions-panel #conv-list .list-group-item:hover {
