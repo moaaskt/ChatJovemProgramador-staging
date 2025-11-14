@@ -84,6 +84,19 @@
     </div>
 </div>
 
+<!-- LINHA 3 – gráfico de leads por cidade -->
+<div class="chart-row one mt-4">
+    <div class="chart-container-wrapper">
+        <div class="chart-container apex-chart-card">
+            <div class="chart-container-header">
+                <h3>Leads por Cidade</h3>
+                <span>Distribuição geográfica</span>
+            </div>
+            <div id="chart_leads_by_city" class="apex-chart-container"></div>
+        </div>
+    </div>
+</div>
+
 <div class="card-section recent-table-wrapper mt-4">
     <div class="section-title-wrapper">
         <h5 class="section-title">
@@ -120,6 +133,7 @@
 let chartDaily = null;
 let chartMessagesBar = null;
 let chartMessagesDonut = null;
+let chartLeadsByCity = null;
 
 /**
  * Formata data para exibição legível (timezone-safe)
@@ -141,6 +155,35 @@ function formatDateLabel(dateStr) {
     }
     
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+/**
+ * Formata timestamp do Firestore (tolerante a diferentes formatos)
+ */
+function formatFirestoreTimestamp(ts) {
+    if (!ts) return '';
+    
+    // Se já for string (backend já formatou)
+    if (typeof ts === 'string') {
+        return ts;
+    }
+    
+    // Se for número (epoch seconds)
+    if (typeof ts === 'number') {
+        return new Date(ts * 1000).toLocaleString('pt-BR');
+    }
+    
+    // Formatos de objeto comuns do Firestore serializado
+    if (typeof ts === 'object') {
+        if (typeof ts._seconds === 'number') {
+            return new Date(ts._seconds * 1000).toLocaleString('pt-BR');
+        }
+        if (typeof ts.seconds === 'number') {
+            return new Date(ts.seconds * 1000).toLocaleString('pt-BR');
+        }
+    }
+    
+    return '';
 }
 
 /**
@@ -339,15 +382,7 @@ function createMessagesDonutChart(user, bot) {
         colors: ['#00c853', '#ffc107'],
         labels: ['Usuário', 'Bot'],
         dataLabels: {
-            enabled: true,
-            style: {
-                colors: ['#fff'],
-                fontSize: '11px',
-                fontWeight: 500
-            },
-            formatter: function(val, opts) {
-                return opts.w.config.series[opts.seriesIndex] + ' (' + val.toFixed(0) + '%)';
-            }
+            enabled: false
         },
         plotOptions: {
             pie: {
@@ -402,6 +437,93 @@ function createMessagesDonutChart(user, bot) {
     chartMessagesDonut.render();
 }
 
+/**
+ * Cria gráfico de barras para leads por cidade
+ */
+function createLeadsByCityChart(cities, counts) {
+    // Verificação de ApexCharts
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        return;
+    }
+    
+    const container = document.getElementById("chart_leads_by_city");
+    if (!container) return;
+
+    if (chartLeadsByCity) {
+        chartLeadsByCity.destroy();
+    }
+
+    // Capitaliza primeira letra de cada cidade para exibição
+    const formattedCities = cities.map(city => {
+        return city.charAt(0).toUpperCase() + city.slice(1);
+    });
+
+    const options = {
+        series: [{
+            name: 'Leads',
+            data: counts
+        }],
+        chart: {
+            type: 'bar',
+            height: 300,
+            toolbar: { show: false },
+            fontFamily: 'Poppins, sans-serif'
+        },
+        colors: ['#3d7eff'],
+        plotOptions: {
+            bar: {
+                borderRadius: 8,
+                horizontal: false,
+                columnWidth: '60%',
+                distributed: false
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            style: {
+                colors: ['#fff'],
+                fontSize: '11px',
+                fontWeight: 500
+            }
+        },
+        grid: {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            strokeDashArray: 3,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        },
+        xaxis: {
+            categories: formattedCities,
+            labels: {
+                style: { colors: '#9aa0c6', fontSize: '11px' },
+                rotate: -45,
+                rotateAlways: false
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: { colors: '#9aa0c6', fontSize: '11px' }
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            style: { fontSize: '12px', fontFamily: 'Poppins' },
+            y: {
+                formatter: function(val) {
+                    return val + ' lead' + (val !== 1 ? 's' : '');
+                }
+            }
+        },
+        legend: { show: false }
+    };
+
+    chartLeadsByCity = new ApexCharts(container, options);
+    chartLeadsByCity.render();
+}
+
 // ============================================
 // Carregamento de dados da API
 // Contrato mantido: /admin/api/reports
@@ -431,8 +553,8 @@ fetch("/admin/api/reports")
             tbody.innerHTML += `
                 <tr>
                     <td>${c.session_id}</td>
-                    <td>${(c.created_at && c.created_at._seconds) ? new Date(c.created_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
-                    <td>${(c.updated_at && c.updated_at._seconds) ? new Date(c.updated_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
+                    <td>${formatFirestoreTimestamp(c.created_at || c.createdAt)}</td>
+                    <td>${formatFirestoreTimestamp(c.updated_at || c.updatedAt)}</td>
                     <td>${c.total_user_messages}</td>
                     <td>${c.total_bot_messages}</td>
                 </tr>
@@ -458,6 +580,13 @@ fetch("/admin/api/reports")
             data.message_counts.user_messages || 0,
             data.message_counts.bot_messages || 0
         );
+
+        // Cria gráfico de leads por cidade
+        if (data.leads_by_city) {
+            const cities = Object.keys(data.leads_by_city);
+            const counts = Object.values(data.leads_by_city);
+            createLeadsByCityChart(cities, counts);
+        }
     })
     .catch(error => {
         console.error('Erro ao carregar dados da dashboard:', error);

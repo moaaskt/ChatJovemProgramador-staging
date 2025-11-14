@@ -343,3 +343,32 @@ def get_conversation_messages(session_id, limit=200):
         logger.error(f"[Firestore] Erro em get_conversation_messages({session_id}): {e}")
         return []
 
+
+def get_leads_count_by_city():
+    """
+    Conta leads agrupados por cidade.
+    Retorna dict { "cidade": count, ... }
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+    
+    try:
+        leads = _db.collection("leads").stream()
+        
+        counts = {}
+        for lead_doc in leads:
+            data = lead_doc.to_dict()
+            cidade = data.get("cidade")
+            
+            if not cidade:
+                continue
+            
+            # Normaliza cidade para lowercase para agrupar
+            cidade_normalizada = cidade.lower().strip()
+            counts[cidade_normalizada] = counts.get(cidade_normalizada, 0) + 1
+        
+        return counts
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_leads_count_by_city: {e}")
+        return {}
+

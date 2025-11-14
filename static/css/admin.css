@@ -221,6 +221,10 @@ button {
   margin-top: 16px;
 }
 
+.chart-row.one .chart-container-wrapper {
+  width: 100%;
+}
+
 /* CARD GENÉRICO */
 
 .chart-container-wrapper {
