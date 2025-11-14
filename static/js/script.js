@@ -405,6 +405,7 @@ function cycleFontSize() {
     
     announceToScreenReader(`Tamanho da fonte alterado para ${AppState.currentFontSize}`);
     saveUserPreferences();
+    runFontScaleSmokeTest();
 }
 
 // ===== CONTROLE DE CONTRASTE =====
@@ -884,6 +885,24 @@ function loadUserPreferences() {
     } catch (error) {
         console.warn('Erro ao carregar preferências:', error);
     }
+    runFontScaleSmokeTest();
+}
+
+// ===== Teste simples de verificação de escala de fonte =====
+function runFontScaleSmokeTest() {
+    try {
+        const targets = [
+            '.chatbot-widget .message-content',
+            '.chatbot-widget .message-bubble',
+            '.chatbot-widget .widget-messages'
+        ];
+        const results = targets.map(sel => {
+            const el = document.querySelector(sel);
+            const fs = el ? window.getComputedStyle(el).fontSize : 'n/a';
+            return `${sel}: ${fs}`;
+        });
+        console.debug('[FontScaleTest]', AppState.currentFontSize, results.join(' | '));
+    } catch (_) { /* noop */ }
 }
 
 // ===== INTEGRAÇÃO COM BACKEND =====

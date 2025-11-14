@@ -265,6 +265,7 @@ footer {
     transform: translateY(0);
 }
 
+
 /* ===== WIDGET DO CHATBOT ===== */
 .chatbot-widget {
     position: fixed;
@@ -785,6 +786,14 @@ footer {
         width: 6px;
         height: 6px;
     }
+
+    
+    .chatleo-bubble.is-hidden,
+    .chatbot-trigger.is-hidden {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transform: scale(.85) translateY(24px) !important;
+    }
 }
 
 @media (max-height: 600px) and (max-width: 768px) {
@@ -1116,6 +1125,17 @@ input:focus,
 .font-extra-large {
     font-size: 1.3em;
 }
+
+/* Escalonamento consistente de fonte dentro do widget via variável */
+.chatbot-widget { --font-scale: 1; }
+body.font-small .chatbot-widget { --font-scale: 0.85; }
+body.font-normal .chatbot-widget { --font-scale: 1; }
+body.font-large .chatbot-widget { --font-scale: 1.15; }
+body.font-extra-large .chatbot-widget { --font-scale: 1.3; }
+
+/* Aplicar escala explicitamente a conteúdo e balões de mensagem */
+.chatbot-widget .message-bubble { font-size: calc(var(--font-sm) * var(--font-scale)) !important; }
+.chatbot-widget .message-content { font-size: calc(1em * var(--font-scale)) !important; }
 
 /* Modo alto contraste */
 .high-contrast {
