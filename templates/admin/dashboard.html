@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<h2 class="mb-4">Dashboard</h2>
+
+<div id="cards" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="p-3 bg-secondary rounded">Total de Conversas: <span id="total-conv">--</span></div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 bg-secondary rounded">Mensagens (Usuário): <span id="msg-user">--</span></div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 bg-secondary rounded">Mensagens (Bot): <span id="msg-bot">--</span></div>
+    </div>
+</div>
+
+<h4 class="mt-5 mb-3">Últimas Conversas</h4>
+<table class="table table-dark table-striped">
+    <thead>
+        <tr>
+            <th>Session ID</th>
+            <th>Criado</th>
+            <th>Atualizado</th>
+            <th>User Msgs</th>
+            <th>Bot Msgs</th>
+        </tr>
+    </thead>
+    <tbody id="recent-table"></tbody>
+    </table>
+
+<h4 class="mt-5">Visualização Analítica</h4>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <canvas id="chart_daily" height="200"></canvas>
+    </div>
+
+    <div class="col-md-6">
+        <canvas id="chart_messages_bar" height="200"></canvas>
+    </div>
+
+    <div class="col-md-6 mt-4">
+        <canvas id="chart_messages_donut" height="200"></canvas>
+    </div>
+</div>
+
+<script>
+fetch("/admin/api/reports")
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById("total-conv").innerText = data.conversation_counts.total_conversations;
+        document.getElementById("msg-user").innerText = data.message_counts.user_messages;
+        document.getElementById("msg-bot").innerText = data.message_counts.bot_messages;
+
+        const tb = document.getElementById("recent-table");
+        tb.innerHTML = "";
+        data.recent_conversations.forEach(c => {
+            tb.innerHTML += `
+                <tr>
+                    <td>${c.session_id}</td>
+                    <td>${(c.created_at && c.created_at._seconds) ? new Date(c.created_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
+                    <td>${(c.updated_at && c.updated_at._seconds) ? new Date(c.updated_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
+                    <td>${c.total_user_messages}</td>
+                    <td>${c.total_bot_messages}</td>
+                </tr>
+            `;
+        });
+
+        // ========================
+        // GRÁFICO 1 - Conversas por dia (linha)
+        // ========================
+        const dates = Object.keys(data.daily_conversations);
+        const values = Object.values(data.daily_conversations);
+
+        new Chart(document.getElementById("chart_daily"), {
+            type: "line",
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: "Conversas por dia",
+                    data: values,
+                    borderColor: "rgba(0, 123, 255, 0.9)",
+                    backgroundColor: "rgba(0, 123, 255, 0.3)",
+                    tension: 0.3
+                }]
+            },
+            options: {
+                plugins: { legend: { labels: { color: "white" } } },
+                scales: {
+                    x: { ticks: { color: "white" } },
+                    y: { ticks: { color: "white" } }
+                }
+            }
+        });
+
+        // ========================
+        // GRÁFICO 2 - User x Bot (BARRA)
+        // ========================
+        new Chart(document.getElementById("chart_messages_bar"), {
+            type: "bar",
+            data: {
+                labels: ["Usuário", "Bot"],
+                datasets: [{
+                    label: "Mensagens",
+                    data: [
+                        data.message_counts.user_messages,
+                        data.message_counts.bot_messages
+                    ],
+                    backgroundColor: [
+                        "rgba(0, 200, 83, 0.8)",
+                        "rgba(255, 193, 7, 0.8)"
+                    ]
+                }]
+            },
+            options: {
+                plugins: { legend: { labels: { color: "white" } } },
+                scales: {
+                    x: { ticks: { color: "white" } },
+                    y: { ticks: { color: "white" } }
+                }
+            }
+        });
+
+        // ========================
+        // GRÁFICO 3 - Donut (Proporção mensagens)
+        // ========================
+        new Chart(document.getElementById("chart_messages_donut"), {
+            type: "doughnut",
+            data: {
+                labels: ["Usuário", "Bot"],
+                datasets: [{
+                    data: [
+                        data.message_counts.user_messages,
+                        data.message_counts.bot_messages
+                    ],
+                    backgroundColor: [
+                        "rgba(0, 200, 83, 0.9)",
+                        "rgba(255, 193, 7, 0.9)"
+                    ]
+                }]
+            },
+            options: {
+                plugins: { legend: { labels: { color: "white" } } }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

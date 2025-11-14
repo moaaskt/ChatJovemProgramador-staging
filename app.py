@@ -76,7 +76,7 @@ def chat():
     if AI_FIRESTORE_ENABLED:
         try:
             get_or_create_conversation(session_id)
-            save_message(session_id, "user", user_message)
+            save_message(session_id, "user", user_message, meta={"source": "web"})
             print(f"[Firestore] Mensagem do usuário salva: session_id={session_id}")
         except Exception as e:
             # Erro não deve interromper o fluxo do chat
@@ -88,7 +88,7 @@ def chat():
     # Salva resposta do bot no Firestore (se habilitado)
     if AI_FIRESTORE_ENABLED:
         try:
-            save_message(session_id, "assistant", bot_response)
+            save_message(session_id, "assistant", bot_response, meta={"source": "web"})
             print(f"[Firestore] Resposta do bot salva: session_id={session_id}")
         except Exception as e:
             # Erro não deve interromper o fluxo do chat
@@ -159,6 +159,10 @@ def main_terminal():
             break
         except Exception as e:
             print(f"🤖 Ocorreu um erro inesperado: {e}")
+
+# --- Registro do Blueprint Admin ---
+from admin import admin_bp
+app.register_blueprint(admin_bp)
 
 # --- Ponto de Entrada do Script ---
 if __name__ == '__main__':
