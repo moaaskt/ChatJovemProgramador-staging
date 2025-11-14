@@ -13,85 +13,366 @@
     </div>
 </div>
 
-<!-- LINHA 1 – 3 cards de métricas (usa chart-row three do CodePen) -->
+<!-- LINHA 1 – 3 cards de métricas (estilo Modern Dashboard) -->
 <div class="chart-row three">
     <div class="chart-container-wrapper">
-        <div class="chart-container">
+        <div class="chart-container metric-card">
             <div class="chart-info-wrapper">
-                <h2>Total de Conversas</h2>
-                <span id="total-conv">--</span>
+                <div class="metric-label">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    Total de Conversas
+                </div>
+                <div class="metric-value" id="total-conv">--</div>
+                <div class="metric-subtitle">Todas as sessões</div>
             </div>
         </div>
     </div>
 
     <div class="chart-container-wrapper">
-        <div class="chart-container">
+        <div class="chart-container metric-card">
             <div class="chart-info-wrapper">
-                <h2>Mensagens (Usuário)</h2>
-                <span id="msg-user">--</span>
+                <div class="metric-label">
+                    <i class="bi bi-person-fill"></i>
+                    Mensagens (Usuário)
+                </div>
+                <div class="metric-value" id="msg-user">--</div>
+                <div class="metric-subtitle">Mensagens enviadas</div>
             </div>
         </div>
     </div>
 
     <div class="chart-container-wrapper">
-        <div class="chart-container">
+        <div class="chart-container metric-card">
             <div class="chart-info-wrapper">
-                <h2>Mensagens (Bot)</h2>
-                <span id="msg-bot">--</span>
+                <div class="metric-label">
+                    <i class="bi bi-robot"></i>
+                    Mensagens (Bot)
+                </div>
+                <div class="metric-value" id="msg-bot">--</div>
+                <div class="metric-subtitle">Respostas do assistente</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- LINHA 2 – gráfico grande + 2 gráficos menores (row two do CodePen) -->
+<!-- LINHA 2 – gráfico grande + 2 gráficos menores (ApexCharts Modern Dashboard) -->
 <div class="chart-row two">
     <div class="chart-container-wrapper big">
-        <div class="chart-container">
+        <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h2>Conversas por dia</h2>
+                <h3>Conversas por dia</h3>
                 <span>Últimos 30 dias</span>
             </div>
-            <div class="line-chart">
-                <canvas id="chart_daily" height="220"></canvas>
-            </div>
+            <div id="chart_daily" class="apex-chart-container"></div>
         </div>
     </div>
 
     <div class="chart-container-wrapper small">
-        <div class="chart-container">
+        <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h2>Mensagens por papel</h2>
+                <h3>Mensagens por papel</h3>
             </div>
-            <canvas id="chart_messages_bar" height="160"></canvas>
+            <div id="chart_messages_bar" class="apex-chart-container"></div>
         </div>
 
-        <div class="chart-container">
+        <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h2>Distribuição de mensagens</h2>
+                <h3>Distribuição de mensagens</h3>
             </div>
-            <canvas id="chart_messages_donut" height="160"></canvas>
+            <div id="chart_messages_donut" class="apex-chart-container"></div>
         </div>
     </div>
 </div>
 
 <div class="card-section recent-table-wrapper mt-4">
-    <h5 class="section-title">Últimas Conversas</h5>
+    <div class="section-title-wrapper">
+        <h5 class="section-title">
+            <i class="bi bi-clock-history"></i>
+            Últimas Conversas
+        </h5>
+    </div>
     <div class="table-responsive">
         <table id="recent-table" class="table table-dark table-sm mb-0">
-            <!-- Conteúdo da tabela -->
+            <!-- Conteúdo da tabela preenchido via JavaScript -->
         </table>
     </div>
 </div>
 
-
 <script>
+// ============================================
+// DASHBOARD ADMIN - ApexCharts Modern Dashboard
+// Migrado de Chart.js para ApexCharts
+// Contrato de /admin/api/reports mantido intacto
+// ============================================
+
+// Variáveis globais para instâncias dos gráficos
+let chartDaily = null;
+let chartMessagesBar = null;
+let chartMessagesDonut = null;
+
+/**
+ * Formata data para exibição legível
+ */
+function formatDateLabel(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+/**
+ * Cria gráfico de área para conversas diárias (estilo Modern Dashboard)
+ */
+function createDailyConversationsChart(labels, series) {
+    const container = document.getElementById("chart_daily");
+    if (!container) return;
+
+    // Destroi gráfico anterior se existir
+    if (chartDaily) {
+        chartDaily.destroy();
+    }
+
+    // Converte labels de datas para formato legível
+    const formattedLabels = labels.map(formatDateLabel);
+
+    const options = {
+        series: [{
+            name: 'Conversas',
+            data: series
+        }],
+        chart: {
+            type: 'area',
+            height: 280,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            fontFamily: 'Poppins, sans-serif'
+        },
+        colors: ['#3d7eff'],
+        dataLabels: { enabled: false },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0.1,
+                stops: [0, 90, 100]
+            }
+        },
+        grid: {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            strokeDashArray: 3,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        },
+        xaxis: {
+            categories: formattedLabels,
+            labels: {
+                style: { colors: '#9aa0c6', fontSize: '11px' }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: { colors: '#9aa0c6', fontSize: '11px' }
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            style: { fontSize: '12px', fontFamily: 'Poppins' },
+            y: {
+                formatter: function(val) {
+                    return val + ' conversas';
+                }
+            }
+        },
+        markers: {
+            size: 4,
+            colors: ['#3d7eff'],
+            strokeColors: '#fff',
+            strokeWidth: 2,
+            hover: { size: 6 }
+        }
+    };
+
+    chartDaily = new ApexCharts(container, options);
+    chartDaily.render();
+}
+
+/**
+ * Cria gráfico de barras para mensagens por papel
+ */
+function createMessagesBarChart(user, bot) {
+    const container = document.getElementById("chart_messages_bar");
+    if (!container) return;
+
+    if (chartMessagesBar) {
+        chartMessagesBar.destroy();
+    }
+
+    const options = {
+        series: [{
+            name: 'Mensagens',
+            data: [user, bot]
+        }],
+        chart: {
+            type: 'bar',
+            height: 200,
+            toolbar: { show: false },
+            fontFamily: 'Poppins, sans-serif'
+        },
+        colors: ['#00c853', '#ffc107'],
+        plotOptions: {
+            bar: {
+                borderRadius: 8,
+                horizontal: false,
+                columnWidth: '60%',
+                distributed: true
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            style: {
+                colors: ['#fff'],
+                fontSize: '11px',
+                fontWeight: 500
+            }
+        },
+        grid: {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            strokeDashArray: 3,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        },
+        xaxis: {
+            categories: ['Usuário', 'Bot'],
+            labels: {
+                style: { colors: '#9aa0c6', fontSize: '11px' }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: { colors: '#9aa0c6', fontSize: '11px' }
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            style: { fontSize: '12px', fontFamily: 'Poppins' }
+        },
+        legend: { show: false }
+    };
+
+    chartMessagesBar = new ApexCharts(container, options);
+    chartMessagesBar.render();
+}
+
+/**
+ * Cria gráfico donut para distribuição de mensagens
+ */
+function createMessagesDonutChart(user, bot) {
+    const container = document.getElementById("chart_messages_donut");
+    if (!container) return;
+
+    if (chartMessagesDonut) {
+        chartMessagesDonut.destroy();
+    }
+
+    const total = user + bot;
+    const userPercent = total > 0 ? Math.round((user / total) * 100) : 0;
+    const botPercent = total > 0 ? Math.round((bot / total) * 100) : 0;
+
+    const options = {
+        series: [user, bot],
+        chart: {
+            type: 'donut',
+            height: 200,
+            fontFamily: 'Poppins, sans-serif',
+            toolbar: { show: false }
+        },
+        colors: ['#00c853', '#ffc107'],
+        labels: ['Usuário', 'Bot'],
+        dataLabels: {
+            enabled: true,
+            style: {
+                colors: ['#fff'],
+                fontSize: '11px',
+                fontWeight: 500
+            },
+            formatter: function(val, opts) {
+                return opts.w.config.series[opts.seriesIndex] + ' (' + val.toFixed(0) + '%)';
+            }
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '70%',
+                    labels: {
+                        show: true,
+                        name: { show: false },
+                        value: {
+                            show: true,
+                            fontSize: '18px',
+                            fontWeight: 600,
+                            color: '#fff',
+                            formatter: function(val) {
+                                return total > 0 ? total : '0';
+                            }
+                        },
+                        total: {
+                            show: true,
+                            label: 'Total',
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            color: '#9aa0c6',
+                            formatter: function() {
+                                return 'Mensagens';
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            style: { fontSize: '12px', fontFamily: 'Poppins' },
+            y: {
+                formatter: function(val, opts) {
+                    return val + ' mensagens (' + opts.w.globals.seriesPercent[opts.seriesIndex].toFixed(0) + '%)';
+                }
+            }
+        },
+        legend: {
+            show: true,
+            position: 'bottom',
+            fontSize: '11px',
+            fontFamily: 'Poppins',
+            labels: { colors: '#9aa0c6' },
+            markers: { width: 8, height: 8 }
+        }
+    };
+
+    chartMessagesDonut = new ApexCharts(container, options);
+    chartMessagesDonut.render();
+}
+
+// ============================================
+// Carregamento de dados da API
+// Contrato mantido: /admin/api/reports
+// ============================================
 fetch("/admin/api/reports")
     .then(r => r.json())
     .then(data => {
+        // Preenche cards de métricas (lógica mantida)
         document.getElementById("total-conv").innerText = data.conversation_counts.total_conversations;
         document.getElementById("msg-user").innerText = data.message_counts.user_messages;
         document.getElementById("msg-bot").innerText = data.message_counts.bot_messages;
 
+        // Preenche tabela de últimas conversas (lógica mantida)
         const tb = document.getElementById("recent-table");
         tb.innerHTML = "";
         data.recent_conversations.forEach(c => {
@@ -106,83 +387,28 @@ fetch("/admin/api/reports")
             `;
         });
 
-        // ========================
-        // GRÁFICO 1 - Conversas por dia (linha)
-        // ========================
+        // Cria gráficos com ApexCharts
         const dates = Object.keys(data.daily_conversations);
         const values = Object.values(data.daily_conversations);
 
-        new Chart(document.getElementById("chart_daily"), {
-            type: "line",
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: "Conversas por dia",
-                    data: values,
-                    borderColor: "rgba(0, 123, 255, 0.9)",
-                    backgroundColor: "rgba(0, 123, 255, 0.3)",
-                    tension: 0.3
-                }]
-            },
-            options: {
-                plugins: { legend: { labels: { color: "white" } } },
-                scales: {
-                    x: { ticks: { color: "white" } },
-                    y: { ticks: { color: "white" } }
-                }
-            }
-        });
+        // Tratamento para dados vazios
+        if (dates.length === 0) {
+            dates.push(new Date().toISOString().split('T')[0]);
+            values.push(0);
+        }
 
-        // ========================
-        // GRÁFICO 2 - User x Bot (BARRA)
-        // ========================
-        new Chart(document.getElementById("chart_messages_bar"), {
-            type: "bar",
-            data: {
-                labels: ["Usuário", "Bot"],
-                datasets: [{
-                    label: "Mensagens",
-                    data: [
-                        data.message_counts.user_messages,
-                        data.message_counts.bot_messages
-                    ],
-                    backgroundColor: [
-                        "rgba(0, 200, 83, 0.8)",
-                        "rgba(255, 193, 7, 0.8)"
-                    ]
-                }]
-            },
-            options: {
-                plugins: { legend: { labels: { color: "white" } } },
-                scales: {
-                    x: { ticks: { color: "white" } },
-                    y: { ticks: { color: "white" } }
-                }
-            }
-        });
-
-        // ========================
-        // GRÁFICO 3 - Donut (Proporção mensagens)
-        // ========================
-        new Chart(document.getElementById("chart_messages_donut"), {
-            type: "doughnut",
-            data: {
-                labels: ["Usuário", "Bot"],
-                datasets: [{
-                    data: [
-                        data.message_counts.user_messages,
-                        data.message_counts.bot_messages
-                    ],
-                    backgroundColor: [
-                        "rgba(0, 200, 83, 0.9)",
-                        "rgba(255, 193, 7, 0.9)"
-                    ]
-                }]
-            },
-            options: {
-                plugins: { legend: { labels: { color: "white" } } }
-            }
-        });
+        createDailyConversationsChart(dates, values);
+        createMessagesBarChart(
+            data.message_counts.user_messages || 0,
+            data.message_counts.bot_messages || 0
+        );
+        createMessagesDonutChart(
+            data.message_counts.user_messages || 0,
+            data.message_counts.bot_messages || 0
+        );
+    })
+    .catch(error => {
+        console.error('Erro ao carregar dados da dashboard:', error);
     });
 </script>
 
