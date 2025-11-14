@@ -88,6 +88,39 @@
     document.querySelector('.close-menu')?.addEventListener('click', function () {
         document.querySelector('.app-left').classList.remove('show');
     });
+
+    // Sidebar active state with smooth indicator/glow
+    (function() {
+      const links = Array.from(document.querySelectorAll('.nav-list-link'));
+      const items = Array.from(document.querySelectorAll('.nav-list-item'));
+
+      function setActiveByHref(href) {
+        items.forEach(li => li.classList.remove('active'));
+        const target = links.find(a => a.getAttribute('href') === href);
+        if (target) {
+          const li = target.closest('.nav-list-item');
+          if (li) li.classList.add('active');
+        }
+      }
+
+      // Initial active from path or saved state
+      const path = window.location.pathname.replace(/\/$/, '');
+      let initialHref = links.find(a => a.getAttribute('href').replace(/\/$/, '') === path)?.getAttribute('href');
+      const saved = localStorage.getItem('adminActiveLink');
+      if (!initialHref && saved) initialHref = saved;
+      if (initialHref) setActiveByHref(initialHref);
+
+      // Click handlers: save and animate active state
+      links.forEach(a => {
+        a.addEventListener('click', () => {
+          const href = a.getAttribute('href');
+          if (href && !a.classList.contains('disabled')) {
+            localStorage.setItem('adminActiveLink', href);
+            setActiveByHref(href);
+          }
+        });
+      });
+    })();
 </script>
 
 </body>
