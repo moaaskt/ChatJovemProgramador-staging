@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>ChatLeo Admin - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, #8b5cf6 0, transparent 55%),
+                radial-gradient(circle at bottom right, #ec4899 0, transparent 55%),
+                #050816;
+            color: #e5e7eb;
+        }
+        .login-card {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.96);
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.9);
+        }
+        .login-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .form-control {
+            background-color: #020617;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        .form-control:focus {
+            background-color: #020617;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 0.15rem rgba(139, 92, 246, 0.35);
+            color: #e5e7eb;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border: none;
+            font-weight: 600;
+            color: #fff;
+        }
+        .btn-gradient:hover {
+            filter: brightness(1.05);
+        }
+        .hint {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container min-vh-100 d-flex align-items-center justify-content-center">
+        <div class="login-card p-4">
+            <div class="text-center mb-3">
+                <div class="login-logo">CL</div>
+                <h3 class="login-title mb-1">ChatLeo Admin</h3>
+                <p class="text-muted mb-0">Acesso ao painel do chatbot</p>
+            </div>
+
+            <div class="mb-3 mt-3">
+                <label for="user" class="form-label">Usuário</label>
+                <input type="text" id="user" class="form-control" placeholder="admin">
+            </div>
+
+            <div class="mb-3">
+                <label for="pass" class="form-label">Senha</label>
+                <input type="password" id="pass" class="form-control" placeholder="********">
+            </div>
+
+            <div class="d-grid mb-2">
+                <button id="btnLogin" class="btn btn-gradient">Entrar</button>
+            </div>
+
+            <div class="hint mb-2">
+                Dica para o hackathon: <span class="text-light">admin / admin123</span>
+            </div>
+
+            <div id="error" class="text-danger mt-2" style="display:none;">Usuário ou senha inválidos.</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btnLogin').addEventListener('click', function () {
+            const user = document.getElementById('user').value.trim();
+            const pass = document.getElementById('pass').value.trim();
+            if (user === 'admin' && pass === 'admin123') {
+                localStorage.setItem('adminAuth', 'ok');
+                window.location.href = '/admin';
+            } else {
+                const err = document.getElementById('error');
+                err.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('btnLogin').click();
+            }
+        });
+    </script>
+</body>
+</html>

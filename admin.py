@@ -8,6 +8,10 @@ from services.firestore import (
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+@admin_bp.get("/login")
+def login_page():
+    return render_template("admin/login.html")
+
 @admin_bp.get("/")
 def dashboard():
     return render_template("admin/dashboard.html")
@@ -21,4 +25,3 @@ def api_reports():
         "recent_conversations": get_recent_conversations(limit=10),
     }
     return jsonify(data)
-
