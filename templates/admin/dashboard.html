@@ -1,49 +1,88 @@
-{% extends "admin/base.html" %}
+{% extends 'admin/base.html' %}
+
 {% block content %}
 
-<h2 class="mb-4">Dashboard</h2>
+<div class="main-header-line">
+    <h1>Dashboard</h1>
 
-<div id="cards" class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="p-3 bg-secondary rounded">Total de Conversas: <span id="total-conv">--</span></div>
-    </div>
-    <div class="col-md-3">
-        <div class="p-3 bg-secondary rounded">Mensagens (Usuário): <span id="msg-user">--</span></div>
-    </div>
-    <div class="col-md-3">
-        <div class="p-3 bg-secondary rounded">Mensagens (Bot): <span id="msg-bot">--</span></div>
+    <div class="action-buttons">
+        <!-- Botão pra abrir sidebar no mobile -->
+        <button class="menu-button">
+            <i class="bi bi-list"></i>
+        </button>
     </div>
 </div>
 
-<h4 class="mt-5 mb-3">Últimas Conversas</h4>
-<table class="table table-dark table-striped">
-    <thead>
-        <tr>
-            <th>Session ID</th>
-            <th>Criado</th>
-            <th>Atualizado</th>
-            <th>User Msgs</th>
-            <th>Bot Msgs</th>
-        </tr>
-    </thead>
-    <tbody id="recent-table"></tbody>
-    </table>
-
-<h4 class="mt-5">Visualização Analítica</h4>
-
-<div class="row g-4">
-    <div class="col-md-6">
-        <canvas id="chart_daily" height="200"></canvas>
+<!-- LINHA 1 – 3 cards de métricas (usa chart-row three do CodePen) -->
+<div class="chart-row three">
+    <div class="chart-container-wrapper">
+        <div class="chart-container">
+            <div class="chart-info-wrapper">
+                <h2>Total de Conversas</h2>
+                <span id="total-conv">--</span>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-6">
-        <canvas id="chart_messages_bar" height="200"></canvas>
+    <div class="chart-container-wrapper">
+        <div class="chart-container">
+            <div class="chart-info-wrapper">
+                <h2>Mensagens (Usuário)</h2>
+                <span id="msg-user">--</span>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-6 mt-4">
-        <canvas id="chart_messages_donut" height="200"></canvas>
+    <div class="chart-container-wrapper">
+        <div class="chart-container">
+            <div class="chart-info-wrapper">
+                <h2>Mensagens (Bot)</h2>
+                <span id="msg-bot">--</span>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- LINHA 2 – gráfico grande + 2 gráficos menores (row two do CodePen) -->
+<div class="chart-row two">
+    <div class="chart-container-wrapper big">
+        <div class="chart-container">
+            <div class="chart-container-header">
+                <h2>Conversas por dia</h2>
+                <span>Últimos 30 dias</span>
+            </div>
+            <div class="line-chart">
+                <canvas id="chart_daily" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-container-wrapper small">
+        <div class="chart-container">
+            <div class="chart-container-header">
+                <h2>Mensagens por papel</h2>
+            </div>
+            <canvas id="chart_messages_bar" height="160"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-container-header">
+                <h2>Distribuição de mensagens</h2>
+            </div>
+            <canvas id="chart_messages_donut" height="160"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card-section recent-table-wrapper mt-4">
+    <h5 class="section-title">Últimas Conversas</h5>
+    <div class="table-responsive">
+        <table id="recent-table" class="table table-dark table-sm mb-0">
+            <!-- Conteúdo da tabela -->
+        </table>
+    </div>
+</div>
+
 
 <script>
 fetch("/admin/api/reports")

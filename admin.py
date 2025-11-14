@@ -4,9 +4,15 @@ from services.firestore import (
     get_message_counts_by_role,
     get_daily_conversation_counts,
     get_recent_conversations,
+    get_all_conversations,
+    get_conversation_messages,
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+@admin_bp.get("/login")
+def login_page():
+    return render_template("admin/login.html")
 
 @admin_bp.get("/")
 def dashboard():
@@ -22,3 +28,16 @@ def api_reports():
     }
     return jsonify(data)
 
+@admin_bp.get("/conversations")
+def conversations_page():
+    return render_template("admin/conversations.html")
+
+@admin_bp.get("/api/conversations")
+def api_conversations():
+    data = get_all_conversations(limit=50)
+    return jsonify({"conversations": data})
+
+@admin_bp.get("/api/conversations/<session_id>/messages")
+def api_conversation_messages(session_id):
+    msgs = get_conversation_messages(session_id, limit=200)
+    return jsonify({"messages": msgs})

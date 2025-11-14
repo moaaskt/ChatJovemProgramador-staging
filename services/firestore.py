@@ -278,3 +278,68 @@ def get_recent_conversations(limit=10):
         logger.error(f"[Firestore] Erro em recent_conversations: {e}")
         return []
 
+
+def get_all_conversations(limit=50):
+    try:
+        convs = (
+            _db.collection("conversations")
+               .order_by("updated_at", direction=firestore.Query.DESCENDING)
+               .limit(limit)
+               .stream()
+        )
+
+        results = []
+        for c in convs:
+            d = c.to_dict()
+            results.append({
+                "session_id": d.get("session_id"),
+                "created_at": d.get("created_at"),
+                "updated_at": d.get("updated_at"),
+                "total_user_messages": d.get("total_user_messages", 0),
+                "total_bot_messages": d.get("total_bot_messages", 0),
+                "channel": d.get("channel"),
+                "status": d.get("status"),
+            })
+
+        return results
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_all_conversations: {e}")
+        return []
+
+
+def get_conversation_messages(session_id, limit=200):
+    try:
+        msgs = (
+            _db.collection("conversations").document(session_id)
+               .collection("messages")
+               .order_by("created_at", direction=firestore.Query.ASCENDING)
+               .limit(limit)
+               .stream()
+        )
+
+        results = []
+        for m in msgs:
+            data = m.to_dict()
+            role_raw = data.get("role") or data.get("papel")
+            normalized_role = role_raw
+            if role_raw == "assistant":
+                normalized_role = "bot"
+            elif role_raw == "user":
+                normalized_role = "user"
+            elif role_raw == "bot":
+                normalized_role = "bot"
+
+            content = data.get("content") or data.get("texto")
+            created = data.get("created_at") or data.get("criadoEm")
+
+            results.append({
+                "role": normalized_role,
+                "content": content,
+                "created_at": created,
+            })
+
+        return results
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_conversation_messages({session_id}): {e}")
+        return []
+

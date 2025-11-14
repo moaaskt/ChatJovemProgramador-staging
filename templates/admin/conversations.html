@@ -1,0 +1,109 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="container-fluid conversations-page mt-3">
+  <h1 class="page-title">Conversas</h1>
+  <p class="conversations-subtitle">Histórico completo do ChatLeo</p>
+
+  <div class="conversations-shell">
+    <div class="sessions-panel card-section">
+      <h2 class="panel-title">Sessões recentes</h2>
+      <div id="conv-list"><!-- itens via JS --></div>
+    </div>
+
+    <div class="chat-panel card-section">
+      <div class="chat-header">
+        <div class="chat-header-avatar"></div>
+        <div class="chat-header-info">
+          <span id="conv-session-label"></span>
+          <small>Histórico da conversa</small>
+        </div>
+      </div>
+      <div id="chat-viewer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+ function formatTimestamp(ts) {
+    if (!ts || !ts._seconds) return "";
+    return new Date(ts._seconds * 1000).toLocaleString("pt-BR");
+ }
+ 
+ function loadConversations() {
+    fetch("/admin/api/conversations")
+      .then(r => r.json())
+      .then(data => {
+         const list = document.getElementById("conv-list");
+         list.innerHTML = "";
+         data.conversations.forEach(c => {
+             const totalUser = c.total_user_messages || 0;
+             const totalBot = c.total_bot_messages || 0;
+             const total = totalUser + totalBot;
+ 
+         const div = document.createElement("div");
+         div.className = "list-group-item list-group-item-action bg-dark text-light border-secondary mb-1";
+         div.dataset.sessionId = c.session_id;
+         div.onclick = () => loadConversation(c.session_id);
+ 
+             div.innerHTML = `
+              <div class="fw-semibold small text-truncate">${c.session_id}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">
+                 Criado: ${formatTimestamp(c.created_at)}<br>
+                 Mensagens: ${total} (${totalUser} usuário / ${totalBot} bot)
+              </div>
+             `;
+             list.appendChild(div);
+         });
+      });
+ }
+ 
+function loadConversation(sessionId) {
+    document.getElementById("conv-session-label").innerText = sessionId;
+    const viewer = document.getElementById("chat-viewer");
+    viewer.innerHTML = "<div class='text-muted small'>Carregando...</div>";
+
+    const items = document.querySelectorAll('#conv-list .list-group-item');
+    items.forEach(el => {
+      if (el.dataset.sessionId === sessionId) {
+        el.classList.add('session-active');
+      } else {
+        el.classList.remove('session-active');
+      }
+    });
+ 
+    fetch(`/admin/api/conversations/${sessionId}/messages`)
+      .then(r => r.json())
+      .then(data => {
+         viewer.innerHTML = "";
+         if (!data.messages.length) {
+             viewer.innerHTML = "<div class='text-muted small'>Nenhuma mensagem.</div>";
+             return;
+         }
+ 
+         data.messages.forEach(msg => {
+             const role = msg.role === "user" ? "user" : "bot";
+             const row = document.createElement("div");
+             row.className = "bubble-row";
+ 
+             const bubble = document.createElement("div");
+             bubble.className = role === "user" ? "bubble-user" : "bubble-bot";
+             bubble.textContent = msg.content || "";
+ 
+             const meta = document.createElement("div");
+             meta.className = "bubble-meta";
+             meta.textContent = formatTimestamp(msg.created_at);
+             bubble.appendChild(meta);
+ 
+             row.appendChild(bubble);
+             viewer.appendChild(row);
+         });
+ 
+         viewer.scrollTop = viewer.scrollHeight;
+      });
+ }
+ 
+document.addEventListener("DOMContentLoaded", loadConversations);
+</script>
+
+{% endblock %}
