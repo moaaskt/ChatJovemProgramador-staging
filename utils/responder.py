@@ -58,8 +58,8 @@ class Chatbot:
 
      # utils/responder.py (Linha 80)
         CANDIDATOS = [
-          "gemini-1.5-flash",  
           "gemini-pro-latest",
+          "gemini-1.5-flash",  
           "gemini-1.5-pro",
          ]
 

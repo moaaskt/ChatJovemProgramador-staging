@@ -1,24 +1,25 @@
 {% extends "admin/base.html" %}
 {% block content %}
 
-<div class="container-fluid mt-3">
+<div class="container-fluid conversations-page mt-3">
   <h1 class="page-title">Conversas</h1>
-  <p class="conversations-subtitle">Histórico de sessões do ChatLeo</p>
+  <p class="conversations-subtitle">Histórico completo do ChatLeo</p>
 
   <div class="conversations-shell">
-    <div class="sessions-panel">
-      <h2>Sessões recentes</h2>
-      <div id="conv-list" class="list-group small">
-        <!-- itens de sessão via JS -->
-      </div>
+    <div class="sessions-panel card-section">
+      <h2 class="panel-title">Sessões recentes</h2>
+      <div id="conv-list"><!-- itens via JS --></div>
     </div>
 
-    <div class="chat-panel">
-      <h2>Detalhes da conversa</h2>
-      <span id="conv-session-label">Selecione uma conversa.</span>
-      <div id="chat-viewer">
-        <!-- bubbles via JS -->
+    <div class="chat-panel card-section">
+      <div class="chat-header">
+        <div class="chat-header-avatar"></div>
+        <div class="chat-header-info">
+          <span id="conv-session-label"></span>
+          <small>Histórico da conversa</small>
+        </div>
       </div>
+      <div id="chat-viewer"></div>
     </div>
   </div>
 </div>
@@ -40,9 +41,10 @@
              const totalBot = c.total_bot_messages || 0;
              const total = totalUser + totalBot;
  
-             const div = document.createElement("div");
-             div.className = "list-group-item list-group-item-action bg-dark text-light border-secondary mb-1";
-             div.onclick = () => loadConversation(c.session_id);
+         const div = document.createElement("div");
+         div.className = "list-group-item list-group-item-action bg-dark text-light border-secondary mb-1";
+         div.dataset.sessionId = c.session_id;
+         div.onclick = () => loadConversation(c.session_id);
  
              div.innerHTML = `
               <div class="fw-semibold small text-truncate">${c.session_id}</div>
@@ -56,10 +58,19 @@
       });
  }
  
- function loadConversation(sessionId) {
+function loadConversation(sessionId) {
     document.getElementById("conv-session-label").innerText = sessionId;
     const viewer = document.getElementById("chat-viewer");
     viewer.innerHTML = "<div class='text-muted small'>Carregando...</div>";
+
+    const items = document.querySelectorAll('#conv-list .list-group-item');
+    items.forEach(el => {
+      if (el.dataset.sessionId === sessionId) {
+        el.classList.add('session-active');
+      } else {
+        el.classList.remove('session-active');
+      }
+    });
  
     fetch(`/admin/api/conversations/${sessionId}/messages`)
       .then(r => r.json())
