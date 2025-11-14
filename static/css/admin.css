@@ -644,3 +644,11 @@ button {
   color: #cdd9ff;
   opacity: 1;
 }
+/* --- Override forte para meta das sessões --- */
+.sessions-panel #conv-list .list-group-item .text-muted {
+    color: #cbd5ff !important;   /* azul clarinho bem visível */
+    opacity: 1 !important;       /* garante que não está “apagado” */
+    font-size: 0.78rem;          /* levemente menor, mas legível */
+    line-height: 1.2;
+    display: block;              /* garante que quebre linha certinho */
+}
