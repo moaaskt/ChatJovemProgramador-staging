@@ -1,29 +1,26 @@
 {% extends "admin/base.html" %}
 {% block content %}
 
-<div class="container-fluid py-2">
-    <div class="dashboard-shell">
-        <h2 class="mb-1">Conversas</h2>
-        <p class="text-muted mb-4">Histórico de sessões do ChatLeo</p>
+<div class="container-fluid mt-3">
+  <h1 class="page-title">Conversas</h1>
+  <p class="conversations-subtitle">Histórico de sessões do ChatLeo</p>
 
-        <div class="row g-3">
-            <div class="col-12 col-md-4">
-                <div class="card-section">
-                    <h4 class="mb-3">Sessões recentes</h4>
-                    <div id="conv-list" class="list-group small" style="max-height: 420px; overflow-y: auto;"></div>
-                </div>
-            </div>
-            <div class="col-12 col-md-8">
-                <div class="card-section">
-                    <h4 class="mb-2">Detalhes da conversa</h4>
-                    <span id="conv-session-label" class="text-muted"></span>
-                    <div id="chat-viewer" class="chat-viewer mt-3">
-                        <div class="text-muted small">Selecione uma conversa.</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="conversations-shell">
+    <div class="sessions-panel">
+      <h2>Sessões recentes</h2>
+      <div id="conv-list" class="list-group small">
+        <!-- itens de sessão via JS -->
+      </div>
     </div>
+
+    <div class="chat-panel">
+      <h2>Detalhes da conversa</h2>
+      <span id="conv-session-label">Selecione uma conversa.</span>
+      <div id="chat-viewer">
+        <!-- bubbles via JS -->
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>

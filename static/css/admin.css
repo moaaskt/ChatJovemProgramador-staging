@@ -274,29 +274,188 @@ button { cursor: pointer; }
 
 /* TABELA DENTRO DO CARD */
 
+.card-section {
+  background-color: #040f32;
+  background-color: rgba(4, 15, 50, 0.95);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+}
+
+.recent-table-wrapper {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
 .table-dark {
+  width: 100%;
   background-color: transparent;
-  color: var(--secondary-color);
+  color: var(--main-color, #ffffff);
+  border-collapse: collapse;
   font-size: 12px;
+  margin-bottom: 0;
+}
+
+.table-dark thead {
+  background-color: rgba(9, 20, 60, 0.9);
+  border-bottom: none;
+  color: var(--secondary-color, #a0a8c0);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .table-dark thead th {
-  border-color: rgba(255,255,255,0.08);
+  border-bottom: none;
 }
 
 .table-dark tbody tr {
-  border-color: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  transition: background-color 0.2s ease;
 }
 
 .table-dark tbody tr:hover {
-  background-color: rgba(255,255,255,0.02);
+  background-color: rgba(15, 30, 80, 0.9);
 }
+
+.table-dark tbody td,
+.table-dark thead th {
+  padding: 8px 12px;
+}
+
+.table-dark tbody td { vertical-align: middle; }
 
 /* CHART AREA */
 
 .line-chart {
   width: 100%;
   margin-top: 24px;
+}
+
+/* Conversas - layout geral */
+.conversations-shell {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.sessions-panel,
+.chat-panel {
+  background: rgba(4, 15, 50, 0.95);
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.sessions-panel h2,
+.chat-panel h2,
+.conversations-subtitle {
+  color: #ffffff;
+  margin: 0 0 6px;
+}
+
+.conversations-subtitle {
+  font-size: 12px;
+  color: var(--secondary-color);
+}
+
+#conv-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-item {
+  background: rgba(11, 21, 60, 0.95);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #ffffff;
+  font-size: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+
+.session-item:hover {
+  background: rgba(18, 32, 80, 0.95);
+  border-color: rgba(61, 126, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+.session-item.active {
+  background: rgba(36, 60, 140, 0.98);
+  border-color: rgba(61, 126, 255, 1);
+}
+
+/* Compatibilidade com itens existentes gerados pelo JS (Bootstrap list-group) */
+.sessions-panel #conv-list .list-group-item {
+  background: rgba(11, 21, 60, 0.95);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #ffffff;
+  font-size: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.sessions-panel #conv-list .list-group-item:hover {
+  background: rgba(18, 32, 80, 0.95);
+  border-color: rgba(61, 126, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+#chat-viewer {
+  margin-top: 12px;
+  padding-right: 4px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.bubble-user,
+.bubble-bot {
+  display: inline-block;
+  max-width: 80%;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.bubble-user {
+  background: rgba(61, 126, 255, 0.95);
+  color: #ffffff;
+  margin-left: auto;
+}
+
+.bubble-bot {
+  background: rgba(11, 25, 70, 0.95);
+  color: #ffffff;
+}
+
+.bubble-meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--secondary-color);
+}
+
+#conv-session-label {
+  font-size: 12px;
+  color: var(--secondary-color);
+  margin-top: 2px;
+}
+
+@media (max-width: 992px) {
+  .conversations-shell { grid-template-columns: 1fr; }
 }
 
 /* RESPONSIVO */
