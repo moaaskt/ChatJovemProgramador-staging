@@ -58,10 +58,10 @@ class Chatbot:
 
      # utils/responder.py (Linha 80)
         CANDIDATOS = [
-    "gemini-pro-latest",  # Use este!
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-            ]
+          "gemini-1.5-flash",  # ⚡️ Tenta este primeiro (o mais rápido)
+          "gemini-pro-latest",
+          "gemini-1.5-pro",
+         ]
 
         initialized = False
         for c in CANDIDATOS:
