@@ -93,7 +93,18 @@
     </div>
     <div class="table-responsive">
         <table id="recent-table" class="table table-dark table-sm mb-0">
-            <!-- Conteúdo da tabela preenchido via JavaScript -->
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Criado em</th>
+                    <th>Atualizado em</th>
+                    <th>Mensagens Usuário</th>
+                    <th>Mensagens Bot</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Conteúdo preenchido via JavaScript -->
+            </tbody>
         </table>
     </div>
 </div>
@@ -111,11 +122,24 @@ let chartMessagesBar = null;
 let chartMessagesDonut = null;
 
 /**
- * Formata data para exibição legível
+ * Formata data para exibição legível (timezone-safe)
  */
 function formatDateLabel(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    
+    // Parsing explícito para evitar problemas de timezone
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // 0-based
+    const day = parseInt(parts[2], 10);
+    
+    const date = new Date(year, month, day);
+    if (isNaN(date.getTime())) {
+        return dateStr; // Retorna original se inválida
+    }
+    
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
@@ -123,6 +147,12 @@ function formatDateLabel(dateStr) {
  * Cria gráfico de área para conversas diárias (estilo Modern Dashboard)
  */
 function createDailyConversationsChart(labels, series) {
+    // Verificação de ApexCharts
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        return;
+    }
+    
     const container = document.getElementById("chart_daily");
     if (!container) return;
 
@@ -206,6 +236,12 @@ function createDailyConversationsChart(labels, series) {
  * Cria gráfico de barras para mensagens por papel
  */
 function createMessagesBarChart(user, bot) {
+    // Verificação de ApexCharts
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        return;
+    }
+    
     const container = document.getElementById("chart_messages_bar");
     if (!container) return;
 
@@ -275,6 +311,12 @@ function createMessagesBarChart(user, bot) {
  * Cria gráfico donut para distribuição de mensagens
  */
 function createMessagesDonutChart(user, bot) {
+    // Verificação de ApexCharts
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        return;
+    }
+    
     const container = document.getElementById("chart_messages_donut");
     if (!container) return;
 
@@ -372,11 +414,21 @@ fetch("/admin/api/reports")
         document.getElementById("msg-user").innerText = data.message_counts.user_messages;
         document.getElementById("msg-bot").innerText = data.message_counts.bot_messages;
 
-        // Preenche tabela de últimas conversas (lógica mantida)
+        // Preenche tabela de últimas conversas (lógica mantida, agora com tbody)
         const tb = document.getElementById("recent-table");
-        tb.innerHTML = "";
+        if (!tb) return;
+        
+        // Tenta pegar o tbody
+        let tbody = tb.querySelector('tbody');
+        
+        // Fallback: se não tiver tbody por algum motivo (HTML antigo), usa a própria tabela
+        if (!tbody) {
+            tbody = tb;
+        }
+        
+        tbody.innerHTML = "";
         data.recent_conversations.forEach(c => {
-            tb.innerHTML += `
+            tbody.innerHTML += `
                 <tr>
                     <td>${c.session_id}</td>
                     <td>${(c.created_at && c.created_at._seconds) ? new Date(c.created_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
