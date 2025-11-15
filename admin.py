@@ -88,11 +88,21 @@ def dashboard():
 
 @admin_bp.get("/api/reports")
 def api_reports():
+    # Lê o parâmetro days da query string, com fallback para 7
+    days = request.args.get("days", type=int) or 7
+    if days <= 0:
+        days = 7
+
     data = {
+        # Por enquanto: todas as conversas (pode ser estendido futuramente para receber days ou date_start/date_end)
         "conversation_counts": get_conversation_counts(),
+        # Por enquanto: todas as mensagens (pode ser estendido futuramente para receber days ou date_start/date_end)
         "message_counts": get_message_counts_by_role(),
-        "daily_conversations": get_daily_conversation_counts(days=7),
+        # Usa o parâmetro days do filtro (ou 7 como padrão)
+        "daily_conversations": get_daily_conversation_counts(days=days),
+        # Mantém comportamento atual (pode ser estendido futuramente para receber days ou date_start/date_end)
         "recent_conversations": get_recent_conversations(limit=10),
+        # Por enquanto: todos os leads (pode ser estendido futuramente se os documentos de leads tiverem campos de timestamp consistentes)
         "leads_by_city": get_leads_count_by_city(),
         "leads_by_state": get_leads_count_by_state(),
         "leads_by_age_range": get_leads_count_by_age_range(),

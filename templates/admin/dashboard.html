@@ -3,7 +3,19 @@
 {% block content %}
 
 <div class="main-header-line">
-    <h1>Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <h1 class="mb-0">Dashboard</h1>
+        <div class="d-flex align-items-center gap-2">
+            <label for="dashboard-range" class="form-label mb-0 me-2 small text-muted">
+                Período:
+            </label>
+            <select id="dashboard-range" class="form-select form-select-sm" style="width: auto; min-width: 160px;">
+                <option value="7" selected>Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+                <option value="90">Últimos 90 dias</option>
+            </select>
+        </div>
+    </div>
 
     <div class="action-buttons">
         <!-- Botão pra abrir sidebar no mobile -->
@@ -546,83 +558,119 @@ function createLeadsByAgeChart(labels, values) {
 // ============================================
 // Carregamento de dados da API
 // Contrato mantido: /admin/api/reports
+// Suporta filtros opcionais (ex: days para período)
 // ============================================
-fetch("/admin/api/reports")
-    .then(r => r.json())
-    .then(data => {
-        // Preenche cards de métricas (lógica mantida)
-        document.getElementById("total-conv").innerText = data.conversation_counts.total_conversations;
-        document.getElementById("msg-user").innerText = data.message_counts.user_messages;
-        document.getElementById("msg-bot").innerText = data.message_counts.bot_messages;
 
-        // Preenche tabela de últimas conversas (lógica mantida, agora com tbody)
-        const tb = document.getElementById("recent-table");
-        if (!tb) return;
-        
-        // Tenta pegar o tbody
-        let tbody = tb.querySelector('tbody');
-        
-        // Fallback: se não tiver tbody por algum motivo (HTML antigo), usa a própria tabela
-        if (!tbody) {
-            tbody = tb;
-        }
-        
-        tbody.innerHTML = "";
-        data.recent_conversations.forEach(c => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${c.session_id}</td>
-                    <td>${formatFirestoreTimestamp(c.created_at || c.createdAt)}</td>
-                    <td>${formatFirestoreTimestamp(c.updated_at || c.updatedAt)}</td>
-                    <td>${c.total_user_messages}</td>
-                    <td>${c.total_bot_messages}</td>
-                </tr>
-            `;
+/**
+ * Carrega os dados da dashboard com filtros opcionais.
+ * @param {Object} filters - Objeto com filtros (ex: { days: 7 })
+ */
+function loadDashboardData(filters = {}) {
+    const params = new URLSearchParams();
+
+    // Filtro de período (dias)
+    if (filters.days && Number(filters.days) > 0) {
+        params.append("days", String(filters.days));
+    }
+
+    const queryString = params.toString();
+    const url = queryString
+        ? `/admin/api/reports?${queryString}`
+        : `/admin/api/reports`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            // Preenche cards de métricas (lógica mantida)
+            document.getElementById("total-conv").innerText = data.conversation_counts.total_conversations;
+            document.getElementById("msg-user").innerText = data.message_counts.user_messages;
+            document.getElementById("msg-bot").innerText = data.message_counts.bot_messages;
+
+            // Preenche tabela de últimas conversas (lógica mantida, agora com tbody)
+            const tb = document.getElementById("recent-table");
+            if (!tb) return;
+            
+            // Tenta pegar o tbody
+            let tbody = tb.querySelector('tbody');
+            
+            // Fallback: se não tiver tbody por algum motivo (HTML antigo), usa a própria tabela
+            if (!tbody) {
+                tbody = tb;
+            }
+            
+            tbody.innerHTML = "";
+            data.recent_conversations.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.session_id}</td>
+                        <td>${formatFirestoreTimestamp(c.created_at || c.createdAt)}</td>
+                        <td>${formatFirestoreTimestamp(c.updated_at || c.updatedAt)}</td>
+                        <td>${c.total_user_messages}</td>
+                        <td>${c.total_bot_messages}</td>
+                    </tr>
+                `;
+            });
+
+            // Cria gráficos com ApexCharts
+            const dates = Object.keys(data.daily_conversations);
+            const values = Object.values(data.daily_conversations);
+
+            // Tratamento para dados vazios
+            if (dates.length === 0) {
+                dates.push(new Date().toISOString().split('T')[0]);
+                values.push(0);
+            }
+
+            createDailyConversationsChart(dates, values);
+            createMessagesBarChart(
+                data.message_counts.user_messages || 0,
+                data.message_counts.bot_messages || 0
+            );
+
+            // ----- Leads por cidade -----
+            const leadsByCity = data.leads_by_city || {};
+            const cityLabels = Object.keys(leadsByCity);
+            const cityValues = Object.values(leadsByCity);
+
+            if (cityLabels.length > 0) {
+                createLeadsByCityChart(cityLabels, cityValues);
+            }
+
+            // ----- Leads por estado -----
+            const leadsByState = data.leads_by_state || {};
+            const stateLabels = Object.keys(leadsByState);
+            const stateValues = Object.values(leadsByState);
+
+            if (stateLabels.length > 0) {
+                createLeadsByStateChart(stateLabels, stateValues);
+            }
+
+            // ----- Leads por faixa etária -----
+            const ageData = data.leads_by_age_range || {};
+            const ageLabels = ["16-18", "19-24", "25+"];
+            const ageValues = ageLabels.map(a => ageData[a] || 0);
+            createLeadsByAgeChart(ageLabels, ageValues);
+        })
+        .catch(error => {
+            console.error('Erro ao carregar dados da dashboard:', error);
         });
+}
 
-        // Cria gráficos com ApexCharts
-        const dates = Object.keys(data.daily_conversations);
-        const values = Object.values(data.daily_conversations);
+// Inicialização quando o DOM estiver pronto
+document.addEventListener("DOMContentLoaded", function () {
+    const rangeSelect = document.getElementById("dashboard-range");
 
-        // Tratamento para dados vazios
-        if (dates.length === 0) {
-            dates.push(new Date().toISOString().split('T')[0]);
-            values.push(0);
-        }
+    // Listener para mudar o período
+    if (rangeSelect) {
+        rangeSelect.addEventListener("change", function () {
+            const days = parseInt(rangeSelect.value, 10) || 7;
+            loadDashboardData({ days: days });
+        });
+    }
 
-        createDailyConversationsChart(dates, values);
-        createMessagesBarChart(
-            data.message_counts.user_messages || 0,
-            data.message_counts.bot_messages || 0
-        );
-
-        // ----- Leads por cidade -----
-        const leadsByCity = data.leads_by_city || {};
-        const cityLabels = Object.keys(leadsByCity);
-        const cityValues = Object.values(leadsByCity);
-
-        if (cityLabels.length > 0) {
-            createLeadsByCityChart(cityLabels, cityValues);
-        }
-
-        // ----- Leads por estado -----
-        const leadsByState = data.leads_by_state || {};
-        const stateLabels = Object.keys(leadsByState);
-        const stateValues = Object.values(leadsByState);
-
-        if (stateLabels.length > 0) {
-            createLeadsByStateChart(stateLabels, stateValues);
-        }
-
-        // ----- Leads por faixa etária -----
-        const ageData = data.leads_by_age_range || {};
-        const ageLabels = ["16-18", "19-24", "25+"];
-        const ageValues = ageLabels.map(a => ageData[a] || 0);
-        createLeadsByAgeChart(ageLabels, ageValues);
-    })
-    .catch(error => {
-        console.error('Erro ao carregar dados da dashboard:', error);
-    });
+    // Carrega a dashboard inicialmente com 7 dias (comportamento atual)
+    loadDashboardData({ days: parseInt(rangeSelect?.value || "7", 10) || 7 });
+});
 </script>
 
 {% endblock %}
