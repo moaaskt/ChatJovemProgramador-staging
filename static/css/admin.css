@@ -100,6 +100,11 @@
   background: #ffffff;
 }
 
+/* Tema claro – número grande dos cards de métricas */
+.admin-body.theme-light .metric-card .metric-value {
+  color: #111827; /* texto escuro para boa leitura no fundo claro */
+}
+
 .admin-body.theme-light .nav-list-link {
   color: #4b5563;
 }
@@ -189,6 +194,29 @@
 
 .admin-body.theme-light .table-dark td {
   border-color: #e5e7eb;
+}
+
+/* Tema claro – tabela "Últimas Conversas" dentro de recent-table-wrapper */
+.admin-body.theme-light .recent-table-wrapper .table-dark {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+/* Cabeçalho da tabela no tema claro */
+.admin-body.theme-light .recent-table-wrapper .table-dark thead {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Linhas do corpo da tabela no tema claro */
+.admin-body.theme-light .recent-table-wrapper .table-dark tbody tr {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Hover nas linhas no tema claro */
+.admin-body.theme-light .recent-table-wrapper .table-dark tbody tr:hover {
+  background-color: #f3f4f6;
 }
 
 /* Painéis de conversas em tema claro */
