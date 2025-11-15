@@ -1130,7 +1130,7 @@ button {
   --chat-preview-primary: #3D7EFF;
   --chat-preview-secondary: #8B5CF6;
 
-  max-width: 420px;
+  width: 100%;
   background-color: #ffffff;
   border-radius: 1rem;
   border: 1px solid #e5e7eb;
@@ -1222,4 +1222,60 @@ button {
 
 .admin-body.theme-dark .chat-preview-header {
   border-bottom-color: #334155;
+}
+
+/* ===== PREVIEW DO LAUNCHER ===== */
+.launcher-preview-wrapper {
+  margin-top: 0.5rem;
+}
+
+.launcher-preview-surface {
+  position: relative;
+  background: #f3f4f6;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  min-height: 160px;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.admin-body.theme-dark .launcher-preview-surface {
+  background: #050e2d;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.launcher-preview-bubble {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 0.85rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
+  cursor: default;
+  background: linear-gradient(
+    135deg,
+    #3D7EFF 0%,
+    #8B5CF6 100%
+  );
+}
+
+.launcher-preview-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.launcher-preview-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
