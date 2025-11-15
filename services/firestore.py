@@ -320,15 +320,34 @@ def get_recent_conversations(limit=10):
         return []
 
 
-def get_all_conversations(limit=50):
+def get_all_conversations(limit=50, filters=None):
+    """
+    Busca conversas com filtros opcionais.
+    
+    Args:
+        limit: Número máximo de resultados (padrão: 50)
+        filters: Dict opcional com filtros {
+            "search": str  # Busca por session_id (filtro em memória)
+        }
+    
+    Returns:
+        Lista de dicionários com dados das conversas
+    """
+    # Garantir que filters seja um dict (ou vazio)
+    filters = filters or {}
+    search = (filters.get("search") or "").strip().lower()
+    
     try:
-        convs = (
+        # Query Firestore mantida como está (ordenada por updated_at DESC e com limit)
+        convs_query = (
             _db.collection("conversations")
                .order_by("updated_at", direction=firestore.Query.DESCENDING)
                .limit(limit)
-               .stream()
         )
-
+        
+        convs = convs_query.stream()
+        
+        # Serializar documentos
         results = []
         for c in convs:
             d = c.to_dict()
@@ -341,7 +360,16 @@ def get_all_conversations(limit=50):
                 "channel": d.get("channel"),
                 "status": d.get("status"),
             })
-
+        
+        # Aplicar filtro de busca em memória (se fornecido)
+        if search:
+            filtered = []
+            for conv in results:
+                session_id = str(conv.get("session_id", "")).lower()
+                if search in session_id:
+                    filtered.append(conv)
+            results = filtered
+        
         return results
     except Exception as e:
         logger.error(f"[Firestore] Erro em get_all_conversations: {e}")

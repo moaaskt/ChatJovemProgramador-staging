@@ -107,7 +107,16 @@ def conversations_page():
 
 @admin_bp.get("/api/conversations")
 def api_conversations():
-    data = get_all_conversations(limit=50)
+    # Ler parâmetro de busca da query string
+    search = (request.args.get("search") or "").strip()
+    
+    # Montar dicionário de filtros
+    filters = {}
+    if search:
+        filters["search"] = search
+    
+    # Passar filtros para o serviço (None se vazio para manter comportamento atual)
+    data = get_all_conversations(limit=50, filters=filters if filters else None)
     return jsonify({"conversations": data})
 
 @admin_bp.get("/api/conversations/<session_id>/messages")

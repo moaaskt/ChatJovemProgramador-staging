@@ -18,7 +18,7 @@
           </p>
 
           <div class="mb-2">
-            <input type="text" class="form-control form-control-sm" placeholder="Buscar por ID ou e-mail (visual)" title="Busca visual ainda não implementada">
+            <input type="text" id="conversation-search" class="form-control form-control-sm" placeholder="Buscar por ID">
           </div>
 
           <div class="sessions-list-wrapper">
@@ -66,8 +66,24 @@
     return new Date(ts._seconds * 1000).toLocaleString("pt-BR");
  }
  
- function loadConversations() {
-    fetch("/admin/api/conversations")
+ /**
+  * Carrega a lista de conversas com filtros opcionais.
+  * @param {Object} filters - Objeto com filtros (ex: { search: "texto" })
+  */
+ function loadConversations(filters = {}) {
+    // Construir query string a partir dos filtros
+    const params = new URLSearchParams();
+    
+    if (filters.search && filters.search.trim() !== "") {
+        params.append("search", filters.search.trim());
+    }
+    
+    const queryString = params.toString();
+    const url = queryString
+        ? `/admin/api/conversations?${queryString}`
+        : `/admin/api/conversations`;
+    
+    fetch(url)
       .then(r => r.json())
       .then(data => {
          const list = document.getElementById("conv-list");
@@ -113,6 +129,9 @@
              `;
              list.appendChild(item);
          });
+      })
+      .catch(error => {
+          console.error("Erro ao carregar conversas:", error);
       });
  }
  
@@ -229,7 +248,34 @@ function loadConversation(sessionId) {
    URL.revokeObjectURL(url);
  }
  
+/**
+ * Função de debounce para evitar requisições excessivas durante a digitação.
+ * @param {Function} fn - Função a ser executada
+ * @param {number} delay - Tempo de espera em milissegundos
+ * @returns {Function} Função com debounce aplicado
+ */
+function debounce(fn, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+   // Configurar campo de busca com debounce
+   const searchInput = document.getElementById("conversation-search");
+   
+   if (searchInput) {
+       const debouncedSearch = debounce(() => {
+           const value = searchInput.value || "";
+           loadConversations({ search: value });
+       }, 400); // 400ms de delay para evitar requisições em excesso
+       
+       searchInput.addEventListener("input", debouncedSearch);
+   }
+   
+   // Carregar conversas inicialmente (sem filtros)
    loadConversations();
    
    const downloadBtn = document.getElementById("download-conversation-btn");
