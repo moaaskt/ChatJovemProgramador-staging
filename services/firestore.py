@@ -526,3 +526,31 @@ def get_leads_count_by_city():
         logger.error(f"[Firestore] Erro em get_leads_count_by_city: {e}")
         return {}
 
+
+def get_leads_count_by_state():
+    """
+    Conta leads agrupados por estado (UF).
+    Retorna dict { "SC": count, "PR": count, ... }.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+
+    try:
+        leads = _db.collection("leads").stream()
+        counts: dict[str, int] = {}
+
+        for lead_doc in leads:
+            data = lead_doc.to_dict() or {}
+            estado = (data.get("estado") or "").strip().upper()
+
+            # Considera só UF com 2 letras
+            if len(estado) != 2:
+                continue
+
+            counts[estado] = counts.get(estado, 0) + 1
+
+        return counts
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_leads_count_by_state: {e}")
+        return {}
+

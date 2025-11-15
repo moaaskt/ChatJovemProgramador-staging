@@ -7,6 +7,7 @@ from services.firestore import (
     get_all_conversations,
     get_conversation_messages,
     get_leads_count_by_city,
+    get_leads_count_by_state,
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -27,6 +28,7 @@ def api_reports():
         "daily_conversations": get_daily_conversation_counts(days=7),
         "recent_conversations": get_recent_conversations(limit=10),
         "leads_by_city": get_leads_count_by_city(),
+        "leads_by_state": get_leads_count_by_state(),
     }
     return jsonify(data)
 

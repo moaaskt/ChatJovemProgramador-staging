@@ -59,7 +59,8 @@ except Exception as e:
     print("[Gemini] Falha ao logar modelos disponíveis:", e)
 
 # --- Helpers para o fluxo de captura de leads ---
-LEAD_FIELDS_ORDER = ["nome", "cidade", "estado", "idade", "email", "interesse"]
+# Ordem dos campos do lead (sem e-mail)
+LEAD_FIELDS_ORDER = ["nome", "interesse", "cidade", "estado", "idade"]
 
 # Mapeamento de estados brasileiros (nome completo -> sigla)
 ESTADOS_BRASIL = {
@@ -82,7 +83,7 @@ ESTADOS_BRASIL = {
 def get_next_lead_field(lead_data: dict) -> str | None:
     """
     Retorna o próximo campo que ainda não foi preenchido no lead_data.
-    Ordem: nome -> cidade -> estado -> idade -> email -> interesse.
+    Ordem: nome -> interesse -> cidade -> estado -> idade.
     """
     lead_data = lead_data or {}
     for field in LEAD_FIELDS_ORDER:
@@ -92,39 +93,51 @@ def get_next_lead_field(lead_data: dict) -> str | None:
     return None
 
 
-def get_question_for_field(field: str, lead_data: dict) -> str:
+def get_question_for_field(field: str, lead_data: dict | None = None) -> str:
     """
-    Retorna a pergunta correspondente a cada campo do lead.
+    Retorna a pergunta amigável para cada etapa do lead.
     """
+    lead_data = lead_data or {}
+    nome = lead_data.get("nome")
+
     if field == "nome":
-        return "Pra começar, qual é o seu nome?"
-    if field == "cidade":
-        nome = lead_data.get("nome") or ""
-        prefix = f"Prazer, {nome}! " if nome else ""
-        return prefix + "De qual cidade você fala?"
-    if field == "estado":
-        return "E o estado? Pode enviar a sigla, tipo SC/SP/RJ."
-    if field == "idade":
-        return "Legal! Quantos anos você tem?"
-    if field == "email":
-        return "Qual seu e-mail para eu te enviar materiais? (Se preferir, pode pular essa etapa)"
+        return (
+            "Oi! 😄 Que bom ter você aqui!\n"
+            "Eu sou o assistente oficial do Programa Jovem Programador.\n"
+            "Antes de te explicar tudo, como posso te chamar?"
+        )
+
     if field == "interesse":
-        return "Para finalizar, qual é o seu principal interesse?"
+        prefix = f"Legal, {nome}! " if nome else "Legal! "
+        return (
+            prefix
+            + "Me conta, o que mais te chama atenção no Programa Jovem Programador?\n"
+              "Cursos, aulas, empregabilidade, tecnologia… ou outra coisa?"
+        )
+
+    if field == "cidade":
+        return "Show! De qual cidade você está falando?"
+
+    if field == "estado":
+        return "Boa! E qual é o estado? Pode mandar só a sigla, tipo SC/SP/RJ 🙂"
+
+    if field == "idade":
+        return "Perfeito! Pra eu te orientar certinho, quantos anos você tem?"
+
     # fallback
-    return "Pode me contar um pouco mais sobre o que você procura?"
+    return "Pode me contar um pouco mais sobre você? 🙂"
 
 
 def get_error_message_for_field(field: str) -> str:
     """
-    Retorna mensagem de erro personalizada para cada campo quando validação falha.
+    Mensagens de erro quando a validação falha.
+    (E-mail saiu do fluxo, então só estado/idade precisam de erro específico)
     """
-    if field == "email":
-        return "Hum… não reconheci esse e-mail 😅\nPode enviar um válido? Exemplo: nome@dominio.com"
     if field == "estado":
         return "Consegue me passar a sigla do estado? (Ex.: SC, SP, RJ)"
     if field == "idade":
-        return "Você pode me enviar sua idade em números? (Ex.: 25)"
-    return "Por favor, tente novamente."
+        return "Você pode me enviar sua idade em números? (Ex.: 16, 18, 25)"
+    return "Não entendi muito bem, pode tentar de outro jeito? 🙂"
 
 
 def normalize_uf(text: str) -> str | None:
@@ -253,63 +266,46 @@ def validate_email(email: str) -> bool:
 
 def normalize_lead_answer(field: str, answer: str):
     """
-    Normaliza e valida a resposta do usuário para cada campo.
-    Retorna valor normalizado ou None se inválido.
+    Normaliza/valida a resposta de cada campo do lead.
+    Retorna o valor normalizado ou None se inválido.
     """
+    if answer is None:
+        return None
+
+    answer = str(answer).strip()
     if not answer:
         return None
-    
-    answer = answer.strip()
-    
-    # Cidade: normaliza usando normalize_city_name, com fallback para texto original
+
+    # Nome: só limita tamanho
+    if field == "nome":
+        return answer[:120]
+
+    # Interesse: texto livre, só limita tamanho
+    if field == "interesse":
+        return answer[:200]
+
+    # Cidade: usa normalização esperta, com fallback pro texto cru
     if field == "cidade":
-        if not answer or len(answer) == 0:
-            return None
-        # Tenta normalizar a cidade
         normalized = normalize_city_name(answer)
-        if normalized:
-            return normalized
-        # Se não conseguiu normalizar mas tem texto, aceita limitado a 120 chars
-        if answer:
-            return answer[:120] if len(answer) > 120 else answer
-        return None
-    
-    # Nome, Interesse: trim, limitar 120 chars, não vazio
-    if field in ["nome", "interesse"]:
-        if not answer or len(answer) == 0:
-            return None
-        if len(answer) > 120:
-            answer = answer[:120]
-        return answer
-    
-    # Idade: extrair dígitos, converter para int, validar faixa 10-110
+        return normalized or answer[:120]
+
+    # Estado (UF): normaliza usando a helper de UF
+    if field == "estado":
+        uf = normalize_uf(answer)
+        return uf  # pode ser None se inválido
+
+    # Idade: extrai dígitos e valida faixa
     if field == "idade":
-        digits = "".join(ch for ch in answer if ch.isdigit())
+        digits = re.sub(r"[^\d]", "", answer)
         if not digits:
             return None
-        try:
-            idade = int(digits)
-            if 10 <= idade <= 110:
-                return idade
-        except ValueError:
-            pass
-        return None
-    
-    # Estado (UF): normalizar para sigla
-    if field == "estado":
-        return normalize_uf(answer)
-    
-    # Email: validar formato, converter para lowercase, limitar 120 chars
-    # Se inválido, retorna "__INVALID_EMAIL__" para indicar que deve ser None
-    if field == "email":
-        if len(answer) > 120:
-            return "__INVALID_EMAIL__"
-        email_lower = answer.lower()
-        if validate_email(email_lower):
-            return email_lower
-        return "__INVALID_EMAIL__"
-    
-    return answer
+        idade = int(digits)
+        if idade < 10 or idade > 110:
+            return None
+        return idade
+
+    # Fallback genérico
+    return answer[:255]
 
 
 @app.route('/')
@@ -358,32 +354,13 @@ def chat():
         lead_done = False
         lead_data = {}
 
-    # Detectar comandos especiais (processar antes de verificar lead_done)
-    user_msg_lower = user_message.strip().lower()
-    is_skip_all_command = user_msg_lower in ["pular cadastro", "skip", "pula cadastro"]
-    is_skip_step_command = user_msg_lower in ["pular", "pula", "pular etapa", "pular pergunta", "não quero responder", "prefiro não informar"]
-    is_delete_command = user_msg_lower in ["apagar dados", "apagar meu cadastro", "apagar", "deletar dados", "deletar"]
-
-    # Comando: pular cadastro completo (funciona em qualquer estágio)
-    if is_skip_all_command:
-        try:
-            update_conversation(session_id, {
-                "lead_stage": "done",
-                "lead_done": True,
-                "lead_data": lead_data,  # Mantém dados parciais se houver
-            })
-            bot_response = "Sem problemas! Vamos seguir com sua pergunta normalmente. 🙂"
-            save_message(session_id, "assistant", bot_response, meta={"source": "web", "type": "lead_skipped"})
-        except Exception as e:
-            print(f"[Firestore] Erro ao pular cadastro: {e}")
-            bot_response = "Sem problemas! Vamos seguir com sua pergunta normalmente. 🙂"
-        
-        return jsonify({
-            'response': bot_response,
-            'session_id': session_id
-        })
-
+    # ---------------------------------------------------------
+    # 2) Comandos especiais (apagar cadastro, etc) - opcional manter seu código atual
+    # ---------------------------------------------------------
     # Comando: apagar dados (funciona em qualquer estágio)
+    user_msg_lower = user_message.strip().lower()
+    is_delete_command = user_msg_lower in ["apagar dados", "apagar meu cadastro", "apagar", "deletar dados", "deletar"]
+    
     if is_delete_command:
         try:
             update_conversation(session_id, {
@@ -402,165 +379,176 @@ def chat():
             'session_id': session_id
         })
 
-    # 1) Se já terminou o lead, fluxo normal com IA
+    # ---------------------------------------------------------
+    # 3) Se lead já foi concluído, segue fluxo normal com IA
+    # ---------------------------------------------------------
     if lead_done or lead_stage == "done":
         bot_response = chatbot_web.gerar_resposta(user_message)
+
         if AI_FIRESTORE_ENABLED:
             try:
                 save_message(session_id, "assistant", bot_response, meta={"source": "web"})
             except Exception as e:
                 print(f"[Firestore] Erro ao salvar resposta do bot: {e}")
+
         return jsonify({
-            'response': bot_response,
-            'session_id': session_id
+            "response": bot_response,
+            "session_id": session_id,
         })
 
-    # 2) Se ainda não começou o fluxo de lead -> iniciar agora
-    if lead_stage is None:
+    # ---------------------------------------------------------
+    # 4) Fluxo de LEAD (sem e-mail, com 'pular' em qualquer etapa)
+    # ---------------------------------------------------------
+    # Se ainda não começou, inicia coleta
+    if not lead_stage:
         lead_stage = "collecting"
-        lead_data = {}
-
-        first_field = get_next_lead_field(lead_data)  # deve ser "nome"
-        question = get_question_for_field(first_field, lead_data)
-
+        lead_data = lead_data or {}
         try:
             update_conversation(session_id, {
                 "lead_stage": lead_stage,
                 "lead_data": lead_data,
                 "lead_done": False,
             })
-            save_message(session_id, "assistant", question, meta={"source": "web", "type": "lead_question"})
         except Exception as e:
-            print(f"[Firestore] Erro ao iniciar fluxo de lead: {e}")
+            print(f"[Firestore] Erro ao iniciar lead: {e}")
+
+        # Primeira pergunta: nome
+        first_field = get_next_lead_field(lead_data)
+        question = get_question_for_field(first_field, lead_data)
+
+        if AI_FIRESTORE_ENABLED:
+            try:
+                save_message(session_id, "assistant", question, meta={"source": "web", "type": "lead_question"})
+            except Exception as e:
+                print(f"[Firestore] Erro ao salvar pergunta de lead: {e}")
 
         return jsonify({
-            'response': question,
-            'session_id': session_id
+            "response": question,
+            "session_id": session_id,
         })
 
-    # 3) Estamos no meio do fluxo de lead ("collecting")
-    if lead_stage == "collecting":
-        # Descobre qual é o próximo campo a ser preenchido
-        current_field = get_next_lead_field(lead_data)
-        if current_field is None:
-            # Estranho, mas considera lead completo
-            current_field = "interesse"
+    # Já está em coleta: descobre campo atual
+    current_field = get_next_lead_field(lead_data)
 
-        # Verificar se usuário quer pular esta etapa
-        if is_skip_step_command:
-            # Salva campo como None e avança
-            lead_data[current_field] = None
-        else:
-            # Normaliza e valida a resposta do usuário
-            normalized_value = normalize_lead_answer(current_field, user_message)
+    # Se por algum motivo não tem campo pendente, marca como done e cai no fluxo normal na próxima mensagem
+    if current_field is None:
+        try:
+            update_conversation(session_id, {
+                "lead_stage": "done",
+                "lead_done": True,
+                "lead_data": lead_data,
+            })
+        except Exception as e:
+            print(f"[Firestore] Erro ao finalizar lead sem campos: {e}")
 
-            # Tratamento especial para e-mail: aceitar qualquer coisa
-            if current_field == "email":
-                if normalized_value == "__INVALID_EMAIL__":
-                    # E-mail inválido: salvar como None e continuar
-                    lead_data[current_field] = None
-                else:
-                    # E-mail válido: salvar normalmente
-                    lead_data[current_field] = normalized_value
-            else:
-                # Para outros campos: se validação falhou, pedir novamente
-                if normalized_value is None:
-                    error_message = get_error_message_for_field(current_field)
-                    
-                    try:
-                        save_message(session_id, "assistant", error_message, meta={"source": "web", "type": "lead_error"})
-                    except Exception as e:
-                        print(f"[Firestore] Erro ao salvar mensagem de erro: {e}")
+        final_msg = (
+            "Tudo certo! Obrigado por compartilhar suas informações 😊\n"
+            "Agora posso te ajudar com qualquer dúvida sobre o Programa Jovem Programador!\n"
+            "O que você gostaria de saber?"
+        )
 
-                    return jsonify({
-                        'response': error_message,
-                        'session_id': session_id
-                    })
-
-                # Validação passou: salva o valor normalizado
-                lead_data[current_field] = normalized_value
-
-        # Verifica se o lead está completo
-        next_field = get_next_lead_field(lead_data)
-
-        if next_field is None:
-            # Lead completo -> salvar em "leads" e marcar como done
-            # Garantir tipos corretos antes de salvar
-            email_value = lead_data.get("email")
-            # Se email for "__INVALID_EMAIL__", converter para None
-            if email_value == "__INVALID_EMAIL__":
-                email_value = None
-            elif email_value:
-                email_value = str(email_value).strip().lower()[:120]
-            
-            lead_data_final = {
-                "nome": str(lead_data.get("nome", "")).strip()[:120] if lead_data.get("nome") else None,
-                "cidade": str(lead_data.get("cidade", "")).strip()[:120] if lead_data.get("cidade") else None,
-                "estado": str(lead_data.get("estado", "")).strip().upper()[:2] if lead_data.get("estado") else None,
-                "idade": int(lead_data.get("idade", 0)) if lead_data.get("idade") else None,
-                "email": email_value,
-                "interesse": str(lead_data.get("interesse", "")).strip()[:120] if lead_data.get("interesse") else None,
-            }
-            
-            # Remove campos vazios/None
-            lead_data_final = {k: v for k, v in lead_data_final.items() if v not in (None, "", 0, "__INVALID_EMAIL__")}
-            
+        if AI_FIRESTORE_ENABLED:
             try:
-                save_lead_from_conversation(session_id, lead_data_final)
+                save_message(session_id, "assistant", final_msg, meta={"source": "web", "type": "lead_done"})
+            except Exception as e:
+                print(f"[Firestore] Erro ao salvar mensagem final de lead: {e}")
+
+        return jsonify({
+            "response": final_msg,
+            "session_id": session_id,
+        })
+
+    # Comandos para pular etapa
+    msg_lower = user_message.strip().lower()
+    skip_commands = {
+        "pular",
+        "pula",
+        "pular etapa",
+        "pular essa etapa",
+        "pode pular",
+        "pode pular essa etapa",
+        "não quero responder",
+        "prefiro não informar",
+    }
+
+    if msg_lower in skip_commands:
+        # Só marca o campo atual como None e segue
+        lead_data[current_field] = None
+    else:
+        # Normaliza/valida resposta
+        normalized_value = normalize_lead_answer(current_field, user_message)
+
+        # Se falhou validação, pede de novo com mensagem amigável
+        if normalized_value is None:
+            error_message = get_error_message_for_field(current_field)
+
+            if AI_FIRESTORE_ENABLED:
+                try:
+                    save_message(session_id, "assistant", error_message, meta={"source": "web", "type": "lead_error"})
+                except Exception as e:
+                    print(f"[Firestore] Erro ao salvar mensagem de erro do lead: {e}")
+
+            return jsonify({
+                "response": error_message,
+                "session_id": session_id,
+            })
+
+        lead_data[current_field] = normalized_value
+
+    # Verifica se ainda há campos pendentes
+    next_field = get_next_lead_field(lead_data)
+
+    # Se terminou todos os campos -> salva lead e finaliza
+    if next_field is None:
+        if AI_FIRESTORE_ENABLED:
+            try:
+                save_lead_from_conversation(session_id, lead_data)
                 update_conversation(session_id, {
                     "lead_stage": "done",
                     "lead_done": True,
-                    "lead_data": lead_data_final,
+                    "lead_data": lead_data,
                 })
             except Exception as e:
                 print(f"[Firestore] Erro ao salvar lead: {e}")
 
-            bot_response = (
-                "Tudo certo! Obrigado por compartilhar suas informações 😊\n"
-                "Agora posso te ajudar com qualquer dúvida sobre o Programa Jovem Programador!\n"
-                "O que você gostaria de saber?"
-            )
+        final_msg = (
+            "Fechado! Obrigado por compartilhar suas informações 😊\n"
+            "Agora eu consigo te ajudar MUITO melhor sobre o Programa Jovem Programador.\n"
+            "O que você quer saber primeiro?"
+        )
 
-            if AI_FIRESTORE_ENABLED:
-                try:
-                    save_message(session_id, "assistant", bot_response, meta={"source": "web", "type": "lead_done"})
-                except Exception as e:
-                    print(f"[Firestore] Erro ao salvar mensagem de conclusão de lead: {e}")
-
-            return jsonify({
-                'response': bot_response,
-                'session_id': session_id
-            })
-
-        # Ainda faltam campos -> pergunta próxima informação
-        next_question = get_question_for_field(next_field, lead_data)
-
-        try:
-            update_conversation(session_id, {
-                "lead_stage": "collecting",
-                "lead_data": lead_data,
-                "lead_done": False,
-            })
-            save_message(session_id, "assistant", next_question, meta={"source": "web", "type": "lead_question"})
-        except Exception as e:
-            print(f"[Firestore] Erro ao avançar no fluxo de lead: {e}")
+        if AI_FIRESTORE_ENABLED:
+            try:
+                save_message(session_id, "assistant", final_msg, meta={"source": "web", "type": "lead_done"})
+            except Exception as e:
+                print(f"[Firestore] Erro ao salvar mensagem final de lead: {e}")
 
         return jsonify({
-            'response': next_question,
-            'session_id': session_id
+            "response": final_msg,
+            "session_id": session_id,
         })
 
-    # 4) Fallback: se lead_stage tiver um valor desconhecido, segue fluxo normal com IA
-    bot_response = chatbot_web.gerar_resposta(user_message)
+    # Ainda falta coletar algum campo → pergunta seguinte
+    try:
+        update_conversation(session_id, {
+            "lead_stage": "collecting",
+            "lead_data": lead_data,
+            "lead_done": False,
+        })
+    except Exception as e:
+        print(f"[Firestore] Erro ao atualizar lead em coleta: {e}")
+
+    next_question = get_question_for_field(next_field, lead_data)
+
     if AI_FIRESTORE_ENABLED:
         try:
-            save_message(session_id, "assistant", bot_response, meta={"source": "web"})
+            save_message(session_id, "assistant", next_question, meta={"source": "web", "type": "lead_question"})
         except Exception as e:
-            print(f"[Firestore] Erro ao salvar resposta do bot (fallback): {e}")
+            print(f"[Firestore] Erro ao salvar próxima pergunta de lead: {e}")
 
     return jsonify({
-        'response': bot_response,
-        'session_id': session_id
+        "response": next_question,
+        "session_id": session_id,
     })
 
 @app.route('/health')

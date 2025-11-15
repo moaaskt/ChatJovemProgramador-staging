@@ -77,9 +77,10 @@
 
         <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h3>Distribuição de mensagens</h3>
+                <h3>Leads por estado</h3>
+                <span class="chart-subtitle">Distribuição dos leads capturados</span>
             </div>
-            <div id="chart_messages_donut" class="apex-chart-container"></div>
+            <div id="chart_leads_by_state" class="apex-chart-container"></div>
         </div>
 
         <div class="chart-container apex-chart-card">
@@ -129,8 +130,8 @@
 // Variáveis globais para instâncias dos gráficos
 let chartDaily = null;
 let chartMessagesBar = null;
-let chartMessagesDonut = null;
 let chartLeadsByCity = null;
+let chartLeadsByState = null;
 
 /**
  * Formata data para exibição legível (timezone-safe)
@@ -375,139 +376,48 @@ function createMessagesBarChart(user, bot) {
 }
 
 /**
- * Cria gráfico donut para distribuição de mensagens
+ * Cria um bar chart básico (ApexCharts) para LEADS.
+ * Reaproveitado para cidade e estado.
  */
-function createMessagesDonutChart(user, bot) {
-    // Verificação de ApexCharts
+function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
     if (typeof ApexCharts === 'undefined') {
-        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
-        return;
-    }
-    
-    const container = document.getElementById("chart_messages_donut");
-    if (!container) return;
-
-    if (chartMessagesDonut) {
-        chartMessagesDonut.destroy();
-    }
-
-    const total = user + bot;
-    const userPercent = total > 0 ? Math.round((user / total) * 100) : 0;
-    const botPercent = total > 0 ? Math.round((bot / total) * 100) : 0;
-
-    const options = {
-        series: [user, bot],
-        chart: {
-            type: 'donut',
-            height: 200,
-            fontFamily: 'Poppins, sans-serif',
-            toolbar: { show: false }
-        },
-        colors: ['#00c853', '#ffc107'],
-        labels: ['Usuário', 'Bot'],
-        dataLabels: {
-            enabled: false
-        },
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '70%',
-                    labels: {
-                        show: true,
-                        name: { show: false },
-                        value: {
-                            show: true,
-                            fontSize: '18px',
-                            fontWeight: 600,
-                            color: '#fff',
-                            formatter: function(val) {
-                                return total > 0 ? total : '0';
-                            }
-                        },
-                        total: {
-                            show: true,
-                            label: 'Total',
-                            fontSize: '12px',
-                            fontWeight: 400,
-                            color: '#9aa0c6',
-                            formatter: function() {
-                                return 'Mensagens';
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        tooltip: {
-            theme: 'dark',
-            style: { fontSize: '12px', fontFamily: 'Poppins' },
-            y: {
-                formatter: function(val, opts) {
-                    return val + ' mensagens (' + opts.w.globals.seriesPercent[opts.seriesIndex].toFixed(0) + '%)';
-                }
-            }
-        },
-        legend: {
-            show: true,
-            position: 'bottom',
-            fontSize: '11px',
-            fontFamily: 'Poppins',
-            labels: { colors: '#fff' },
-            markers: { width: 8, height: 8 }
-        }
-    };
-
-    chartMessagesDonut = new ApexCharts(container, options);
-    chartMessagesDonut.render();
-}
-
-/**
- * Cria gráfico de barras para leads por cidade
- */
-function createLeadsByCityChart(labels, values) {
-    if (typeof ApexCharts === 'undefined') {
-        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        console.error('ApexCharts não carregado. Verifique o CDN.');
         return;
     }
 
-    const container = document.getElementById('chart_leads_by_city');
-    if (!container) return;
+    const el = document.getElementById(containerId);
+    if (!el) return;
 
-    if (chartLeadsByCity) {
+    // Destroi gráfico anterior, se existir
+    if (chartRefName === 'city' && chartLeadsByCity) {
         chartLeadsByCity.destroy();
+    }
+    if (chartRefName === 'state' && chartLeadsByState) {
+        chartLeadsByState.destroy();
     }
 
     const options = {
         chart: {
             type: 'bar',
-            height: 280,
-            toolbar: { show: false },
-            foreColor: '#fff'
+            height: 300,
+            toolbar: { show: false }
         },
         series: [{
-            name: 'Leads',
-            data: values
+            data: seriesData
         }],
         xaxis: {
             categories: labels,
             labels: {
-                rotate: -45,
                 style: {
                     fontSize: '12px'
                 }
-            },
-            axisBorder: { show: false },
-            axisTicks: { show: false }
-        },
-        yaxis: {
-            labels: {
-                style: { fontSize: '12px' }
             }
         },
         plotOptions: {
             bar: {
-                borderRadius: 6,
-                columnWidth: '55%'
+                horizontal: false,
+                columnWidth: '45%',
+                borderRadius: 6
             }
         },
         dataLabels: {
@@ -518,12 +428,26 @@ function createLeadsByCityChart(labels, values) {
         },
         tooltip: {
             theme: 'dark'
-        },
-        colors: ['#4da3ff']
+        }
     };
 
-    chartLeadsByCity = new ApexCharts(container, options);
-    chartLeadsByCity.render();
+    const chart = new ApexCharts(el, options);
+
+    if (chartRefName === 'city') {
+        chartLeadsByCity = chart;
+    } else if (chartRefName === 'state') {
+        chartLeadsByState = chart;
+    }
+
+    chart.render();
+}
+
+function createLeadsByCityChart(labels, values) {
+    createLeadsBarChart('chart_leads_by_city', labels, values, 'city');
+}
+
+function createLeadsByStateChart(labels, values) {
+    createLeadsBarChart('chart_leads_by_state', labels, values, 'state');
 }
 
 // ============================================
@@ -578,25 +502,23 @@ fetch("/admin/api/reports")
             data.message_counts.user_messages || 0,
             data.message_counts.bot_messages || 0
         );
-        createMessagesDonutChart(
-            data.message_counts.user_messages || 0,
-            data.message_counts.bot_messages || 0
-        );
 
-        // Leads por cidade
+        // ----- Leads por cidade -----
         const leadsByCity = data.leads_by_city || {};
-        const cityKeys = Object.keys(leadsByCity);
+        const cityLabels = Object.keys(leadsByCity);
         const cityValues = Object.values(leadsByCity);
 
-        if (cityKeys.length > 0 && cityValues.length > 0) {
-            const labels = cityKeys.map(formatCityLabel);
-            createLeadsByCityChart(labels, cityValues);
-        } else {
-            // Se não houver leads, ainda podemos destruir gráfico anterior (se existir)
-            if (chartLeadsByCity) {
-                chartLeadsByCity.destroy();
-                chartLeadsByCity = null;
-            }
+        if (cityLabels.length > 0) {
+            createLeadsByCityChart(cityLabels, cityValues);
+        }
+
+        // ----- Leads por estado -----
+        const leadsByState = data.leads_by_state || {};
+        const stateLabels = Object.keys(leadsByState);
+        const stateValues = Object.values(leadsByState);
+
+        if (stateLabels.length > 0) {
+            createLeadsByStateChart(stateLabels, stateValues);
         }
     })
     .catch(error => {
