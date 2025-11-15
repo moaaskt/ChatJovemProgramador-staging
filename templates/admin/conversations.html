@@ -18,7 +18,7 @@
           </p>
 
           <div class="mb-2">
-            <input type="text" class="form-control form-control-sm" placeholder="Buscar por ID ou e-mail (visual)" disabled>
+            <input type="text" class="form-control form-control-sm" placeholder="Buscar por ID ou e-mail (visual)" title="Busca visual ainda não implementada">
           </div>
 
           <div class="sessions-list-wrapper">
@@ -41,6 +41,10 @@
                 <small id="conv-session-label" class="text-muted d-block"></small>
               </div>
             </div>
+            <button type="button" id="download-conversation-btn" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-download"></i>
+              <span>Baixar</span>
+            </button>
           </div>
 
           <div id="chat-viewer" class="chat-panel-messages">
@@ -53,6 +57,10 @@
 </div>
 
 <script>
+ // Variáveis globais para armazenar conversa atual
+ let currentSessionId = null;
+ let currentMessages = [];
+
  function formatTimestamp(ts) {
     if (!ts || !ts._seconds) return "";
     return new Date(ts._seconds * 1000).toLocaleString("pt-BR");
@@ -69,7 +77,9 @@
          const badge = document.getElementById("conv-total-badge");
          if (badge && data.conversations.length > 0) {
            badge.classList.remove("d-none");
-           badge.textContent = `${data.conversations.length} sessão${data.conversations.length !== 1 ? 'ões' : ''}`;
+           const total = data.conversations.length;
+           const label = total === 1 ? "sessão" : "sessões";
+           badge.textContent = `${total} ${label}`;
          } else if (badge) {
            badge.classList.add("d-none");
          }
@@ -130,6 +140,10 @@ function loadConversation(sessionId) {
     fetch(`/admin/api/conversations/${sessionId}/messages`)
       .then(r => r.json())
       .then(data => {
+         // Atualizar variáveis globais
+         currentSessionId = sessionId;
+         currentMessages = Array.isArray(data.messages) ? data.messages : [];
+         
          viewer.innerHTML = "";
          if (!data.messages.length) {
              viewer.innerHTML = `
@@ -179,8 +193,50 @@ function loadConversation(sessionId) {
          viewer.scrollTop = viewer.scrollHeight;
       });
  }
+
+ function downloadCurrentConversation() {
+   if (!currentSessionId || !currentMessages || currentMessages.length === 0) {
+     alert("Selecione uma sessão com mensagens antes de baixar a conversa.");
+     return;
+   }
+
+   // Montar o conteúdo em texto simples
+   let lines = [];
+   lines.push(`ChatLeo - Histórico da conversa`);
+   lines.push(`Sessão: ${currentSessionId}`);
+   lines.push("");
+
+   currentMessages.forEach(msg => {
+     const roleRaw = msg.role || msg.papel || "bot";
+     const role = roleRaw === "user" ? "usuário" : "bot";
+     const content = msg.content || msg.texto || "";
+     const ts = formatTimestamp(msg.created_at);
+     lines.push(`[${ts}] (${role}) ${content}`);
+   });
+
+   const text = lines.join("\n");
+
+   // Criar o arquivo .txt via Blob
+   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+   const url = URL.createObjectURL(blob);
+
+   const a = document.createElement("a");
+   a.href = url;
+   a.download = `conversa_${currentSessionId}.txt`;
+   document.body.appendChild(a);
+   a.click();
+   a.remove();
+   URL.revokeObjectURL(url);
+ }
  
-document.addEventListener("DOMContentLoaded", loadConversations);
+document.addEventListener("DOMContentLoaded", () => {
+   loadConversations();
+   
+   const downloadBtn = document.getElementById("download-conversation-btn");
+   if (downloadBtn) {
+     downloadBtn.addEventListener("click", downloadCurrentConversation);
+   }
+});
 </script>
 
 {% endblock %}
