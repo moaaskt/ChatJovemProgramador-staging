@@ -243,6 +243,12 @@ function createDailyConversationsChart(labels, series) {
     // Converte labels de datas para formato legível
     const formattedLabels = labels.map(formatDateLabel);
 
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+    const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
     const options = {
         series: [{
             name: 'Conversas',
@@ -271,7 +277,7 @@ function createDailyConversationsChart(labels, series) {
             }
         },
         grid: {
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: gridColor,
             strokeDashArray: 3,
             xaxis: { lines: { show: false } },
             yaxis: { lines: { show: true } }
@@ -279,18 +285,18 @@ function createDailyConversationsChart(labels, series) {
         xaxis: {
             categories: formattedLabels,
             labels: {
-                style: { colors: '#9aa0c6', fontSize: '11px' }
+                style: { colors: labelColor, fontSize: '11px' }
             },
             axisBorder: { show: false },
             axisTicks: { show: false }
         },
         yaxis: {
             labels: {
-                style: { colors: '#9aa0c6', fontSize: '11px' }
+                style: { colors: labelColor, fontSize: '11px' }
             }
         },
         tooltip: {
-            theme: 'dark',
+            theme: tooltipTheme,
             style: { fontSize: '12px', fontFamily: 'Poppins' },
             y: {
                 formatter: function(val) {
@@ -328,6 +334,12 @@ function createMessagesBarChart(user, bot) {
         chartMessagesBar.destroy();
     }
 
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+    const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
     const options = {
         series: [{
             name: 'Mensagens',
@@ -357,7 +369,7 @@ function createMessagesBarChart(user, bot) {
             }
         },
         grid: {
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: gridColor,
             strokeDashArray: 3,
             xaxis: { lines: { show: false } },
             yaxis: { lines: { show: true } }
@@ -365,18 +377,18 @@ function createMessagesBarChart(user, bot) {
         xaxis: {
             categories: ['Usuário', 'Bot'],
             labels: {
-                style: { colors: '#9aa0c6', fontSize: '11px' }
+                style: { colors: labelColor, fontSize: '11px' }
             },
             axisBorder: { show: false },
             axisTicks: { show: false }
         },
         yaxis: {
             labels: {
-                style: { colors: '#9aa0c6', fontSize: '11px' }
+                style: { colors: labelColor, fontSize: '11px' }
             }
         },
         tooltip: {
-            theme: 'dark',
+            theme: tooltipTheme,
             style: { fontSize: '12px', fontFamily: 'Poppins' }
         },
         legend: { show: false }
@@ -407,6 +419,12 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
         chartLeadsByState.destroy();
     }
 
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+    const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
     const options = {
         chart: {
             type: 'bar',
@@ -420,7 +438,15 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
             categories: labels,
             labels: {
                 style: {
+                    colors: labelColor,
                     fontSize: '12px'
+                }
+            }
+        },
+        yaxis: {
+            labels: {
+                style: {
+                    colors: labelColor
                 }
             }
         },
@@ -435,10 +461,10 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
             enabled: false
         },
         grid: {
-            borderColor: 'rgba(255,255,255,0.08)'
+            borderColor: gridColor
         },
         tooltip: {
-            theme: 'dark'
+            theme: tooltipTheme
         }
     };
 
@@ -466,6 +492,12 @@ function createLeadsByAgeChart(labels, values) {
         chartLeadsByAge.destroy();
     }
 
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+    const labelColor = isLightTheme ? '#6b7280' : '#ccc';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
     const options = {
         chart: {
             type: 'bar',
@@ -490,19 +522,19 @@ function createLeadsByAgeChart(labels, values) {
         xaxis: {
             categories: labels,
             labels: {
-                style: { colors: '#ccc' }
+                style: { colors: labelColor }
             }
         },
         yaxis: {
             labels: {
-                style: { colors: '#ccc' }
+                style: { colors: labelColor }
             }
         },
         grid: {
-            borderColor: 'rgba(255,255,255,0.1)',
+            borderColor: gridColor,
         },
         tooltip: {
-            theme: 'dark'
+            theme: tooltipTheme
         }
     };
 

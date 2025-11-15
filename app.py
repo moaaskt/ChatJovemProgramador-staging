@@ -10,11 +10,13 @@ import re
 from datetime import datetime
 from services.firestore import (
     init_admin,
+    init_default_admin,
     get_or_create_conversation,
     save_message,
     get_conversation,
     update_conversation,
     save_lead_from_conversation,
+    get_settings,
 )
 
 # --- Classe de Cores (Foco em Alto Contraste) ---
@@ -30,10 +32,16 @@ class Cores:
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 CORS(app)
 
 # Inicializa Firestore (se habilitado)
+print("[DEBUG] Iniciando Firestore...")
 init_admin()
+# Inicializa admin padrão após Firestore estar pronto
+print("[DEBUG] Chamando init_default_admin()...")
+init_default_admin()
+print("[DEBUG] Inicialização do Firestore concluída.")
 
 # Flag para habilitar/desabilitar Firestore
 AI_FIRESTORE_ENABLED = os.getenv("AI_FIRESTORE_ENABLED", "false").lower() == "true"
@@ -311,6 +319,25 @@ def normalize_lead_answer(field: str, answer: str):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/api/chat-config', methods=['GET'])
+def api_chat_config():
+    """Endpoint público para configs do chat widget."""
+    chat_cfg = get_settings("chat_config") or {}
+    
+    # Defaults seguros
+    data = {
+        "chat_title": chat_cfg.get("chat_title", "ChatLeo"),
+        "welcome_message": chat_cfg.get(
+            "welcome_message",
+            "Olá! 👋 Sou o assistente do Jovem Programador. Como posso te ajudar hoje? 🚀",
+        ),
+        "bot_avatar": chat_cfg.get("bot_avatar", "/static/assets/logo.png"),
+        "user_avatar": chat_cfg.get("user_avatar", "/static/assets/logo-user.png"),
+        "primary_color": chat_cfg.get("primary_color", "#3D7EFF"),
+        "secondary_color": chat_cfg.get("secondary_color", "#8B5CF6"),
+    }
+    return jsonify(data)
 
 @app.route('/api/chat', methods=['POST'])
 def chat():

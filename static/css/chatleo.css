@@ -1,3 +1,9 @@
+/* Variáveis CSS para personalização do chat */
+.chatbot-widget {
+  --chat-primary: #3D7EFF;
+  --chat-secondary: #8B5CF6;
+}
+
 .chatleo-bubble{position:fixed;bottom:30px;right:30px;z-index:1040;cursor:pointer;display:inline-block;-webkit-tap-highlight-color:transparent}
 @media (max-width: 768px){
   .chatleo-bubble.is-hidden,

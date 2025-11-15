@@ -54,6 +54,216 @@
   margin: 0;
 }
 
+/* Tema Dark (padrão) */
+.admin-body.theme-dark {
+  background-color: #050e2d;
+  color: var(--text-normal);
+}
+
+/* Tema Light */
+.admin-body.theme-light {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.admin-body.theme-light .app-left {
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.admin-body.theme-light .app-main {
+  background-color: #f3f4f6;
+  background-image: none;
+}
+
+.admin-body.theme-light .card,
+.admin-body.theme-light .chart-container,
+.admin-body.theme-light .apex-chart-card,
+.admin-body.theme-light .metric-card {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.admin-body.theme-light .card-section,
+.admin-body.theme-light .metric-card,
+.admin-body.theme-light .apex-chart-card,
+.admin-body.theme-light .chart-container {
+  background-color: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.admin-body.theme-light .metric-card,
+.admin-body.theme-light .apex-chart-card {
+  background: #ffffff;
+}
+
+.admin-body.theme-light .nav-list-link {
+  color: #4b5563;
+}
+
+.admin-body.theme-light .nav-list-link:hover,
+.admin-body.theme-light .nav-list-item.active .nav-list-link {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light .app-logo span {
+  color: #111827;
+}
+
+.admin-body.theme-light .nav-list-item:not(.active) .nav-list-link:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.admin-body.theme-light .main-header-line h1 {
+  color: #111827;
+}
+
+.admin-body.theme-light .section-title {
+  color: #111827;
+}
+
+.admin-body.theme-light .chart-container-header h2,
+.admin-body.theme-light .chart-container-header h3,
+.admin-body.theme-light .card-section,
+.admin-body.theme-light .chat-header-info span,
+.admin-body.theme-light .sessions-panel h2,
+.admin-body.theme-light .chat-panel h2,
+.admin-body.theme-light .panel-title,
+.admin-body.theme-light .page-title {
+  color: #111827;
+}
+
+.admin-body.theme-light .chart-info-wrapper h2,
+.admin-body.theme-light .chat-header-info small,
+.admin-body.theme-light .conversations-subtitle,
+.admin-body.theme-light .bubble-meta {
+  color: #6b7280;
+}
+
+.admin-body.theme-light .chart-info-wrapper span {
+  color: #111827;
+}
+
+.admin-body.theme-light .form-control,
+.admin-body.theme-light .form-select {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.admin-body.theme-light .form-control:focus,
+.admin-body.theme-light .form-select:focus {
+  background-color: #ffffff;
+  border-color: #3d7eff;
+  color: #111827;
+}
+
+.admin-body.theme-light .table-dark {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.admin-body.theme-light .table-dark thead {
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+.admin-body.theme-light .table-dark th {
+  background-color: #f9fafb;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.admin-body.theme-light .table-dark tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-body.theme-light .table-dark tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light .table-dark td {
+  border-color: #e5e7eb;
+}
+
+/* Painéis de conversas em tema claro */
+.admin-body.theme-light .sessions-panel,
+.admin-body.theme-light .chat-panel {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.admin-body.theme-light .session-item {
+  background-color: #f9fafb;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-body.theme-light .session-item:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light .session-item.active {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.admin-body.theme-light .list-group-item {
+  background-color: #f9fafb;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.admin-body.theme-light .list-group-item:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light #chat-viewer {
+  background-color: #f9fafb;
+}
+
+.admin-body.theme-light #chat-viewer::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+
+.admin-body.theme-light #chat-viewer {
+  scrollbar-color: #9ca3af #e5e7eb;
+}
+
+.admin-body.theme-light .bubble-bot {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Botões e controles em tema claro */
+.admin-body.theme-light .menu-button {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.admin-body.theme-light .close-menu {
+  color: #111827;
+}
+
+/* Bordas e divisores em tema claro */
+.admin-body.theme-light .card-section,
+.admin-body.theme-light .sessions-panel,
+.admin-body.theme-light .chat-panel,
+.admin-body.theme-light .chart-container-header {
+  border-bottom-color: #e5e7eb;
+}
+
+.admin-body.theme-light .chat-header {
+  border-bottom-color: #e5e7eb;
+}
+
 .app-container {
   width: 100%;
   height: 100%;
@@ -832,4 +1042,72 @@ button {
   .chart-container-header h3 {
     font-size: 12px;
   }
+}
+
+/* ============================================
+   TOGGLE DE TEMA
+   ============================================ */
+
+.theme-toggle-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-toggle-label {
+  font-size: 0.875rem;
+  color: #c3c8ff;
+}
+
+.theme-toggle {
+  position: relative;
+  width: 80px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, #111827, #020617);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.theme-toggle:hover {
+  box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-icon {
+  font-size: 0.9rem;
+  z-index: 2;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  width: 32px;
+  height: 26px;
+  border-radius: 999px;
+  background: #4f46e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  left: 4px; /* posição estado "claro" */
+  top: 3px;
+  transition: left 0.2s ease, background 0.2s ease;
+}
+
+/* quando o tema for dark, move o "thumb" para a direita */
+.theme-toggle.is-dark .theme-toggle-thumb {
+  left: 44px;
+  background: #8b5cf6;
+}
+
+/* Ajustes para tema claro */
+.admin-body.theme-light .theme-toggle-label {
+  color: #4b5563;
+}
+
+.admin-body.theme-light .theme-toggle {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-color: #d1d5db;
 }

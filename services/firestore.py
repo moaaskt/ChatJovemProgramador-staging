@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from firebase_admin import initialize_app, credentials, firestore
 from firebase_admin.exceptions import FirebaseError
+from werkzeug.security import generate_password_hash, check_password_hash
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG) 
@@ -600,4 +601,184 @@ def get_leads_count_by_age_range():
     except Exception as e:
         logger.error(f"[Firestore] Erro em get_leads_count_by_age_range: {e}")
         return {}
+
+
+# ===== HELPERS DE SETTINGS =====
+
+def get_settings(doc_id: str = "global") -> dict:
+    """
+    Lê as configurações da collection 'settings', doc <doc_id>.
+    Se não existir ou Firestore estiver desabilitado, retorna {}.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+    
+    try:
+        doc_ref = _db.collection("settings").document(doc_id)
+        snap = doc_ref.get()
+        if not snap.exists:
+            return {}
+        data = snap.to_dict() or {}
+        return data
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_settings({doc_id}): {e}")
+        return {}
+
+
+def update_settings(doc_id: str, data: dict) -> bool:
+    """
+    Faz merge das configurações em 'settings/<doc_id>'.
+    Não levanta exceção; retorna True/False.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+    
+    try:
+        doc_ref = _db.collection("settings").document(doc_id)
+        doc_ref.set(data, merge=True)
+        logger.debug(f"[Firestore] Settings {doc_id} atualizado")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em update_settings({doc_id}): {e}")
+        return False
+
+
+# ===== HELPERS PARA ADMIN USER =====
+
+def get_admin_user(username: str) -> dict | None:
+    """
+    Retorna o documento do admin_user em admin_users/{username}.
+    Se não existir ou Firestore estiver desabilitado, retorna None.
+    """
+    if not _is_enabled() or _db is None:
+        return None
+    
+    try:
+        doc_ref = _db.collection("admin_users").document(username)
+        snap = doc_ref.get()
+        if not snap.exists:
+            return None
+        return snap.to_dict() or None
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_admin_user({username}): {e}")
+        return None
+
+
+def create_admin_user_if_missing(username: str, raw_password: str) -> None:
+    """
+    Se não existir o admin_user <username>, cria com a senha hash.
+    Use para bootstrap inicial (ex.: admin / admin123).
+    """
+    logger.info(f"[DEBUG] create_admin_user_if_missing chamado para '{username}'")
+    
+    if not _is_enabled() or _db is None:
+        logger.warning(f"[DEBUG] Firestore não habilitado ou _db é None. Não é possível criar admin '{username}'")
+        return
+    
+    try:
+        logger.info(f"[DEBUG] Verificando se admin '{username}' já existe...")
+        existing = get_admin_user(username)
+        if existing:
+            logger.info(f"[Firestore] Admin user '{username}' já existe. Não será criado novamente.")
+            return
+        
+        logger.info(f"[DEBUG] Admin '{username}' não existe. Criando novo admin...")
+        doc_ref = _db.collection("admin_users").document(username)
+        password_hash = generate_password_hash(raw_password)
+        logger.info(f"[DEBUG] Hash da senha gerado: {password_hash[:20]}...")
+        
+        doc_ref.set({
+            "username": username,
+            "password_hash": password_hash,
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        })
+        logger.info(f"[Firestore] Admin user '{username}' criado com sucesso na collection 'admin_users'")
+        
+        # Verificar se foi criado
+        verify_doc = doc_ref.get()
+        if verify_doc.exists:
+            logger.info(f"[DEBUG] Confirmação: Documento admin_users/{username} existe no Firestore")
+        else:
+            logger.error(f"[DEBUG] ERRO: Documento admin_users/{username} NÃO foi criado!")
+            
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em create_admin_user_if_missing({username}): {e}", exc_info=True)
+
+
+def update_admin_password(username: str, raw_password: str) -> bool:
+    """
+    Atualiza a senha do admin_user <username>.
+    Retorna True se sucesso, False caso contrário.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+    
+    try:
+        doc_ref = _db.collection("admin_users").document(username)
+        if not doc_ref.get().exists:
+            return False
+        
+        doc_ref.update({
+            "password_hash": generate_password_hash(raw_password),
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        })
+        logger.info(f"[Firestore] Senha do admin '{username}' atualizada")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em update_admin_password({username}): {e}")
+        return False
+
+
+def verify_admin_password(username: str, raw_password: str) -> bool:
+    """
+    Verifica se a senha fornecida corresponde ao hash armazenado.
+    - Se Firestore estiver DESABILITADO, usa fallback local: admin / admin123
+    - Se Firestore estiver HABILITADO, verifica no banco normalmente.
+    """
+
+    # 🔹 Fallback quando Firestore está desabilitado
+    if not _is_enabled() or _db is None:
+        logger.debug("[AdminAuth] Firestore desabilitado, usando fallback local de login.")
+        return username == "admin" and raw_password == "admin123"
+
+    # 🔹 Fluxo normal com Firestore habilitado
+    user = get_admin_user(username)
+    if not user:
+        return False
+
+    pwd_hash = user.get("password_hash")
+    if not pwd_hash:
+        return False
+
+    try:
+        return check_password_hash(pwd_hash, raw_password)
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em verify_admin_password({username}): {e}")
+        return False
+
+
+def init_default_admin():
+    """
+    Inicializa o admin padrão se não existir.
+    Deve ser chamado após init_admin() e após todas as funções estarem definidas.
+    """
+    logger.info("[DEBUG] Chamando init_default_admin()")
+    logger.info(f"[DEBUG] _is_enabled() = {_is_enabled()}")
+    logger.info(f"[DEBUG] _db is None = {_db is None}")
+    
+    if not _is_enabled():
+        logger.warning("[DEBUG] Firestore não está habilitado (AI_FIRESTORE_ENABLED=false). Admin não será criado.")
+        return
+    
+    if _db is None:
+        logger.warning("[DEBUG] _db é None. Firestore não foi inicializado corretamente.")
+        return
+    
+    try:
+        logger.info("[DEBUG] Criando admin padrão admin/admin123")
+        create_admin_user_if_missing("admin", "admin123")
+        logger.info("[DEBUG] init_default_admin() concluído com sucesso")
+    except Exception as e:
+        logger.error(f"[Firestore] Erro ao criar admin padrão: {e}", exc_info=True)
 

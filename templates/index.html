@@ -60,18 +60,20 @@
         </div>
         <!-- Widget do Chatbot (Oculto inicialmente) -->
         <div class="chatbot-widget" id="chatbot-widget"
-             data-bot-avatar="{{ url_for('static', filename='assets/logo.png') }}"
-             data-user-avatar="{{ url_for('static', filename='assets/logo-user.png') }}">
+             data-bot-avatar="/static/assets/logo.png"
+             data-user-avatar="/static/assets/logo-user.png"
+             data-primary-color="#3D7EFF"
+             data-secondary-color="#8B5CF6">
         
             <!-- Header do Widget -->
             <div class="widget-header">
                 <div class="widget-header-left">
                     <div class="widget-mascot">
-                        <img src="../static/assets/logo.png" alt="Abrir chat">
+                        <img src="/static/assets/logo.png" alt="Abrir chat">
 
                     </div>
                     <div class="widget-title">
-                        <h3>ChatLeo</h3>
+                        <h3 id="chat-title">ChatLeo</h3>
                         <span class="widget-status">Online</span>
                     </div>
                 </div>
@@ -102,11 +104,11 @@
                     <div class="welcome-message">
                         <div class="bot-message">
                             <div class="message-avatar">
-                               <img src="../static/assets/logo.png" alt="Abrir chat">
+                               <img src="/static/assets/logo.png" alt="Abrir chat">
 
                             </div>
                             <div class="message-bubble">
-                                <div class="message-content">
+                                <div class="message-content" id="welcome-message">
                                     Olá! 👋 Sou o assistente do Jovem Programador. Como posso te ajudar hoje? 🚀
                                 </div>
                                 
