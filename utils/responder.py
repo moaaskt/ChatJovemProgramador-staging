@@ -250,9 +250,11 @@ class Chatbot:
         {acesso_texto}
 
         --- REGRAS DE COMPORTAMENTO ---
-        1. Se a pergunta do usuário não tiver relação com o programa Jovem Programador, recuse educadamente. Diga algo como: "Minha especialidade é apenas o programa Jovem Programador. Posso ajudar com algo sobre isso? 😉"
-        2. Mantenha as respostas claras e diretas.
-        3. Seja sempre simpático e profissional.
+        1. Se o usuário perguntar qualquer coisa fora do Jovem Programador, você deve recusar com educação. Responda: "Eu entendi sua pergunta 😄, mas minha especialidade é somente o programa Jovem Programador. Quer saber algo sobre o JP?"
+        2. NÃO invente informações. Use SOMENTE os dados fornecidos acima do dados.json.
+        3. Se faltar alguma informação que o usuário perguntou, diga: "Essa informação não está disponível oficialmente no Jovem Programador. Posso te explicar outro ponto do programa?"
+        4. Mantenha as respostas claras e diretas.
+        5. Seja sempre simpático e profissional.
         """
         return contexto
 
@@ -274,11 +276,45 @@ class Chatbot:
         if not pergunta.strip():
             return "Por favor, digite sua pergunta! Estou aqui para ajudar. 😄"
 
+        # Verificar se chat_session existe, se não, reinicializar
+        if not hasattr(self, 'chat_session') or self.chat_session is None:
+            print("[Gemini] chat_session não existe, reinicializando...")
+            if hasattr(self, 'model_name') and self.model_name:
+                model_name_clean = self.model_name.replace("models/", "")
+                if self._try_model(model_name_clean):
+                    try:
+                        self.chat_session.send_message(self.contexto_inicial)
+                        print("[Gemini] Sessão reinicializada com sucesso")
+                    except Exception as e:
+                        print(f"[Gemini] Erro ao enviar contexto após reinicialização: {e}")
+                        return "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?"
+                else:
+                    return "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?"
+            else:
+                return "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?"
+
         try:
             composed = f"Usuário: {pergunta}"
             resp = self.chat_session.send_message(composed)
             text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
-            return text if isinstance(text, str) else (str(text) if text else "Não consegui responder agora.")
+            return text if isinstance(text, str) else (str(text) if text else "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?")
         except Exception as e:
             print(f"[Gemini] erro:", e)
-            return "Não consegui responder agora. Tente novamente mais tarde."
+            # Tentar reinicializar a sessão automaticamente
+            try:
+                print("[Gemini] Tentando reinicializar sessão após erro...")
+                if hasattr(self, 'model_name') and self.model_name:
+                    model_name_clean = self.model_name.replace("models/", "")
+                    if self._try_model(model_name_clean):
+                        self.chat_session.send_message(self.contexto_inicial)
+                        print("[Gemini] Sessão reinicializada, tentando novamente...")
+                        # Tentar novamente
+                        composed = f"Usuário: {pergunta}"
+                        resp = self.chat_session.send_message(composed)
+                        text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
+                        if text and isinstance(text, str):
+                            return text
+            except Exception as e2:
+                print(f"[Gemini] Erro ao reinicializar sessão: {e2}")
+            
+            return "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?"

@@ -105,9 +105,9 @@ def get_question_for_field(field: str, lead_data: dict) -> str:
     if field == "estado":
         return "E o estado? Pode enviar a sigla, tipo SC/SP/RJ."
     if field == "idade":
-        return "Qual a sua idade?"
+        return "Legal! Quantos anos você tem?"
     if field == "email":
-        return "Qual seu e-mail para eu te enviar materiais?"
+        return "Qual seu e-mail para eu te enviar materiais? (Se preferir, pode pular essa etapa)"
     if field == "interesse":
         return "Para finalizar, qual é o seu principal interesse?"
     # fallback
@@ -174,13 +174,13 @@ def normalize_uf(text: str) -> str | None:
 
 def validate_email(email: str) -> bool:
     """
-    Valida formato básico de email usando regex leve.
+    Valida formato básico de email usando regex permissivo.
     """
     if not email or len(email) > 120:
         return False
     
-    # Regex leve: deve ter @ e pelo menos um ponto após o @
-    pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+    # Regex permissivo: deve ter @ e pelo menos um ponto
+    pattern = r'.+@.+\..+'
     return bool(re.match(pattern, email.lower()))
 
 
@@ -220,13 +220,14 @@ def normalize_lead_answer(field: str, answer: str):
         return normalize_uf(answer)
     
     # Email: validar formato, converter para lowercase, limitar 120 chars
+    # Se inválido, retorna "__INVALID_EMAIL__" para indicar que deve ser None
     if field == "email":
         if len(answer) > 120:
-            return None
+            return "__INVALID_EMAIL__"
         email_lower = answer.lower()
         if validate_email(email_lower):
             return email_lower
-        return None
+        return "__INVALID_EMAIL__"
     
     return answer
 
@@ -279,11 +280,12 @@ def chat():
 
     # Detectar comandos especiais (processar antes de verificar lead_done)
     user_msg_lower = user_message.strip().lower()
-    is_skip_command = user_msg_lower in ["pular", "pular cadastro", "skip", "pula"]
+    is_skip_all_command = user_msg_lower in ["pular cadastro", "skip", "pula cadastro"]
+    is_skip_step_command = user_msg_lower in ["pular", "pula", "pular etapa", "pular pergunta", "não quero responder", "prefiro não informar"]
     is_delete_command = user_msg_lower in ["apagar dados", "apagar meu cadastro", "apagar", "deletar dados", "deletar"]
 
-    # Comando: pular cadastro (funciona em qualquer estágio)
-    if is_skip_command:
+    # Comando: pular cadastro completo (funciona em qualquer estágio)
+    if is_skip_all_command:
         try:
             update_conversation(session_id, {
                 "lead_stage": "done",
@@ -364,25 +366,39 @@ def chat():
             # Estranho, mas considera lead completo
             current_field = "interesse"
 
-        # Normaliza e valida a resposta do usuário
-        normalized_value = normalize_lead_answer(current_field, user_message)
+        # Verificar se usuário quer pular esta etapa
+        if is_skip_step_command:
+            # Salva campo como None e avança
+            lead_data[current_field] = None
+        else:
+            # Normaliza e valida a resposta do usuário
+            normalized_value = normalize_lead_answer(current_field, user_message)
 
-        # Se validação falhou (retornou None), pedir novamente com mensagem de erro
-        if normalized_value is None:
-            error_message = get_error_message_for_field(current_field)
-            
-            try:
-                save_message(session_id, "assistant", error_message, meta={"source": "web", "type": "lead_error"})
-            except Exception as e:
-                print(f"[Firestore] Erro ao salvar mensagem de erro: {e}")
+            # Tratamento especial para e-mail: aceitar qualquer coisa
+            if current_field == "email":
+                if normalized_value == "__INVALID_EMAIL__":
+                    # E-mail inválido: salvar como None e continuar
+                    lead_data[current_field] = None
+                else:
+                    # E-mail válido: salvar normalmente
+                    lead_data[current_field] = normalized_value
+            else:
+                # Para outros campos: se validação falhou, pedir novamente
+                if normalized_value is None:
+                    error_message = get_error_message_for_field(current_field)
+                    
+                    try:
+                        save_message(session_id, "assistant", error_message, meta={"source": "web", "type": "lead_error"})
+                    except Exception as e:
+                        print(f"[Firestore] Erro ao salvar mensagem de erro: {e}")
 
-            return jsonify({
-                'response': error_message,
-                'session_id': session_id
-            })
+                    return jsonify({
+                        'response': error_message,
+                        'session_id': session_id
+                    })
 
-        # Validação passou: salva o valor normalizado
-        lead_data[current_field] = normalized_value
+                # Validação passou: salva o valor normalizado
+                lead_data[current_field] = normalized_value
 
         # Verifica se o lead está completo
         next_field = get_next_lead_field(lead_data)
@@ -390,17 +406,24 @@ def chat():
         if next_field is None:
             # Lead completo -> salvar em "leads" e marcar como done
             # Garantir tipos corretos antes de salvar
+            email_value = lead_data.get("email")
+            # Se email for "__INVALID_EMAIL__", converter para None
+            if email_value == "__INVALID_EMAIL__":
+                email_value = None
+            elif email_value:
+                email_value = str(email_value).strip().lower()[:120]
+            
             lead_data_final = {
-                "nome": str(lead_data.get("nome", "")).strip()[:120],
-                "cidade": str(lead_data.get("cidade", "")).strip()[:120],
-                "estado": str(lead_data.get("estado", "")).strip().upper()[:2],
+                "nome": str(lead_data.get("nome", "")).strip()[:120] if lead_data.get("nome") else None,
+                "cidade": str(lead_data.get("cidade", "")).strip()[:120] if lead_data.get("cidade") else None,
+                "estado": str(lead_data.get("estado", "")).strip().upper()[:2] if lead_data.get("estado") else None,
                 "idade": int(lead_data.get("idade", 0)) if lead_data.get("idade") else None,
-                "email": str(lead_data.get("email", "")).strip().lower()[:120],
-                "interesse": str(lead_data.get("interesse", "")).strip()[:120],
+                "email": email_value,
+                "interesse": str(lead_data.get("interesse", "")).strip()[:120] if lead_data.get("interesse") else None,
             }
             
             # Remove campos vazios/None
-            lead_data_final = {k: v for k, v in lead_data_final.items() if v not in (None, "", 0)}
+            lead_data_final = {k: v for k, v in lead_data_final.items() if v not in (None, "", 0, "__INVALID_EMAIL__")}
             
             try:
                 save_lead_from_conversation(session_id, lead_data_final)
@@ -413,8 +436,9 @@ def chat():
                 print(f"[Firestore] Erro ao salvar lead: {e}")
 
             bot_response = (
-                "Perfeito, já anotei seus dados aqui! 🎉\n"
-                "Agora posso te ajudar com dúvidas sobre o programa e próximos passos."
+                "Tudo certo! Obrigado por compartilhar suas informações 😊\n"
+                "Agora posso te ajudar com qualquer dúvida sobre o Programa Jovem Programador!\n"
+                "O que você gostaria de saber?"
             )
 
             if AI_FIRESTORE_ENABLED:
