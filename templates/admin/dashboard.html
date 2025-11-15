@@ -68,39 +68,48 @@
 <div class="chart-row three">
     <div class="chart-container-wrapper">
         <div class="chart-container metric-card">
-            <div class="chart-info-wrapper">
-                <div class="metric-label">
-                    <i class="bi bi-chat-dots-fill"></i>
-                    Total de Conversas
+            <div class="metric-skeleton skeleton"></div>
+            <div class="metric-content">
+                <div class="chart-info-wrapper">
+                    <div class="metric-label">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        Total de Conversas
+                    </div>
+                    <div class="metric-value" id="total-conv">--</div>
+                    <div class="metric-subtitle">Todas as sessões</div>
                 </div>
-                <div class="metric-value" id="total-conv">--</div>
-                <div class="metric-subtitle">Todas as sessões</div>
             </div>
         </div>
     </div>
 
     <div class="chart-container-wrapper">
         <div class="chart-container metric-card">
-            <div class="chart-info-wrapper">
-                <div class="metric-label">
-                    <i class="bi bi-person-fill"></i>
-                    Mensagens (Usuário)
+            <div class="metric-skeleton skeleton"></div>
+            <div class="metric-content">
+                <div class="chart-info-wrapper">
+                    <div class="metric-label">
+                        <i class="bi bi-person-fill"></i>
+                        Mensagens (Usuário)
+                    </div>
+                    <div class="metric-value" id="msg-user">--</div>
+                    <div class="metric-subtitle">Mensagens enviadas</div>
                 </div>
-                <div class="metric-value" id="msg-user">--</div>
-                <div class="metric-subtitle">Mensagens enviadas</div>
             </div>
         </div>
     </div>
 
     <div class="chart-container-wrapper">
         <div class="chart-container metric-card">
-            <div class="chart-info-wrapper">
-                <div class="metric-label">
-                    <i class="bi bi-robot"></i>
-                    Mensagens (Bot)
+            <div class="metric-skeleton skeleton"></div>
+            <div class="metric-content">
+                <div class="chart-info-wrapper">
+                    <div class="metric-label">
+                        <i class="bi bi-robot"></i>
+                        Mensagens (Bot)
+                    </div>
+                    <div class="metric-value" id="msg-bot">--</div>
+                    <div class="metric-subtitle">Respostas do assistente</div>
                 </div>
-                <div class="metric-value" id="msg-bot">--</div>
-                <div class="metric-subtitle">Respostas do assistente</div>
             </div>
         </div>
     </div>
@@ -114,7 +123,9 @@
                 <h3>Conversas por dia</h3>
                 <span class="chart-subtitle">Últimos 30 dias</span>
             </div>
-            <div id="chart_daily" class="apex-chart-container"></div>
+            <div id="chart_daily" class="apex-chart-container">
+                <div class="chart-skeleton skeleton"></div>
+            </div>
         </div>
 
         <div class="chart-container apex-chart-card mt-4">
@@ -122,7 +133,9 @@
                 <h3>Leads por faixa etária</h3>
                 <span class="chart-subtitle">Distribuição dos leads capturados</span>
             </div>
-            <div id="chart_leads_age" class="apex-chart-container"></div>
+            <div id="chart_leads_age" class="apex-chart-container">
+                <div class="chart-skeleton skeleton"></div>
+            </div>
         </div>
     </div>
 
@@ -139,7 +152,9 @@
                 <h3>Leads por estado</h3>
                 <span class="chart-subtitle">Distribuição dos leads capturados</span>
             </div>
-            <div id="chart_leads_by_state" class="apex-chart-container"></div>
+            <div id="chart_leads_by_state" class="apex-chart-container">
+                <div class="chart-skeleton skeleton"></div>
+            </div>
         </div>
 
         <div class="chart-container apex-chart-card">
@@ -147,7 +162,9 @@
                 <h3>Leads por cidade</h3>
                 <span class="chart-subtitle">Distribuição dos leads capturados</span>
             </div>
-            <div id="chart_leads_by_city" class="apex-chart-container"></div>
+            <div id="chart_leads_by_city" class="apex-chart-container">
+                <div class="chart-skeleton skeleton"></div>
+            </div>
         </div>
 
     </div>
@@ -171,8 +188,28 @@
                     <th>Mensagens Bot</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Conteúdo preenchido via JavaScript -->
+            <tbody class="skeleton-body">
+                <tr>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                </tr>
+                <tr>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                </tr>
+                <tr>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                    <td><div class="skeleton-line"></div></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -601,10 +638,68 @@ function createLeadsByAgeChart(labels, values) {
 // ============================================
 
 /**
+ * Mostra o skeleton loading na dashboard
+ */
+function showDashboardSkeleton() {
+    // Cards
+    document.querySelectorAll('.metric-card').forEach(card => {
+        card.classList.add('loading');
+    });
+
+    // Gráficos
+    document.querySelectorAll('.apex-chart-container').forEach(box => {
+        box.classList.add('loading');
+    });
+
+    // Tabela de últimas conversas
+    const recentTableBody = document.querySelector('#recent-table tbody');
+    if (recentTableBody) {
+        recentTableBody.classList.add('skeleton-body');
+        if (!recentTableBody.children.length) {
+            for (let i = 0; i < 3; i++) {
+                const tr = document.createElement('tr');
+                for (let c = 0; c < 5; c++) {
+                    const td = document.createElement('td');
+                    const line = document.createElement('div');
+                    line.className = 'skeleton-line';
+                    td.appendChild(line);
+                    tr.appendChild(td);
+                }
+                recentTableBody.appendChild(tr);
+            }
+        }
+    }
+}
+
+/**
+ * Esconde o skeleton loading na dashboard
+ */
+function hideDashboardSkeleton() {
+    // Cards
+    document.querySelectorAll('.metric-card').forEach(card => {
+        card.classList.remove('loading');
+    });
+
+    // Gráficos
+    document.querySelectorAll('.apex-chart-container').forEach(box => {
+        box.classList.remove('loading');
+    });
+
+    // Tabela de últimas conversas: remover skeleton-body, mas o conteúdo será preenchido pelo fetch
+    const recentTableBody = document.querySelector('#recent-table tbody');
+    if (recentTableBody) {
+        recentTableBody.classList.remove('skeleton-body');
+        // O innerHTML será substituído na lógica que já popula as linhas reais
+    }
+}
+
+/**
  * Carrega os dados da dashboard com filtros opcionais.
  * @param {Object} filters - Objeto com filtros (ex: { days: 7, date_start: "2025-01-01", date_end: "2025-01-10" })
  */
 function loadDashboardData(filters = {}) {
+    showDashboardSkeleton();
+
     const params = new URLSearchParams();
 
     // Filtro por dias (rápido)
@@ -697,9 +792,12 @@ function loadDashboardData(filters = {}) {
             const ageLabels = ["16-18", "19-24", "25+"];
             const ageValues = ageLabels.map(a => ageData[a] || 0);
             createLeadsByAgeChart(ageLabels, ageValues);
+
+            hideDashboardSkeleton();
         })
         .catch(error => {
             console.error('Erro ao carregar dados da dashboard:', error);
+            hideDashboardSkeleton();
         });
 }
 

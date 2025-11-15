@@ -1384,3 +1384,115 @@ button {
   height: 100%;
   object-fit: contain;
 }
+
+/* =========================
+   Skeleton Loading
+========================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #1e293b; /* tom escuro suave */
+  border-radius: 0.5rem;
+}
+
+.skeleton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.12),
+    transparent
+  );
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Skeleton para cards da dashboard */
+.metric-card.loading .metric-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.metric-card .metric-skeleton {
+  display: none;
+  height: 64px;
+}
+
+.metric-card.loading .metric-skeleton {
+  display: block;
+}
+
+/* Skeleton para gráficos */
+.apex-chart-container {
+  position: relative;
+}
+
+.apex-chart-container .chart-skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  display: none;
+}
+
+.apex-chart-container.loading .chart-skeleton {
+  display: block;
+}
+
+/* Skeleton para tabela de últimas conversas */
+#recent-table tbody.skeleton-body tr td {
+  padding: 0.6rem 0.75rem;
+}
+
+.skeleton-line {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background-color: #1e293b;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-line::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+/* Skeleton da lista de conversas (sidebar) */
+.conversation-list-skeleton-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: rgba(15, 23, 42, 0.9);
+}
+
+.conversation-list-skeleton-item .skeleton-line:nth-child(1) {
+  width: 60%;
+}
+
+.conversation-list-skeleton-item .skeleton-line:nth-child(2) {
+  width: 40%;
+}

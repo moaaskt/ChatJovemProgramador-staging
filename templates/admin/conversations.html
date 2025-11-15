@@ -24,6 +24,22 @@
           <div class="sessions-list-wrapper">
             <div id="conv-list" class="list-group list-group-flush">
               <!-- itens via JS -->
+              <div class="conversation-list-skeleton-item">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+              </div>
+              <div class="conversation-list-skeleton-item">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+              </div>
+              <div class="conversation-list-skeleton-item">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+              </div>
+              <div class="conversation-list-skeleton-item">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -61,16 +77,49 @@
  let currentSessionId = null;
  let currentMessages = [];
 
- function formatTimestamp(ts) {
-    if (!ts || !ts._seconds) return "";
-    return new Date(ts._seconds * 1000).toLocaleString("pt-BR");
+function formatTimestamp(ts) {
+   if (!ts || !ts._seconds) return "";
+   return new Date(ts._seconds * 1000).toLocaleString("pt-BR");
  }
+
+/**
+ * Mostra o skeleton loading na lista de conversas
+ */
+function showConversationsSkeleton() {
+    const listEl = document.getElementById("conv-list");
+    if (!listEl) return;
+
+    listEl.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+        const item = document.createElement("div");
+        item.className = "conversation-list-skeleton-item";
+        const line1 = document.createElement("div");
+        line1.className = "skeleton-line";
+        const line2 = document.createElement("div");
+        line2.className = "skeleton-line";
+        item.appendChild(line1);
+        item.appendChild(line2);
+        listEl.appendChild(item);
+    }
+}
+
+/**
+ * Esconde o skeleton loading na lista de conversas
+ */
+function hideConversationsSkeleton() {
+    const listEl = document.getElementById("conv-list");
+    if (!listEl) return;
+    // Não faz nada aqui diretamente, pois loadConversations já vai substituir o innerHTML
+    // A ideia é apenas que loadConversations sobrescreva o conteúdo do skeleton
+}
  
  /**
   * Carrega a lista de conversas com filtros opcionais.
   * @param {Object} filters - Objeto com filtros (ex: { search: "texto" })
   */
  function loadConversations(filters = {}) {
+    showConversationsSkeleton();
+
     // Construir query string a partir dos filtros
     const params = new URLSearchParams();
     
@@ -87,7 +136,7 @@
       .then(r => r.json())
       .then(data => {
          const list = document.getElementById("conv-list");
-         list.innerHTML = "";
+         list.innerHTML = ""; // remove skeletons
          
          // Atualizar badge de total de conversas
          const badge = document.getElementById("conv-total-badge");
@@ -132,6 +181,10 @@
       })
       .catch(error => {
           console.error("Erro ao carregar conversas:", error);
+          const listEl = document.getElementById("conv-list");
+          if (listEl) {
+              listEl.innerHTML = '<p class="text-muted small px-3">Erro ao carregar conversas.</p>';
+          }
       });
  }
  
