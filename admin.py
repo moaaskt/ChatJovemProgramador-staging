@@ -74,7 +74,7 @@ def api_login():
     return jsonify({"ok": False, "message": "Usuário ou senha inválidos."}), 401
 
 
-@admin_bp.post("/logout")
+@admin_bp.route("/logout", methods=["GET", "POST"])
 def logout():
     """Logout do admin."""
     session.clear()

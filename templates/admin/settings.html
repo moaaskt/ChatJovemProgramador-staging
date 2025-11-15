@@ -352,15 +352,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Função para mostrar feedback
-function showFeedback(message, isError = false) {
-    const feedback = document.getElementById("settings-feedback");
-    feedback.textContent = message;
-    feedback.className = `alert ${isError ? 'alert-danger' : 'alert-success'}`;
-    feedback.style.display = "block";
-    setTimeout(() => {
-        feedback.style.display = "none";
-    }, 5000);
+// Função para mostrar feedback usando SweetAlert2 (padrão Velzon)
+function showFeedback(message, isError = false, isWarning = false) {
+    const icon = isError ? 'error' : (isWarning ? 'warning' : 'success');
+    const title = isError
+        ? 'Ops...'
+        : isWarning
+            ? 'Atenção'
+            : 'Tudo certo!';
+
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: icon,
+        confirmButtonText: 'Ok',
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: 'btn btn-primary w-xs'
+        }
+    });
 }
 
 // Salvar configurações do chat
@@ -384,18 +394,18 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         });
         
         const data = await resp.json();
-        if (data.ok) {
-            if (data.firestore_disabled) {
-                // Aviso amigável: não persistiu, mas também não é erro interno
-                showFeedback(
-                    data.message || "Firestore desabilitado. As configurações não foram salvas definitivamente.",
-                    true
-                );
-            } else {
-                showFeedback("Configurações do chat salvas com sucesso!");
-            }
+        if (data.ok && !data.firestore_disabled) {
+            showFeedback("Configurações do chat salvas com sucesso!");
+        } else if (data.ok && data.firestore_disabled) {
+            showFeedback(
+                "Firestore está desabilitado neste ambiente. As configurações não foram salvas no banco.",
+                false,
+                true
+            );
+            return;
         } else {
             showFeedback(data.message || "Erro ao salvar configurações.", true);
+            return;
         }
     } catch (err) {
         showFeedback("Erro ao conectar ao servidor.", true);
