@@ -31,6 +31,17 @@
   --text-muted: #9aa0c6;
 }
 
+
+
+.chart-subtitle {
+  color: #4da3ff;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+
+
 /* Só afeta o painel admin */
 .admin-body {
   height: 100vh;
@@ -41,6 +52,244 @@
   font-family: 'Poppins', sans-serif;
   background-color: #050e2d;
   margin: 0;
+}
+
+/* Tema Dark (padrão) */
+.admin-body.theme-dark {
+  background-color: #050e2d;
+  color: var(--text-normal);
+}
+
+/* Tema Light */
+.admin-body.theme-light {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.admin-body.theme-light .app-left {
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.admin-body.theme-light .app-main {
+  background-color: #f3f4f6;
+  background-image: none;
+}
+
+.admin-body.theme-light .card,
+.admin-body.theme-light .chart-container,
+.admin-body.theme-light .apex-chart-card,
+.admin-body.theme-light .metric-card {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.admin-body.theme-light .card-section,
+.admin-body.theme-light .metric-card,
+.admin-body.theme-light .apex-chart-card,
+.admin-body.theme-light .chart-container {
+  background-color: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.admin-body.theme-light .metric-card,
+.admin-body.theme-light .apex-chart-card {
+  background: #ffffff;
+}
+
+/* Tema claro – número grande dos cards de métricas */
+.admin-body.theme-light .metric-card .metric-value {
+  color: #111827; /* texto escuro para boa leitura no fundo claro */
+}
+
+.admin-body.theme-light .nav-list-link {
+  color: #4b5563;
+}
+
+.admin-body.theme-light .nav-list-link:hover,
+.admin-body.theme-light .nav-list-item.active .nav-list-link {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light .app-logo span {
+  color: #111827;
+}
+
+.admin-body.theme-light .nav-list-item:not(.active) .nav-list-link:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.admin-body.theme-light .main-header-line h1 {
+  color: #111827;
+}
+
+.admin-body.theme-light .section-title {
+  color: #111827;
+}
+
+.admin-body.theme-light .chart-container-header h2,
+.admin-body.theme-light .chart-container-header h3,
+.admin-body.theme-light .card-section,
+.admin-body.theme-light .chat-header-info span,
+.admin-body.theme-light .sessions-panel h2,
+.admin-body.theme-light .chat-panel h2,
+.admin-body.theme-light .panel-title,
+.admin-body.theme-light .page-title {
+  color: #111827;
+}
+
+.admin-body.theme-light .chart-info-wrapper h2,
+.admin-body.theme-light .chat-header-info small,
+.admin-body.theme-light .conversations-subtitle,
+.admin-body.theme-light .bubble-meta {
+  color: #6b7280;
+}
+
+.admin-body.theme-light .chart-info-wrapper span {
+  color: #111827;
+}
+
+.admin-body.theme-light .form-control,
+.admin-body.theme-light .form-select {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.admin-body.theme-light .form-control:focus,
+.admin-body.theme-light .form-select:focus {
+  background-color: #ffffff;
+  border-color: #3d7eff;
+  color: #111827;
+}
+
+.admin-body.theme-light .table-dark {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.admin-body.theme-light .table-dark thead {
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+.admin-body.theme-light .table-dark th {
+  background-color: #f9fafb;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.admin-body.theme-light .table-dark tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-body.theme-light .table-dark tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light .table-dark td {
+  border-color: #e5e7eb;
+}
+
+/* Tema claro – tabela "Últimas Conversas" dentro de recent-table-wrapper */
+.admin-body.theme-light .recent-table-wrapper .table-dark {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+/* Cabeçalho da tabela no tema claro */
+.admin-body.theme-light .recent-table-wrapper .table-dark thead {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Linhas do corpo da tabela no tema claro */
+.admin-body.theme-light .recent-table-wrapper .table-dark tbody tr {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Hover nas linhas no tema claro */
+.admin-body.theme-light .recent-table-wrapper .table-dark tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+/* Painéis de conversas em tema claro */
+.admin-body.theme-light .sessions-panel,
+.admin-body.theme-light .chat-panel {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.admin-body.theme-light .session-item {
+  background-color: #f9fafb;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-body.theme-light .session-item:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light .session-item.active {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.admin-body.theme-light .list-group-item {
+  background-color: #f9fafb;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.admin-body.theme-light .list-group-item:hover {
+  background-color: #f3f4f6;
+}
+
+.admin-body.theme-light #chat-viewer {
+  background-color: #f9fafb;
+}
+
+.admin-body.theme-light #chat-viewer::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+
+.admin-body.theme-light #chat-viewer {
+  scrollbar-color: #9ca3af #e5e7eb;
+}
+
+.admin-body.theme-light .bubble-bot {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Botões e controles em tema claro */
+.admin-body.theme-light .menu-button {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.admin-body.theme-light .close-menu {
+  color: #111827;
+}
+
+/* Bordas e divisores em tema claro */
+.admin-body.theme-light .card-section,
+.admin-body.theme-light .sessions-panel,
+.admin-body.theme-light .chat-panel,
+.admin-body.theme-light .chart-container-header {
+  border-bottom-color: #e5e7eb;
+}
+
+.admin-body.theme-light .chat-header {
+  border-bottom-color: #e5e7eb;
 }
 
 .app-container {
@@ -221,6 +470,10 @@ button {
   margin-top: 16px;
 }
 
+.chart-row.one .chart-container-wrapper {
+  width: 100%;
+}
+
 /* CARD GENÉRICO */
 
 .chart-container-wrapper {
@@ -269,7 +522,8 @@ button {
   margin-bottom: 12px;
 }
 
-.chart-container-header h2 {
+.chart-container-header h2,
+.chart-container-header h3 {
   margin: 0;
   color: var(--main-color);
   font-size: 12px;
@@ -474,6 +728,10 @@ button {
   scrollbar-width: thin;
   /* Firefox */
   scrollbar-color: var(--accent) rgba(255, 255, 255, 0.08);
+  scroll-padding-bottom: 84px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 #chat-viewer::-webkit-scrollbar {
@@ -643,4 +901,241 @@ button {
 .sessions-panel #conv-list .list-group-item .text-muted {
   color: #cdd9ff;
   opacity: 1;
+}
+/* --- Override forte para meta das sessões --- */
+.sessions-panel #conv-list .list-group-item .text-muted {
+    color: #cbd5ff !important;   /* azul clarinho bem visível */
+    opacity: 1 !important;       /* garante que não está “apagado” */
+    font-size: 0.78rem;          /* levemente menor, mas legível */
+    line-height: 1.2;
+    display: block;              /* garante que quebre linha certinho */
+}
+
+@media screen and (max-width: 768px) {
+  #chat-viewer { max-height: none; scroll-padding-bottom: 96px; }
+  .bubble-row { margin-bottom: 14px; }
+  .bubble-user,
+  .bubble-bot {
+    max-width: 92%;
+    font-size: 12.5px;
+    padding: 12px 14px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  #chat-viewer { scroll-padding-bottom: 112px; }
+  .bubble-user,
+  .bubble-bot { max-width: 95%; }
+}
+
+/* ============================================
+   ESTILOS MODERNOS - ApexCharts Modern Dashboard
+   Classes adicionadas para cards de métricas e gráficos
+   ============================================ */
+
+/* Cards de métricas modernos */
+.metric-card {
+  background: linear-gradient(135deg, rgba(61, 126, 255, 0.1) 0%, rgba(4, 15, 50, 0.95) 100%);
+  border: 1px solid rgba(61, 126, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(61, 126, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(61, 126, 255, 0.25);
+  border-color: rgba(61, 126, 255, 0.4);
+}
+
+.metric-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-color);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.metric-label i {
+  font-size: 14px;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.metric-value {
+  color: var(--main-color);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.metric-subtitle {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* Cards de gráficos ApexCharts */
+.apex-chart-card {
+  background: linear-gradient(135deg, rgba(4, 15, 50, 0.95) 0%, rgba(1, 8, 31, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.apex-chart-card:hover {
+  border-color: rgba(61, 126, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.apex-chart-container {
+  width: 100%;
+  min-height: 200px;
+  margin-top: 8px;
+}
+
+.chart-container-header h3 {
+  margin: 0;
+  color: var(--main-color);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.chart-container-header span {
+  color: var(--app-logo);
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Ajuste para header dos gráficos */
+.chart-container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Seção de tabela melhorada */
+.section-title-wrapper {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--main-color);
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.section-title i {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+/* Ajustes responsivos para cards modernos */
+@media screen and (max-width: 650px) {
+  .metric-value {
+    font-size: 28px;
+  }
+  
+  .metric-label {
+    font-size: 10px;
+  }
+  
+  .apex-chart-container {
+    min-height: 180px;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .metric-value {
+    font-size: 24px;
+  }
+  
+  .chart-container-header h3 {
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   TOGGLE DE TEMA
+   ============================================ */
+
+.theme-toggle-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-toggle-label {
+  font-size: 0.875rem;
+  color: #c3c8ff;
+}
+
+.theme-toggle {
+  position: relative;
+  width: 80px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, #111827, #020617);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.theme-toggle:hover {
+  box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-icon {
+  font-size: 0.9rem;
+  z-index: 2;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  width: 32px;
+  height: 26px;
+  border-radius: 999px;
+  background: #4f46e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  left: 4px; /* posição estado "claro" */
+  top: 3px;
+  transition: left 0.2s ease, background 0.2s ease;
+}
+
+/* quando o tema for dark, move o "thumb" para a direita */
+.theme-toggle.is-dark .theme-toggle-thumb {
+  left: 44px;
+  background: #8b5cf6;
+}
+
+/* Ajustes para tema claro */
+.admin-body.theme-light .theme-toggle-label {
+  color: #4b5563;
+}
+
+.admin-body.theme-light .theme-toggle {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-color: #d1d5db;
 }

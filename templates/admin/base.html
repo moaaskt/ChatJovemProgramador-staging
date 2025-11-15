@@ -14,17 +14,8 @@
     <!-- CSS do painel admin (baseado no CodePen) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 
-    <!-- Proteção simples via localStorage -->
-    <script>
-        if (!window.location.pathname.includes("/admin/login")) {
-            const token = localStorage.getItem("adminAuth");
-            if (!token) {
-                window.location.href = "/admin/login";
-            }
-        }
-    </script>
 </head>
-<body class="admin-body">
+<body class="admin-body theme-{{ admin_theme or 'dark' }}">
 
 <div class="app-container">
     <!-- SIDEBAR ESQUERDA (app-left do CodePen) -->
@@ -53,14 +44,13 @@
                 </a>
             </li>
             <li class="nav-list-item">
-                <a class="nav-list-link disabled" href="javascript:void(0)">
+                <a class="nav-list-link" href="/admin/settings">
                     <i class="bi bi-gear"></i>
-                    Configurações (em breve)
+                    Configurações
                 </a>
             </li>
             <li class="nav-list-item">
-                <a class="nav-list-link text-danger" href="javascript:void(0)"
-                   onclick="localStorage.removeItem('adminAuth'); window.location.href='/admin/login';">
+                <a class="nav-list-link text-danger" href="/admin/logout">
                     <i class="bi bi-box-arrow-right"></i>
                     Sair
                 </a>
@@ -76,8 +66,12 @@
     <!-- NÃO vamos usar app-right por enquanto -->
 </div>
 
-<!-- Chart.js para os gráficos -->
+<!-- Chart.js para os gráficos (mantido para outras páginas admin que possam usar) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- ApexCharts para a dashboard (estilo Modern Dashboard) -->
+<!-- Dashboard migrada de Chart.js para ApexCharts - contrato de /admin/api/reports mantido -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <!-- Scripts de menu mobile (iguais ao CodePen, adaptados) -->
 <script>
@@ -121,6 +115,34 @@
         });
       });
     })();
+</script>
+
+<!-- Script global para aplicar tema do localStorage em todas as páginas admin -->
+<script>
+  (function () {
+      const THEME_STORAGE_KEY = "chatleo_admin_theme";
+
+      try {
+          const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+          if (!savedTheme) {
+              return; // nada salvo, usa o que o servidor mandou
+          }
+
+          const body = document.body;
+          if (!body) return;
+
+          // Remove qualquer theme-* que o servidor colocou
+          body.classList.remove("theme-dark", "theme-light");
+          // Aplica o tema salvo no localStorage
+          if (savedTheme === "light") {
+              body.classList.add("theme-light");
+          } else {
+              body.classList.add("theme-dark");
+          }
+      } catch (e) {
+          console.warn("Não foi possível aplicar tema do localStorage:", e);
+      }
+  })();
 </script>
 
 </body>

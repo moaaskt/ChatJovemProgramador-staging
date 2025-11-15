@@ -1,0 +1,79 @@
+flowchart TD
+    Start([👤 Usuário abre widget]) --> CheckSession{Session ID existe?}
+    CheckSession -->|Não| GenerateSession[🔑 Gera session_id<br/>sess_timestamp_random<br/>Salva no localStorage]
+    CheckSession -->|Sim| GetSession[📥 Recupera session_id<br/>do localStorage]
+    GenerateSession --> UserInput[✍️ Usuário digita mensagem]
+    GetSession --> UserInput
+    
+    UserInput --> ValidateMsg{Mensagem válida?}
+    ValidateMsg -->|Não| ShowError[❌ Exibe erro na UI]
+    ValidateMsg -->|Sim| ShowUserMsg[💬 Adiciona mensagem do usuário na UI]
+    
+    ShowUserMsg --> ShowTyping[⏳ Mostra indicador 'digitando...']
+    ShowTyping --> LockInput[🔒 Bloqueia input]
+    LockInput --> SendPost[📤 POST /api/chat<br/>JSON: message, session_id]
+    
+    SendPost --> BackendReceive[🖥️ Backend Flask recebe requisição]
+    BackendReceive --> ValidateBackend{Mensagem válida?}
+    ValidateBackend -->|Não| ReturnError[❌ Retorna erro 400]
+    ValidateBackend -->|Sim| CheckFirestore{Firestore<br/>habilitado?}
+    
+    CheckFirestore -->|Não| SimpleFlow[⚡ Fluxo Simples]
+    SimpleFlow --> CallGemini[🤖 chatbot.gerar_resposta<br/>Chama Gemini API]
+    CallGemini --> ReturnSimple[📤 Retorna JSON<br/>response, session_id]
+    
+    CheckFirestore -->|Sim| CreateConv[💾 get_or_create_conversation<br/>Cria/atualiza conversa no Firestore]
+    CreateConv --> SaveUserMsg[💾 save_message<br/>Salva mensagem do usuário]
+    SaveUserMsg --> GetConvData[📥 get_conversation<br/>Lê lead_stage, lead_data]
+    
+    GetConvData --> CheckLeadStage{lead_stage?}
+    CheckLeadStage -->|None| InitLead[🎯 Inicia coleta de lead<br/>lead_stage = 'collecting'<br/>Pergunta: 'Como posso te chamar?']
+    CheckLeadStage -->|collecting| ProcessLead[📝 Processa resposta do lead<br/>Valida e normaliza dados]
+    CheckLeadStage -->|done| LeadDone[✅ Lead concluído]
+    
+    InitLead --> SaveLeadQ[💾 Salva pergunta no Firestore]
+    SaveLeadQ --> ReturnLeadQ[📤 Retorna pergunta de lead]
+    
+    ProcessLead --> ValidateLead{Resposta válida?}
+    ValidateLead -->|Não| ShowLeadError[❌ Exibe mensagem de erro<br/>Pede novamente]
+    ValidateLead -->|Sim| UpdateLeadData[💾 Atualiza lead_data<br/>no Firestore]
+    
+    UpdateLeadData --> CheckFields{Campos<br/>completos?}
+    CheckFields -->|Não| NextQuestion[❓ Pergunta próximo campo<br/>nome → interesse → cidade → estado → idade]
+    CheckFields -->|Sim| SaveLead[💾 save_lead_from_conversation<br/>Salva lead completo na coleção 'leads']
+    
+    NextQuestion --> SaveLeadQ
+    SaveLead --> UpdateDone[💾 lead_stage = 'done'<br/>lead_done = true]
+    UpdateDone --> LeadDone
+    
+    LeadDone --> CallGemini
+    CallGemini --> SaveBotMsg[💾 save_message<br/>Salva resposta do bot]
+    SaveBotMsg --> ReturnResponse[📤 Retorna JSON<br/>response, session_id]
+    
+    ReturnSimple --> FrontendReceive[📥 Frontend recebe resposta]
+    ReturnLeadQ --> FrontendReceive
+    ReturnResponse --> FrontendReceive
+    ShowLeadError --> FrontendReceive
+    
+    FrontendReceive --> HideTyping[⏹️ Esconde indicador 'digitando...']
+    HideTyping --> AddBotMsg[💬 Adiciona mensagem do bot na UI]
+    AddBotMsg --> CheckTTS{TTS<br/>habilitado?}
+    CheckTTS -->|Sim| SpeakText[🔊 Fala resposta<br/>usando speechSynthesis]
+    CheckTTS -->|Não| UnlockInput
+    SpeakText --> UnlockInput[🔓 Desbloqueia input]
+    UnlockInput --> ScrollDown[⬇️ Scroll para baixo]
+    ScrollDown --> End([✅ Pronto para próxima mensagem])
+    
+    ReturnError --> FrontendReceive
+    
+    style Start fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    style End fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    style CheckFirestore fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#fff
+    style CheckLeadStage fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#fff
+    style CallGemini fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    style CreateConv fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    style SaveUserMsg fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    style SaveBotMsg fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    style SaveLead fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    style ShowUserMsg fill:#00BCD4,stroke:#00838F,stroke-width:2px,color:#fff
+    style AddBotMsg fill:#00BCD4,stroke:#00838F,stroke-width:2px,color:#fff

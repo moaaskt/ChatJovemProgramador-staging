@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from firebase_admin import initialize_app, credentials, firestore
 from firebase_admin.exceptions import FirebaseError
+from werkzeug.security import generate_password_hash, check_password_hash
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG) 
@@ -115,6 +116,46 @@ def get_or_create_conversation(session_id):
 
     except Exception as e:
         logger.error(f"[Firestore] Erro ao salvar conversa {session_id}: {e}")
+        return False
+
+
+def get_conversation(session_id):
+    """
+    Retorna o documento da conversa em conversations/{session_id} como dict.
+    Se Firestore estiver desabilitado ou ocorrer erro, retorna {}.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+
+    try:
+        conv_ref = _db.collection("conversations").document(session_id)
+        doc = conv_ref.get()
+        if not doc.exists:
+            return {}
+        return doc.to_dict() or {}
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_conversation({session_id}): {e}")
+        return {}
+
+
+def update_conversation(session_id, updates: dict):
+    """
+    Atualiza campos específicos da conversa em conversations/{session_id}.
+    Não lança exceções para não quebrar o fluxo do chat.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+
+    if not updates:
+        return False
+
+    try:
+        conv_ref = _db.collection("conversations").document(session_id)
+        conv_ref.set(updates, merge=True)
+        logger.debug(f"[Firestore] Conversa {session_id} atualizada com {list(updates.keys())}")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em update_conversation({session_id}): {e}")
         return False
 
 
@@ -342,4 +383,402 @@ def get_conversation_messages(session_id, limit=200):
     except Exception as e:
         logger.error(f"[Firestore] Erro em get_conversation_messages({session_id}): {e}")
         return []
+
+
+def normalize_city_name(city: str) -> str | None:
+    """
+    Normaliza o nome da cidade removendo prefixos comuns, estados e formatando para Title Case.
+    Exemplos:
+    - "eu falo de palhoça, sc" -> "Palhoça"
+    - "sou de florianópolis" -> "Florianópolis"
+    - "moro em palhoça - sc" -> "Palhoça"
+    Retorna None se a cidade não puder ser normalizada (vazia ou muito curta).
+    """
+    if not city:
+        return None
+    
+    # Converte para lowercase
+    city = city.lower().strip()
+    
+    if not city:
+        return None
+    
+    # Remove prefixos comuns no início da frase (case-insensitive)
+    prefixes = [
+        "eu sou de",
+        "eu moro em",
+        "eu falo de",
+        "sou de",
+        "moro em",
+        "falo de",
+        "sou",
+        "moro",
+        "falo"
+    ]
+    
+    for prefix in prefixes:
+        if city.startswith(prefix):
+            city = city[len(prefix):].strip()
+            break
+    
+    # Corta tudo após vírgula ou hífen (geralmente estado)
+    if "," in city:
+        city = city.split(",")[0].strip()
+    if "-" in city:
+        city = city.split("-")[0].strip()
+    
+    # Remove palavras genéricas no começo
+    generic_words = ["cidade de", "município de", "cidade", "município"]
+    for word in generic_words:
+        if city.startswith(word):
+            city = city[len(word):].strip()
+            break
+    
+    # Remove espaços extras e faz strip final
+    city = " ".join(city.split())
+    city = city.strip()
+    
+    # Validação: se ficou com menos de 2 caracteres, retorna None
+    if len(city) < 2:
+        return None
+    
+    # Limita a 50 caracteres
+    if len(city) > 50:
+        city = city[:50]
+    
+    # Converte para Title Case (primeira letra de cada palavra em maiúscula)
+    city = " ".join(word.capitalize() for word in city.split() if word)
+    
+    return city if city else None
+
+
+def save_lead_from_conversation(session_id: str, lead_data: dict):
+    """
+    Salva um lead completo na coleção 'leads', a partir dos dados de uma conversa.
+    Espera que lead_data contenha: nome, cidade, estado, idade, email, interesse.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+
+    if not lead_data:
+        return False
+
+    try:
+        # Normaliza cidade: tenta usar normalize_city_name, com fallback para texto original
+        raw_city = lead_data.get("cidade") or ""
+        normalized_city = normalize_city_name(raw_city)
+        cidade_final = normalized_city if normalized_city else (raw_city.strip()[:120] if raw_city.strip() else "")
+        
+        doc = {
+            "session_id": session_id,
+            "nome": (lead_data.get("nome") or "").strip(),
+            "email": (lead_data.get("email") or "").strip(),
+            "cidade": cidade_final,
+            "estado": (lead_data.get("estado") or "").strip().upper(),
+            "idade": lead_data.get("idade"),
+            "interesse": (lead_data.get("interesse") or "").strip(),
+            "createdAt": firestore.SERVER_TIMESTAMP,
+        }
+
+        # remove campos completamente vazios
+        doc = {k: v for k, v in doc.items() if v not in (None, "", {})}
+
+        _db.collection("leads").add(doc)
+        logger.info(f"[Firestore] Lead salvo a partir da conversa {session_id}")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em save_lead_from_conversation({session_id}): {e}")
+        return False
+
+
+def get_leads_count_by_city():
+    """
+    Conta leads agrupados por cidade.
+    Retorna dict { "cidade": count, ... }
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+    
+    try:
+        leads = _db.collection("leads").stream()
+        
+        counts = {}
+        for lead_doc in leads:
+            data = lead_doc.to_dict()
+            cidade_bruta = data.get("cidade")
+            
+            # Se não houver cidade, agrupa como "Indefinido"
+            if not cidade_bruta:
+                counts["Indefinido"] = counts.get("Indefinido", 0) + 1
+                continue
+            
+            # Normaliza a cidade usando normalize_city_name
+            cidade_normalizada = normalize_city_name(cidade_bruta)
+            
+            # Se não conseguiu normalizar, agrupa como "Indefinido"
+            if not cidade_normalizada:
+                counts["Indefinido"] = counts.get("Indefinido", 0) + 1
+            else:
+                # Usa a cidade normalizada (já em Title Case) como chave
+                counts[cidade_normalizada] = counts.get(cidade_normalizada, 0) + 1
+        
+        return counts
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_leads_count_by_city: {e}")
+        return {}
+
+
+def get_leads_count_by_state():
+    """
+    Conta leads agrupados por estado (UF).
+    Retorna dict { "SC": count, "PR": count, ... }.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+
+    try:
+        leads = _db.collection("leads").stream()
+        counts: dict[str, int] = {}
+
+        for lead_doc in leads:
+            data = lead_doc.to_dict() or {}
+            estado = (data.get("estado") or "").strip().upper()
+
+            # Considera só UF com 2 letras
+            if len(estado) != 2:
+                continue
+
+            counts[estado] = counts.get(estado, 0) + 1
+
+        return counts
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_leads_count_by_state: {e}")
+        return {}
+
+
+def get_leads_count_by_age_range():
+    """
+    Conta leads agrupados por faixa etária.
+    Retorna dict { "16-18": count, "19-24": count, "25+": count }.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+
+    try:
+        leads = _db.collection("leads").stream()
+        counts: dict[str, int] = {}
+
+        for lead_doc in leads:
+            data = lead_doc.to_dict() or {}
+            idade_raw = data.get("idade")
+
+            # Tenta converter idade para int
+            try:
+                if isinstance(idade_raw, str):
+                    idade = int(idade_raw.strip())
+                elif isinstance(idade_raw, int):
+                    idade = idade_raw
+                else:
+                    continue
+            except (ValueError, AttributeError):
+                # Se não conseguir converter, ignora esse lead
+                continue
+
+            # Define faixa etária
+            bucket = None
+            if 16 <= idade <= 18:
+                bucket = "16-18"
+            elif 19 <= idade <= 24:
+                bucket = "19-24"
+            elif idade >= 25:
+                bucket = "25+"
+            # Idades abaixo de 16 são ignoradas
+
+            if bucket:
+                counts[bucket] = counts.get(bucket, 0) + 1
+
+        return counts
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_leads_count_by_age_range: {e}")
+        return {}
+
+
+# ===== HELPERS DE SETTINGS =====
+
+def get_settings(doc_id: str = "global") -> dict:
+    """
+    Lê as configurações da collection 'settings', doc <doc_id>.
+    Se não existir ou Firestore estiver desabilitado, retorna {}.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+    
+    try:
+        doc_ref = _db.collection("settings").document(doc_id)
+        snap = doc_ref.get()
+        if not snap.exists:
+            return {}
+        data = snap.to_dict() or {}
+        return data
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_settings({doc_id}): {e}")
+        return {}
+
+
+def update_settings(doc_id: str, data: dict) -> bool:
+    """
+    Faz merge das configurações em 'settings/<doc_id>'.
+    Não levanta exceção; retorna True/False.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+    
+    try:
+        doc_ref = _db.collection("settings").document(doc_id)
+        doc_ref.set(data, merge=True)
+        logger.debug(f"[Firestore] Settings {doc_id} atualizado")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em update_settings({doc_id}): {e}")
+        return False
+
+
+# ===== HELPERS PARA ADMIN USER =====
+
+def get_admin_user(username: str) -> dict | None:
+    """
+    Retorna o documento do admin_user em admin_users/{username}.
+    Se não existir ou Firestore estiver desabilitado, retorna None.
+    """
+    if not _is_enabled() or _db is None:
+        return None
+    
+    try:
+        doc_ref = _db.collection("admin_users").document(username)
+        snap = doc_ref.get()
+        if not snap.exists:
+            return None
+        return snap.to_dict() or None
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_admin_user({username}): {e}")
+        return None
+
+
+def create_admin_user_if_missing(username: str, raw_password: str) -> None:
+    """
+    Se não existir o admin_user <username>, cria com a senha hash.
+    Use para bootstrap inicial (ex.: admin / admin123).
+    """
+    logger.info(f"[DEBUG] create_admin_user_if_missing chamado para '{username}'")
+    
+    if not _is_enabled() or _db is None:
+        logger.warning(f"[DEBUG] Firestore não habilitado ou _db é None. Não é possível criar admin '{username}'")
+        return
+    
+    try:
+        logger.info(f"[DEBUG] Verificando se admin '{username}' já existe...")
+        existing = get_admin_user(username)
+        if existing:
+            logger.info(f"[Firestore] Admin user '{username}' já existe. Não será criado novamente.")
+            return
+        
+        logger.info(f"[DEBUG] Admin '{username}' não existe. Criando novo admin...")
+        doc_ref = _db.collection("admin_users").document(username)
+        password_hash = generate_password_hash(raw_password)
+        logger.info(f"[DEBUG] Hash da senha gerado: {password_hash[:20]}...")
+        
+        doc_ref.set({
+            "username": username,
+            "password_hash": password_hash,
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        })
+        logger.info(f"[Firestore] Admin user '{username}' criado com sucesso na collection 'admin_users'")
+        
+        # Verificar se foi criado
+        verify_doc = doc_ref.get()
+        if verify_doc.exists:
+            logger.info(f"[DEBUG] Confirmação: Documento admin_users/{username} existe no Firestore")
+        else:
+            logger.error(f"[DEBUG] ERRO: Documento admin_users/{username} NÃO foi criado!")
+            
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em create_admin_user_if_missing({username}): {e}", exc_info=True)
+
+
+def update_admin_password(username: str, raw_password: str) -> bool:
+    """
+    Atualiza a senha do admin_user <username>.
+    Retorna True se sucesso, False caso contrário.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+    
+    try:
+        doc_ref = _db.collection("admin_users").document(username)
+        if not doc_ref.get().exists:
+            return False
+        
+        doc_ref.update({
+            "password_hash": generate_password_hash(raw_password),
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        })
+        logger.info(f"[Firestore] Senha do admin '{username}' atualizada")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em update_admin_password({username}): {e}")
+        return False
+
+
+def verify_admin_password(username: str, raw_password: str) -> bool:
+    """
+    Verifica se a senha fornecida corresponde ao hash armazenado.
+    - Se Firestore estiver DESABILITADO, usa fallback local: admin / admin123
+    - Se Firestore estiver HABILITADO, verifica no banco normalmente.
+    """
+
+    # 🔹 Fallback quando Firestore está desabilitado
+    if not _is_enabled() or _db is None:
+        logger.debug("[AdminAuth] Firestore desabilitado, usando fallback local de login.")
+        return username == "admin" and raw_password == "admin123"
+
+    # 🔹 Fluxo normal com Firestore habilitado
+    user = get_admin_user(username)
+    if not user:
+        return False
+
+    pwd_hash = user.get("password_hash")
+    if not pwd_hash:
+        return False
+
+    try:
+        return check_password_hash(pwd_hash, raw_password)
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em verify_admin_password({username}): {e}")
+        return False
+
+
+def init_default_admin():
+    """
+    Inicializa o admin padrão se não existir.
+    Deve ser chamado após init_admin() e após todas as funções estarem definidas.
+    """
+    logger.info("[DEBUG] Chamando init_default_admin()")
+    logger.info(f"[DEBUG] _is_enabled() = {_is_enabled()}")
+    logger.info(f"[DEBUG] _db is None = {_db is None}")
+    
+    if not _is_enabled():
+        logger.warning("[DEBUG] Firestore não está habilitado (AI_FIRESTORE_ENABLED=false). Admin não será criado.")
+        return
+    
+    if _db is None:
+        logger.warning("[DEBUG] _db é None. Firestore não foi inicializado corretamente.")
+        return
+    
+    try:
+        logger.info("[DEBUG] Criando admin padrão admin/admin123")
+        create_admin_user_if_missing("admin", "admin123")
+        logger.info("[DEBUG] init_default_admin() concluído com sucesso")
+    except Exception as e:
+        logger.error(f"[Firestore] Erro ao criar admin padrão: {e}", exc_info=True)
 

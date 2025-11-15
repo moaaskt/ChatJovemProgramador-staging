@@ -13,176 +13,618 @@
     </div>
 </div>
 
-<!-- LINHA 1 – 3 cards de métricas (usa chart-row three do CodePen) -->
+<!-- LINHA 1 – 3 cards de métricas (estilo Modern Dashboard) -->
 <div class="chart-row three">
     <div class="chart-container-wrapper">
-        <div class="chart-container">
+        <div class="chart-container metric-card">
             <div class="chart-info-wrapper">
-                <h2>Total de Conversas</h2>
-                <span id="total-conv">--</span>
+                <div class="metric-label">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    Total de Conversas
+                </div>
+                <div class="metric-value" id="total-conv">--</div>
+                <div class="metric-subtitle">Todas as sessões</div>
             </div>
         </div>
     </div>
 
     <div class="chart-container-wrapper">
-        <div class="chart-container">
+        <div class="chart-container metric-card">
             <div class="chart-info-wrapper">
-                <h2>Mensagens (Usuário)</h2>
-                <span id="msg-user">--</span>
+                <div class="metric-label">
+                    <i class="bi bi-person-fill"></i>
+                    Mensagens (Usuário)
+                </div>
+                <div class="metric-value" id="msg-user">--</div>
+                <div class="metric-subtitle">Mensagens enviadas</div>
             </div>
         </div>
     </div>
 
     <div class="chart-container-wrapper">
-        <div class="chart-container">
+        <div class="chart-container metric-card">
             <div class="chart-info-wrapper">
-                <h2>Mensagens (Bot)</h2>
-                <span id="msg-bot">--</span>
+                <div class="metric-label">
+                    <i class="bi bi-robot"></i>
+                    Mensagens (Bot)
+                </div>
+                <div class="metric-value" id="msg-bot">--</div>
+                <div class="metric-subtitle">Respostas do assistente</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- LINHA 2 – gráfico grande + 2 gráficos menores (row two do CodePen) -->
+<!-- LINHA 2 – gráfico grande + 2 gráficos menores (ApexCharts Modern Dashboard) -->
 <div class="chart-row two">
     <div class="chart-container-wrapper big">
-        <div class="chart-container">
+        <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h2>Conversas por dia</h2>
+                <h3>Conversas por dia</h3>
                 <span>Últimos 30 dias</span>
             </div>
-            <div class="line-chart">
-                <canvas id="chart_daily" height="220"></canvas>
-            </div>
+            <div id="chart_daily" class="apex-chart-container"></div>
+        </div>
+
+        <div class="apex-chart-card mt-4">
+            <h3 class="section-title-wrapper">
+                <span class="section-title">Leads por faixa etária</span>
+                <span class="chart-subtitle">Distribuição dos leads capturados</span>
+            </h3>
+
+            <div id="chart_leads_age" class="apex-chart-container"></div>
         </div>
     </div>
 
     <div class="chart-container-wrapper small">
-        <div class="chart-container">
+        <!-- <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h2>Mensagens por papel</h2>
+                <h3>Mensagens por papel</h3>
             </div>
-            <canvas id="chart_messages_bar" height="160"></canvas>
+            <div id="chart_messages_bar" class="apex-chart-container"></div>
+        </div> -->
+
+        <div class="chart-container apex-chart-card">
+            <div class="chart-container-header">
+                <h3>Leads por estado</h3>
+                <span class="chart-subtitle">Distribuição dos leads capturados</span>
+            </div>
+            <div id="chart_leads_by_state" class="apex-chart-container"></div>
         </div>
 
-        <div class="chart-container">
+        <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
-                <h2>Distribuição de mensagens</h2>
+                <div>
+                    <h3 class="section-title mb-1">Leads por cidade</h3>
+                    <span class="chart-subtitle">Distribuição dos leads capturados</span>
+                </div>
             </div>
-            <canvas id="chart_messages_donut" height="160"></canvas>
+            <div id="chart_leads_by_city" class="apex-chart-container"></div>
         </div>
+
     </div>
 </div>
 
 <div class="card-section recent-table-wrapper mt-4">
-    <h5 class="section-title">Últimas Conversas</h5>
+    <div class="section-title-wrapper">
+        <h5 class="section-title">
+            <i class="bi bi-clock-history"></i>
+            Últimas Conversas
+        </h5>
+    </div>
     <div class="table-responsive">
         <table id="recent-table" class="table table-dark table-sm mb-0">
-            <!-- Conteúdo da tabela -->
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Criado em</th>
+                    <th>Atualizado em</th>
+                    <th>Mensagens Usuário</th>
+                    <th>Mensagens Bot</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Conteúdo preenchido via JavaScript -->
+            </tbody>
         </table>
     </div>
 </div>
 
-
 <script>
+// ============================================
+// DASHBOARD ADMIN - ApexCharts Modern Dashboard
+// Migrado de Chart.js para ApexCharts
+// Contrato de /admin/api/reports mantido intacto
+// ============================================
+
+// Variáveis globais para instâncias dos gráficos
+let chartDaily = null;
+let chartMessagesBar = null;
+let chartLeadsByCity = null;
+let chartLeadsByState = null;
+let chartLeadsByAge = null;
+
+/**
+ * Formata data para exibição legível (timezone-safe)
+ */
+function formatDateLabel(dateStr) {
+    if (!dateStr) return '';
+    
+    // Parsing explícito para evitar problemas de timezone
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // 0-based
+    const day = parseInt(parts[2], 10);
+    
+    const date = new Date(year, month, day);
+    if (isNaN(date.getTime())) {
+        return dateStr; // Retorna original se inválida
+    }
+    
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+/**
+ * Formata timestamp do Firestore para formato brasileiro curto (DD/MM/YYYY HH:mm)
+ * Aceita: objetos Firestore ({_seconds, _nanoseconds}), números (epoch seconds), ou strings
+ */
+function formatFirestoreTimestamp(ts) {
+    if (!ts) return '';
+    
+    let date = null;
+    
+    // Tenta converter para Date conforme o tipo de entrada
+    if (typeof ts === 'string') {
+        // Se for string, tenta criar Date diretamente
+        date = new Date(ts);
+        // Se a conversão falhou, retorna string vazia
+        if (isNaN(date.getTime())) {
+            return '';
+        }
+    } else if (typeof ts === 'number') {
+        // Assumindo que é epoch em segundos
+        date = new Date(ts * 1000);
+    } else if (typeof ts === 'object' && ts !== null) {
+        // Objeto Firestore serializado
+        if (typeof ts._seconds === 'number') {
+            date = new Date(ts._seconds * 1000);
+        } else if (typeof ts.seconds === 'number') {
+            date = new Date(ts.seconds * 1000);
+        }
+    }
+    
+    // Se não conseguiu criar uma data válida, retorna vazio
+    if (!date || isNaN(date.getTime())) {
+        return '';
+    }
+    
+    // Formata em pt-BR com formato curto: DD/MM/YYYY HH:mm
+    const options = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false // 24 horas
+    };
+    
+    return date.toLocaleString('pt-BR', options);
+}
+
+/**
+ * Formata nome da cidade para exibição.
+ * Como as chaves já vêm normalizadas (Title Case), apenas retorna o valor limpo.
+ */
+function formatCityLabel(city) {
+    if (!city || typeof city !== 'string') return '';
+    return city.trim();
+}
+
+/**
+ * Cria gráfico de área para conversas diárias (estilo Modern Dashboard)
+ */
+function createDailyConversationsChart(labels, series) {
+    // Verificação de ApexCharts
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        return;
+    }
+    
+    const container = document.getElementById("chart_daily");
+    if (!container) return;
+
+    // Destroi gráfico anterior se existir
+    if (chartDaily) {
+        chartDaily.destroy();
+    }
+
+    // Converte labels de datas para formato legível
+    const formattedLabels = labels.map(formatDateLabel);
+
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+    const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
+    const options = {
+        series: [{
+            name: 'Conversas',
+            data: series
+        }],
+        chart: {
+            type: 'area',
+            height: 280,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            fontFamily: 'Poppins, sans-serif'
+        },
+        colors: ['#3d7eff'],
+        dataLabels: { enabled: false },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0.1,
+                stops: [0, 90, 100]
+            }
+        },
+        grid: {
+            borderColor: gridColor,
+            strokeDashArray: 3,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        },
+        xaxis: {
+            categories: formattedLabels,
+            labels: {
+                style: { colors: labelColor, fontSize: '11px' }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: { colors: labelColor, fontSize: '11px' }
+            }
+        },
+        tooltip: {
+            theme: tooltipTheme,
+            style: { fontSize: '12px', fontFamily: 'Poppins' },
+            y: {
+                formatter: function(val) {
+                    return val + ' conversas';
+                }
+            }
+        },
+        markers: {
+            size: 4,
+            colors: ['#3d7eff'],
+            strokeColors: '#fff',
+            strokeWidth: 2,
+            hover: { size: 6 }
+        }
+    };
+
+    chartDaily = new ApexCharts(container, options);
+    chartDaily.render();
+}
+
+/**
+ * Cria gráfico de barras para mensagens por papel
+ */
+function createMessagesBarChart(user, bot) {
+    // Verificação de ApexCharts
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique a conexão com o CDN.');
+        return;
+    }
+    
+    const container = document.getElementById("chart_messages_bar");
+    if (!container) return;
+
+    if (chartMessagesBar) {
+        chartMessagesBar.destroy();
+    }
+
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+    const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
+    const options = {
+        series: [{
+            name: 'Mensagens',
+            data: [user, bot]
+        }],
+        chart: {
+            type: 'bar',
+            height: 200,
+            toolbar: { show: false },
+            fontFamily: 'Poppins, sans-serif'
+        },
+        colors: ['#00c853', '#ffc107'],
+        plotOptions: {
+            bar: {
+                borderRadius: 8,
+                horizontal: false,
+                columnWidth: '60%',
+                distributed: true
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            style: {
+                colors: ['#fff'],
+                fontSize: '11px',
+                fontWeight: 500
+            }
+        },
+        grid: {
+            borderColor: gridColor,
+            strokeDashArray: 3,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        },
+        xaxis: {
+            categories: ['Usuário', 'Bot'],
+            labels: {
+                style: { colors: labelColor, fontSize: '11px' }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: { colors: labelColor, fontSize: '11px' }
+            }
+        },
+        tooltip: {
+            theme: tooltipTheme,
+            style: { fontSize: '12px', fontFamily: 'Poppins' }
+        },
+        legend: { show: false }
+    };
+
+    chartMessagesBar = new ApexCharts(container, options);
+    chartMessagesBar.render();
+}
+
+/**
+ * Cria um bar chart básico (ApexCharts) para LEADS.
+ * Reaproveitado para cidade e estado.
+ */
+function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
+    if (typeof ApexCharts === 'undefined') {
+        console.error('ApexCharts não carregado. Verifique o CDN.');
+        return;
+    }
+
+    const el = document.getElementById(containerId);
+    if (!el) return;
+
+    // Destroi gráfico anterior, se existir
+    if (chartRefName === 'city' && chartLeadsByCity) {
+        chartLeadsByCity.destroy();
+    }
+    if (chartRefName === 'state' && chartLeadsByState) {
+        chartLeadsByState.destroy();
+    }
+
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+    const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
+    const options = {
+        chart: {
+            type: 'bar',
+            height: 300,
+            toolbar: { show: false }
+        },
+        series: [{
+            data: seriesData
+        }],
+        xaxis: {
+            categories: labels,
+            labels: {
+                style: {
+                    colors: labelColor,
+                    fontSize: '12px'
+                }
+            }
+        },
+        yaxis: {
+            labels: {
+                style: {
+                    colors: labelColor
+                }
+            }
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '45%',
+                borderRadius: 6
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        grid: {
+            borderColor: gridColor
+        },
+        tooltip: {
+            theme: tooltipTheme
+        }
+    };
+
+    const chart = new ApexCharts(el, options);
+
+    if (chartRefName === 'city') {
+        chartLeadsByCity = chart;
+    } else if (chartRefName === 'state') {
+        chartLeadsByState = chart;
+    }
+
+    chart.render();
+}
+
+function createLeadsByCityChart(labels, values) {
+    createLeadsBarChart('chart_leads_by_city', labels, values, 'city');
+}
+
+function createLeadsByStateChart(labels, values) {
+    createLeadsBarChart('chart_leads_by_state', labels, values, 'state');
+}
+
+function createLeadsByAgeChart(labels, values) {
+    if (chartLeadsByAge) {
+        chartLeadsByAge.destroy();
+    }
+
+    // Detecta o tema atual
+    const isLightTheme = document.body.classList.contains('theme-light');
+    const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+    const labelColor = isLightTheme ? '#6b7280' : '#ccc';
+    const tooltipTheme = isLightTheme ? 'light' : 'dark';
+
+    const options = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: { show: false }
+        },
+        plotOptions: {
+            bar: {
+                horizontal: true,
+                borderRadius: 4,
+                barHeight: '60%',
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        colors: ['#1E90FF'],
+        series: [{
+            name: 'Leads',
+            data: values
+        }],
+        xaxis: {
+            categories: labels,
+            labels: {
+                style: { colors: labelColor }
+            }
+        },
+        yaxis: {
+            labels: {
+                style: { colors: labelColor }
+            }
+        },
+        grid: {
+            borderColor: gridColor,
+        },
+        tooltip: {
+            theme: tooltipTheme
+        }
+    };
+
+    chartLeadsByAge = new ApexCharts(
+        document.querySelector("#chart_leads_age"),
+        options
+    );
+
+    chartLeadsByAge.render();
+}
+
+// ============================================
+// Carregamento de dados da API
+// Contrato mantido: /admin/api/reports
+// ============================================
 fetch("/admin/api/reports")
     .then(r => r.json())
     .then(data => {
+        // Preenche cards de métricas (lógica mantida)
         document.getElementById("total-conv").innerText = data.conversation_counts.total_conversations;
         document.getElementById("msg-user").innerText = data.message_counts.user_messages;
         document.getElementById("msg-bot").innerText = data.message_counts.bot_messages;
 
+        // Preenche tabela de últimas conversas (lógica mantida, agora com tbody)
         const tb = document.getElementById("recent-table");
-        tb.innerHTML = "";
+        if (!tb) return;
+        
+        // Tenta pegar o tbody
+        let tbody = tb.querySelector('tbody');
+        
+        // Fallback: se não tiver tbody por algum motivo (HTML antigo), usa a própria tabela
+        if (!tbody) {
+            tbody = tb;
+        }
+        
+        tbody.innerHTML = "";
         data.recent_conversations.forEach(c => {
-            tb.innerHTML += `
+            tbody.innerHTML += `
                 <tr>
                     <td>${c.session_id}</td>
-                    <td>${(c.created_at && c.created_at._seconds) ? new Date(c.created_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
-                    <td>${(c.updated_at && c.updated_at._seconds) ? new Date(c.updated_at._seconds * 1000).toLocaleString("pt-BR") : ""}</td>
+                    <td>${formatFirestoreTimestamp(c.created_at || c.createdAt)}</td>
+                    <td>${formatFirestoreTimestamp(c.updated_at || c.updatedAt)}</td>
                     <td>${c.total_user_messages}</td>
                     <td>${c.total_bot_messages}</td>
                 </tr>
             `;
         });
 
-        // ========================
-        // GRÁFICO 1 - Conversas por dia (linha)
-        // ========================
+        // Cria gráficos com ApexCharts
         const dates = Object.keys(data.daily_conversations);
         const values = Object.values(data.daily_conversations);
 
-        new Chart(document.getElementById("chart_daily"), {
-            type: "line",
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: "Conversas por dia",
-                    data: values,
-                    borderColor: "rgba(0, 123, 255, 0.9)",
-                    backgroundColor: "rgba(0, 123, 255, 0.3)",
-                    tension: 0.3
-                }]
-            },
-            options: {
-                plugins: { legend: { labels: { color: "white" } } },
-                scales: {
-                    x: { ticks: { color: "white" } },
-                    y: { ticks: { color: "white" } }
-                }
-            }
-        });
+        // Tratamento para dados vazios
+        if (dates.length === 0) {
+            dates.push(new Date().toISOString().split('T')[0]);
+            values.push(0);
+        }
 
-        // ========================
-        // GRÁFICO 2 - User x Bot (BARRA)
-        // ========================
-        new Chart(document.getElementById("chart_messages_bar"), {
-            type: "bar",
-            data: {
-                labels: ["Usuário", "Bot"],
-                datasets: [{
-                    label: "Mensagens",
-                    data: [
-                        data.message_counts.user_messages,
-                        data.message_counts.bot_messages
-                    ],
-                    backgroundColor: [
-                        "rgba(0, 200, 83, 0.8)",
-                        "rgba(255, 193, 7, 0.8)"
-                    ]
-                }]
-            },
-            options: {
-                plugins: { legend: { labels: { color: "white" } } },
-                scales: {
-                    x: { ticks: { color: "white" } },
-                    y: { ticks: { color: "white" } }
-                }
-            }
-        });
+        createDailyConversationsChart(dates, values);
+        createMessagesBarChart(
+            data.message_counts.user_messages || 0,
+            data.message_counts.bot_messages || 0
+        );
 
-        // ========================
-        // GRÁFICO 3 - Donut (Proporção mensagens)
-        // ========================
-        new Chart(document.getElementById("chart_messages_donut"), {
-            type: "doughnut",
-            data: {
-                labels: ["Usuário", "Bot"],
-                datasets: [{
-                    data: [
-                        data.message_counts.user_messages,
-                        data.message_counts.bot_messages
-                    ],
-                    backgroundColor: [
-                        "rgba(0, 200, 83, 0.9)",
-                        "rgba(255, 193, 7, 0.9)"
-                    ]
-                }]
-            },
-            options: {
-                plugins: { legend: { labels: { color: "white" } } }
-            }
-        });
+        // ----- Leads por cidade -----
+        const leadsByCity = data.leads_by_city || {};
+        const cityLabels = Object.keys(leadsByCity);
+        const cityValues = Object.values(leadsByCity);
+
+        if (cityLabels.length > 0) {
+            createLeadsByCityChart(cityLabels, cityValues);
+        }
+
+        // ----- Leads por estado -----
+        const leadsByState = data.leads_by_state || {};
+        const stateLabels = Object.keys(leadsByState);
+        const stateValues = Object.values(leadsByState);
+
+        if (stateLabels.length > 0) {
+            createLeadsByStateChart(stateLabels, stateValues);
+        }
+
+        // ----- Leads por faixa etária -----
+        const ageData = data.leads_by_age_range || {};
+        const ageLabels = ["16-18", "19-24", "25+"];
+        const ageValues = ageLabels.map(a => ageData[a] || 0);
+        createLeadsByAgeChart(ageLabels, ageValues);
+    })
+    .catch(error => {
+        console.error('Erro ao carregar dados da dashboard:', error);
     });
 </script>
 

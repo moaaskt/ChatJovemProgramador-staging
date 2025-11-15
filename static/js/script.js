@@ -39,6 +39,8 @@ function withChatleoLock(fn){
   try { fn(); } finally { setTimeout(()=>{ ChatleoLock=false; }, CHATLEO_TRANSITION_MS); }
 }
 
+let isWaiting = false;
+
 // ===== ELEMENTOS DOM =====
 const DOMElements = {
     // Trigger do chatbot
@@ -70,15 +72,106 @@ const DOMElements = {
     xpDisplay: null
 };
 
-// Avatares configuráveis via data-atributos do HTML
-const widgetRoot = document.getElementById('chatbot-widget');
-const BOT_AVATAR = widgetRoot?.dataset?.botAvatar || '/static/assets/logo.png';
-const USER_AVATAR = widgetRoot?.dataset?.userAvatar || '/static/assets/logo-user.png';
+// Avatares configuráveis via data-atributos do HTML (serão atualizados por loadChatConfig)
+let BOT_AVATAR = '/static/assets/logo.png';
+let USER_AVATAR = '/static/assets/logo-user.png';
 
-const bubbleImg = document.querySelector('.chatleo-bubble__avatar img');
-if (bubbleImg) {
-    bubbleImg.src = BOT_AVATAR;
-    bubbleImg.alt = "Abrir chat";
+function setLocked(locked) {
+    isWaiting = locked;
+    const input = DOMElements.messageInput;
+    const send = DOMElements.sendBtn;
+    const quick1 = Array.from(DOMElements.quickBtns || []);
+    const quick2 = Array.from(document.querySelectorAll('.chatleo-quick-button'));
+    const quickAll = [...quick1, ...quick2];
+    if (input) {
+        input.disabled = locked;
+        input.classList.toggle('is-disabled', locked);
+        input.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    }
+    if (send) {
+        send.disabled = locked;
+        send.classList.toggle('is-disabled', locked);
+        send.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    }
+    quickAll.forEach(btn => {
+        btn.disabled = locked;
+        btn.classList.toggle('is-disabled', locked);
+        btn.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    });
+}
+
+// ===== CARREGAMENTO DE CONFIGS DO CHAT =====
+async function loadChatConfig() {
+    try {
+        const resp = await fetch("/api/chat-config");
+        if (!resp.ok) return null;
+        const cfg = await resp.json();
+        return cfg;
+    } catch (err) {
+        console.error("Erro ao carregar chat-config:", err);
+        return null;
+    }
+}
+
+function applyChatConfig(cfg) {
+    if (!cfg) return;
+    
+    const widgetRoot = document.getElementById("chatbot-widget");
+    const titleEl = document.getElementById("chat-title");
+    const welcomeEl = document.getElementById("welcome-message");
+    
+    // Atualizar título
+    if (titleEl && cfg.chat_title) {
+        titleEl.textContent = cfg.chat_title;
+    }
+    
+    // Atualizar mensagem de boas-vindas
+    if (welcomeEl && cfg.welcome_message) {
+        welcomeEl.textContent = cfg.welcome_message;
+    }
+    
+    // Atualizar avatares globais
+    if (cfg.bot_avatar) {
+        BOT_AVATAR = cfg.bot_avatar;
+    }
+    if (cfg.user_avatar) {
+        USER_AVATAR = cfg.user_avatar;
+    }
+    
+    // Aplicar avatares nas imagens existentes
+    const bubbleImg = document.querySelector('.chatleo-bubble__avatar img');
+    if (bubbleImg) {
+        bubbleImg.src = BOT_AVATAR;
+        bubbleImg.alt = "Abrir chat";
+    }
+    
+    const widgetMascot = document.querySelector('.widget-mascot img');
+    if (widgetMascot) {
+        widgetMascot.src = BOT_AVATAR;
+    }
+    
+    const welcomeAvatar = document.querySelector('.welcome-message .message-avatar img');
+    if (welcomeAvatar) {
+        welcomeAvatar.src = BOT_AVATAR;
+    }
+    
+    // Aplicar cores via CSS variables
+    if (widgetRoot) {
+        if (cfg.bot_avatar) {
+            widgetRoot.dataset.botAvatar = cfg.bot_avatar;
+        }
+        if (cfg.user_avatar) {
+            widgetRoot.dataset.userAvatar = cfg.user_avatar;
+        }
+        if (cfg.primary_color) {
+            widgetRoot.style.setProperty("--chat-primary", cfg.primary_color);
+            widgetRoot.dataset.primaryColor = cfg.primary_color;
+        }
+        if (cfg.secondary_color) {
+            widgetRoot.style.setProperty("--chat-secondary", cfg.secondary_color);
+            widgetRoot.dataset.secondaryColor = cfg.secondary_color;
+        }
+    }
 }
 
 // ===== INICIALIZAÇÃO =====
@@ -379,6 +472,7 @@ function cycleFontSize() {
     
     announceToScreenReader(`Tamanho da fonte alterado para ${AppState.currentFontSize}`);
     saveUserPreferences();
+    runFontScaleSmokeTest();
 }
 
 // ===== CONTROLE DE CONTRASTE =====
@@ -450,6 +544,7 @@ function handleTabNavigation(e) {
 }
 
 function handleInputKeydown(e) {
+    if (isWaiting) { e.preventDefault(); return; }
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
@@ -541,19 +636,13 @@ function minimizeWidget() {
 
 // ===== MENSAGENS =====
 function sendMessage() {
+    if (isWaiting) return;
     const message = DOMElements.messageInput?.value.trim();
     if (!message) return;
-    
-    // Adicionar mensagem do usuário
     addMessage(message, 'user');
-    
-    // Limpar input
     DOMElements.messageInput.value = '';
-    
-    // Mostrar indicador de digitação
     showTypingIndicator();
-    
-    // Buscar resposta real no backend
+    setLocked(true);
     (async () => {
         try {
             const botResponse = await sendToBackend(message);
@@ -563,10 +652,10 @@ function sendMessage() {
         } catch (err) {
             hideTypingIndicator();
             addMessage('Erro ao conectar ao assistente. Tente novamente.', 'bot');
+        } finally {
+            setLocked(false);
         }
     })();
-    
-    // Adicionar XP
     addXP(10);
 }
 
@@ -668,12 +757,11 @@ function showWelcomeMessage() {
 
 // ===== AÇÕES RÁPIDAS =====
 function handleQuickAction(e) {
-    const button = e.target.closest('.quick-btn');
+    if (isWaiting) return;
+    const target = e && e.target ? e.target : null;
+    const button = (target && target.closest('.quick-btn')) || (target && target.closest('.chatleo-quick-button')) || this;
     if (!button) return;
-    
     const message = button.textContent.trim();
-    
-    // Simular clique no input e envio
     if (DOMElements.messageInput) {
         DOMElements.messageInput.value = message;
         sendMessage();
@@ -864,6 +952,24 @@ function loadUserPreferences() {
     } catch (error) {
         console.warn('Erro ao carregar preferências:', error);
     }
+    runFontScaleSmokeTest();
+}
+
+// ===== Teste simples de verificação de escala de fonte =====
+function runFontScaleSmokeTest() {
+    try {
+        const targets = [
+            '.chatbot-widget .message-content',
+            '.chatbot-widget .message-bubble',
+            '.chatbot-widget .widget-messages'
+        ];
+        const results = targets.map(sel => {
+            const el = document.querySelector(sel);
+            const fs = el ? window.getComputedStyle(el).fontSize : 'n/a';
+            return `${sel}: ${fs}`;
+        });
+        console.debug('[FontScaleTest]', AppState.currentFontSize, results.join(' | '));
+    } catch (_) { /* noop */ }
 }
 
 // ===== INTEGRAÇÃO COM BACKEND =====
@@ -911,9 +1017,17 @@ function initializeWidget() {
 
 // ===== INICIALIZAÇÃO QUANDO DOM ESTIVER PRONTO =====
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
+    document.addEventListener('DOMContentLoaded', async () => {
+        const cfg = await loadChatConfig();
+        applyChatConfig(cfg);
+        initializeApp();
+    });
 } else {
-    initializeApp();
+    (async () => {
+        const cfg = await loadChatConfig();
+        applyChatConfig(cfg);
+        initializeApp();
+    })();
 }
 
 // ===== EXPORTS PARA DEBUG =====

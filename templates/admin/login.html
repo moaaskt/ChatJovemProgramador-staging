@@ -73,44 +73,70 @@
                 <p class="text-muted mb-0">Acesso ao painel do chatbot</p>
             </div>
 
-            <div class="mb-3 mt-3">
-                <label for="user" class="form-label">Usuário</label>
-                <input type="text" id="user" class="form-control" placeholder="admin">
-            </div>
+            <form id="login-form">
+                <div class="mb-3 mt-3">
+                    <label for="username" class="form-label">Usuário</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="admin" required>
+                </div>
 
-            <div class="mb-3">
-                <label for="pass" class="form-label">Senha</label>
-                <input type="password" id="pass" class="form-control" placeholder="********">
-            </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Senha</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="********" required>
+                </div>
 
-            <div class="d-grid mb-2">
-                <button id="btnLogin" class="btn btn-gradient">Entrar</button>
-            </div>
+                <div class="d-grid mb-2">
+                    <button type="submit" id="login-submit" class="btn btn-gradient">Entrar</button>
+                </div>
+            </form>
 
             <div class="hint mb-2">
                 Dica para o hackathon: <span class="text-light">admin / admin123</span>
             </div>
 
-            <div id="error" class="text-danger mt-2" style="display:none;">Usuário ou senha inválidos.</div>
+            <div id="login-error" class="text-danger mt-2" style="display:none;"></div>
         </div>
     </div>
 
     <script>
-        document.getElementById('btnLogin').addEventListener('click', function () {
-            const user = document.getElementById('user').value.trim();
-            const pass = document.getElementById('pass').value.trim();
-            if (user === 'admin' && pass === 'admin123') {
-                localStorage.setItem('adminAuth', 'ok');
-                window.location.href = '/admin';
-            } else {
-                const err = document.getElementById('error');
-                err.style.display = 'block';
-            }
-        });
+        document.getElementById("login-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const user = document.getElementById("username").value.trim();
+            const pass = document.getElementById("password").value;
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                document.getElementById('btnLogin').click();
+            const btn = document.getElementById("login-submit");
+            const errorBox = document.getElementById("login-error");
+            if (errorBox) {
+                errorBox.textContent = "";
+                errorBox.style.display = "none";
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Entrando...";
+
+            try {
+                const resp = await fetch("/admin/api/login", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({username: user, password: pass}),
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    window.location.href = "/admin/";
+                } else {
+                    if (errorBox) {
+                        errorBox.textContent = data.message || "Falha ao fazer login.";
+                        errorBox.style.display = "block";
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (errorBox) {
+                    errorBox.textContent = "Erro ao conectar ao servidor.";
+                    errorBox.style.display = "block";
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Entrar";
             }
         });
     </script>
