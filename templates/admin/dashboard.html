@@ -92,6 +92,14 @@
             </div>
             <div id="chart_leads_by_city" class="apex-chart-container"></div>
         </div>
+
+        <div class="chart-container apex-chart-card">
+            <div class="chart-container-header">
+                <h3>Leads por faixa etária</h3>
+                <span class="chart-subtitle">Distribuição dos leads por idade</span>
+            </div>
+            <div id="chart_leads_age" class="apex-chart-container"></div>
+        </div>
     </div>
 </div>
 
@@ -132,6 +140,7 @@ let chartDaily = null;
 let chartMessagesBar = null;
 let chartLeadsByCity = null;
 let chartLeadsByState = null;
+let chartLeadsByAge = null;
 
 /**
  * Formata data para exibição legível (timezone-safe)
@@ -395,6 +404,9 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
     if (chartRefName === 'state' && chartLeadsByState) {
         chartLeadsByState.destroy();
     }
+    if (chartRefName === 'age' && chartLeadsByAge) {
+        chartLeadsByAge.destroy();
+    }
 
     const options = {
         chart: {
@@ -437,6 +449,8 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
         chartLeadsByCity = chart;
     } else if (chartRefName === 'state') {
         chartLeadsByState = chart;
+    } else if (chartRefName === 'age') {
+        chartLeadsByAge = chart;
     }
 
     chart.render();
@@ -448,6 +462,10 @@ function createLeadsByCityChart(labels, values) {
 
 function createLeadsByStateChart(labels, values) {
     createLeadsBarChart('chart_leads_by_state', labels, values, 'state');
+}
+
+function createLeadsByAgeChart(labels, seriesData) {
+    createLeadsBarChart('chart_leads_age', labels, seriesData, 'age');
 }
 
 // ============================================
@@ -519,6 +537,25 @@ fetch("/admin/api/reports")
 
         if (stateLabels.length > 0) {
             createLeadsByStateChart(stateLabels, stateValues);
+        }
+
+        // ----- Leads por faixa etária -----
+        const leadsByAge = data.leads_by_age_range || {};
+        // Ordem fixa das faixas no gráfico
+        const ageOrder = ["16-18", "19-24", "25+"];
+
+        // Monta labels na ordem fixa, mas só com faixas que existem no payload
+        const ageLabels = ageOrder.filter(key => Object.prototype.hasOwnProperty.call(leadsByAge, key));
+        const ageValues = ageLabels.map(key => leadsByAge[key]);
+
+        if (ageLabels.length > 0) {
+            createLeadsByAgeChart(ageLabels, ageValues);
+        } else {
+            // Se não houver dados, opcionalmente pode limpar/ocultar o gráfico
+            if (chartLeadsByAge) {
+                chartLeadsByAge.destroy();
+                chartLeadsByAge = null;
+            }
         }
     })
     .catch(error => {

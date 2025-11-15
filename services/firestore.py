@@ -554,3 +554,50 @@ def get_leads_count_by_state():
         logger.error(f"[Firestore] Erro em get_leads_count_by_state: {e}")
         return {}
 
+
+def get_leads_count_by_age_range():
+    """
+    Conta leads agrupados por faixa etária.
+    Retorna dict { "16-18": count, "19-24": count, "25+": count }.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+
+    try:
+        leads = _db.collection("leads").stream()
+        counts: dict[str, int] = {}
+
+        for lead_doc in leads:
+            data = lead_doc.to_dict() or {}
+            idade_raw = data.get("idade")
+
+            # Tenta converter idade para int
+            try:
+                if isinstance(idade_raw, str):
+                    idade = int(idade_raw.strip())
+                elif isinstance(idade_raw, int):
+                    idade = idade_raw
+                else:
+                    continue
+            except (ValueError, AttributeError):
+                # Se não conseguir converter, ignora esse lead
+                continue
+
+            # Define faixa etária
+            bucket = None
+            if 16 <= idade <= 18:
+                bucket = "16-18"
+            elif 19 <= idade <= 24:
+                bucket = "19-24"
+            elif idade >= 25:
+                bucket = "25+"
+            # Idades abaixo de 16 são ignoradas
+
+            if bucket:
+                counts[bucket] = counts.get(bucket, 0) + 1
+
+        return counts
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_leads_count_by_age_range: {e}")
+        return {}
+
