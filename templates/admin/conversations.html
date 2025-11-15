@@ -6,20 +6,51 @@
   <p class="conversations-subtitle">Histórico completo do ChatLeo</p>
 
   <div class="conversations-shell">
-    <div class="sessions-panel card-section">
-      <h2 class="panel-title">Sessões recentes</h2>
-      <div id="conv-list"><!-- itens via JS --></div>
-    </div>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="sessions-panel card-section h-100 sessions-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="panel-title mb-0">Sessões recentes</h2>
+            <span id="conv-total-badge" class="badge bg-secondary d-none"></span>
+          </div>
+          <p class="conversations-subtitle mb-2">
+            Selecione uma sessão para ver o histórico à direita.
+          </p>
 
-    <div class="chat-panel card-section">
-      <div class="chat-header">
-        <div class="chat-header-avatar"></div>
-        <div class="chat-header-info">
-          <span id="conv-session-label"></span>
-          <small>Histórico da conversa</small>
+          <div class="mb-2">
+            <input type="text" class="form-control form-control-sm" placeholder="Buscar por ID ou e-mail (visual)" disabled>
+          </div>
+
+          <div class="sessions-list-wrapper">
+            <div id="conv-list" class="list-group list-group-flush">
+              <!-- itens via JS -->
+            </div>
+          </div>
         </div>
       </div>
-      <div id="chat-viewer"></div>
+
+      <div class="col-lg-8">
+        <div class="chat-panel card-section h-100">
+          <div class="chat-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+              <div class="chat-header-avatar d-flex align-items-center justify-content-center">
+                <i class="bi bi-robot fs-4"></i>
+              </div>
+              <div class="chat-header-info">
+                <span class="d-block fw-semibold">Histórico da conversa</span>
+                <small id="conv-session-label" class="text-muted d-block"></small>
+              </div>
+            </div>
+            <div class="chat-header-meta text-end">
+              <!-- futuro: badges de canal/status se existir essa info -->
+            </div>
+          </div>
+
+          <div id="chat-viewer" class="chat-panel-messages">
+            <!-- conteúdo inicial/placeholder pode ser ajustado pelo JS -->
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -36,24 +67,44 @@
       .then(data => {
          const list = document.getElementById("conv-list");
          list.innerHTML = "";
+         
+         // Atualizar badge de total de conversas
+         const badge = document.getElementById("conv-total-badge");
+         if (badge && data.conversations.length > 0) {
+           badge.classList.remove("d-none");
+           badge.textContent = `${data.conversations.length} sessão${data.conversations.length !== 1 ? 'ões' : ''}`;
+         } else if (badge) {
+           badge.classList.add("d-none");
+         }
+         
          data.conversations.forEach(c => {
              const totalUser = c.total_user_messages || 0;
              const totalBot = c.total_bot_messages || 0;
              const total = totalUser + totalBot;
- 
-         const div = document.createElement("div");
-         div.className = "list-group-item list-group-item-action bg-dark text-light border-secondary mb-1";
-         div.dataset.sessionId = c.session_id;
-         div.onclick = () => loadConversation(c.session_id);
- 
-             div.innerHTML = `
-              <div class="fw-semibold small text-truncate">${c.session_id}</div>
-              <div class="text-muted" style="font-size: 0.75rem;">
-                 Criado: ${formatTimestamp(c.created_at)}<br>
-                 Mensagens: ${total} (${totalUser} usuário / ${totalBot} bot)
-              </div>
+
+             const item = document.createElement("button");
+             item.type = "button";
+             item.className = "list-group-item list-group-item-action session-item";
+             item.dataset.sessionId = c.session_id;
+             item.onclick = () => loadConversation(c.session_id);
+
+             item.innerHTML = `
+               <div class="d-flex w-100 justify-content-between align-items-start">
+                 <div class="flex-grow-1 me-2">
+                   <div class="fw-semibold small text-truncate">${c.session_id}</div>
+                   <div class="text-muted sessions-meta small mt-1">
+                     Criada: ${formatTimestamp(c.created_at)}<br>
+                     Mensagens: ${total} (${totalUser} usuário / ${totalBot} bot)
+                   </div>
+                 </div>
+                 <div class="text-end">
+                   <span class="badge bg-primary-subtle text-primary-emphasis small d-block mb-1">
+                     ${c.channel || "web"}
+                   </span>
+                 </div>
+               </div>
              `;
-             list.appendChild(div);
+             list.appendChild(item);
          });
       });
  }
@@ -61,7 +112,14 @@
 function loadConversation(sessionId) {
     document.getElementById("conv-session-label").innerText = sessionId;
     const viewer = document.getElementById("chat-viewer");
-    viewer.innerHTML = "<div class='text-muted small'>Carregando...</div>";
+    viewer.innerHTML = `
+      <div class="d-flex justify-content-center align-items-center py-4">
+        <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+        <span class="text-muted small">Carregando mensagens...</span>
+      </div>
+    `;
 
     const items = document.querySelectorAll('#conv-list .list-group-item');
     items.forEach(el => {
@@ -71,34 +129,56 @@ function loadConversation(sessionId) {
         el.classList.remove('session-active');
       }
     });
- 
+
     fetch(`/admin/api/conversations/${sessionId}/messages`)
       .then(r => r.json())
       .then(data => {
          viewer.innerHTML = "";
          if (!data.messages.length) {
-             viewer.innerHTML = "<div class='text-muted small'>Nenhuma mensagem.</div>";
+             viewer.innerHTML = `
+               <div class="text-center py-5 text-muted">
+                 <i class="bi bi-chat-dots fs-1 d-block mb-2"></i>
+                 <p class="mb-0">Nenhuma mensagem nesta conversa.</p>
+               </div>
+             `;
              return;
          }
- 
+
          data.messages.forEach(msg => {
              const role = msg.role === "user" ? "user" : "bot";
              const row = document.createElement("div");
              row.className = "bubble-row";
- 
+             row.dataset.role = role;
+
              const bubble = document.createElement("div");
              bubble.className = role === "user" ? "bubble-user" : "bubble-bot";
-             bubble.textContent = msg.content || "";
- 
+
+             const contentEl = document.createElement("div");
+             contentEl.className = "bubble-content";
+             contentEl.textContent = msg.content || "";
+             bubble.appendChild(contentEl);
+
              const meta = document.createElement("div");
              meta.className = "bubble-meta";
              meta.textContent = formatTimestamp(msg.created_at);
-             bubble.appendChild(meta);
- 
-             row.appendChild(bubble);
+
+             if (role === "user") {
+               const wrapper = document.createElement("div");
+               wrapper.className = "ms-auto bubble-wrapper-user";
+               wrapper.appendChild(bubble);
+               wrapper.appendChild(meta);
+               row.appendChild(wrapper);
+             } else {
+               const wrapper = document.createElement("div");
+               wrapper.className = "me-auto bubble-wrapper-bot";
+               wrapper.appendChild(bubble);
+               wrapper.appendChild(meta);
+               row.appendChild(wrapper);
+             }
+
              viewer.appendChild(row);
          });
- 
+
          viewer.scrollTop = viewer.scrollHeight;
       });
  }
