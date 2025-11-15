@@ -94,8 +94,8 @@ def api_reports():
         days = 7
 
     data = {
-        # Por enquanto: todas as conversas (pode ser estendido futuramente para receber days ou date_start/date_end)
-        "conversation_counts": get_conversation_counts(),
+        # Usa o parâmetro days do filtro (ou 7 como padrão)
+        "conversation_counts": get_conversation_counts(days=days),
         # Por enquanto: todas as mensagens (pode ser estendido futuramente para receber days ou date_start/date_end)
         "message_counts": get_message_counts_by_role(),
         # Usa o parâmetro days do filtro (ou 7 como padrão)

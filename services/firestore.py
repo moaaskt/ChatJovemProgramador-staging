@@ -229,12 +229,36 @@ def save_message(session_id, role, text, meta=None):
         return False
 
 
-def get_conversation_counts():
+def get_conversation_counts(days: int | None = None):
+    """
+    Conta conversas na coleção 'conversations'.
+    
+    Se days for informado e > 0, considera apenas conversas com created_at
+    dentro dos últimos 'days' dias. Caso contrário, conta todas.
+    """
     try:
-        convs = _db.collection("conversations").stream()
+        query = _db.collection("conversations")
+        
+        if days and days > 0:
+            today = datetime.utcnow()
+            start = today - timedelta(days=days)
+            query = query.where("created_at", ">=", start)
+        
+        convs = query.stream()
         total = 0
-        for _ in convs:
+        
+        for doc in convs:
+            data = doc.to_dict() or {}
+            
+            # Opcional: segurança extra para documentos muito antigos sem created_at
+            if days and days > 0:
+                ts = data.get("created_at")
+                if not ts:
+                    # segue o mesmo padrão de get_daily_conversation_counts: ignora sem created_at
+                    continue
+            
             total += 1
+        
         return {"total_conversations": total}
     except Exception as e:
         logger.error(f"[Firestore] Erro ao contar conversas: {e}")
