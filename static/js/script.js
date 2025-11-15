@@ -7,7 +7,8 @@ const AppState = {
     currentFontSize: 'normal',
     isHighContrast: false,
     isTTSEnabled: false,
-    ttsVoice: null
+    ttsVoice: null,
+    welcomeRendered: false
 };
 
 // ===== SESSION ID MANAGEMENT =====
@@ -118,16 +119,10 @@ function applyChatConfig(cfg) {
     
     const widgetRoot = document.getElementById("chatbot-widget");
     const titleEl = document.getElementById("chat-title");
-    const welcomeEl = document.getElementById("welcome-message");
     
     // Atualizar título
     if (titleEl && cfg.chat_title) {
         titleEl.textContent = cfg.chat_title;
-    }
-    
-    // Atualizar mensagem de boas-vindas
-    if (welcomeEl && cfg.welcome_message) {
-        welcomeEl.textContent = cfg.welcome_message;
     }
     
     // Atualizar avatares globais
@@ -150,11 +145,6 @@ function applyChatConfig(cfg) {
         widgetMascot.src = BOT_AVATAR;
     }
     
-    const welcomeAvatar = document.querySelector('.welcome-message .message-avatar img');
-    if (welcomeAvatar) {
-        welcomeAvatar.src = BOT_AVATAR;
-    }
-    
     // Aplicar cores via CSS variables
     if (widgetRoot) {
         if (cfg.bot_avatar) {
@@ -172,6 +162,83 @@ function applyChatConfig(cfg) {
             widgetRoot.dataset.secondaryColor = cfg.secondary_color;
         }
     }
+}
+
+// ===== RENDERIZAR MENSAGEM DE BOAS-VINDAS =====
+function renderWelcomeMessage(cfg) {
+    // Prevenir duplicação
+    if (AppState.welcomeRendered) return;
+    if (!DOMElements.widgetMessages) return;
+    
+    // Verificar se já existe mensagem de boas-vindas no histórico
+    const hasWelcomeInHistory = AppState.messageHistory.some(
+        msg => msg.sender === 'bot' && msg.isWelcome === true
+    );
+    if (hasWelcomeInHistory) {
+        AppState.welcomeRendered = true;
+        return;
+    }
+    
+    // Obter mensagem de boas-vindas da config ou usar padrão
+    const welcomeText = (cfg && cfg.welcome_message) 
+        ? cfg.welcome_message 
+        : 'Olá! 👋 Sou o assistente do Jovem Programador. Como posso te ajudar hoje? 🚀';
+    
+    // Remover mensagem fixa do HTML se existir
+    const welcomeEl = document.querySelector('.welcome-message');
+    if (welcomeEl) {
+        welcomeEl.remove();
+    }
+    
+    // Criar mensagem de boas-vindas como mensagem normal do bot
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'bot-message';
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    const img = document.createElement('img');
+    img.src = BOT_AVATAR;
+    img.alt = 'Logo do bot';
+    img.width = 35;
+    img.height = 35;
+    avatar.appendChild(img);
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    const frag = linkifyText(welcomeText);
+    messageContent.appendChild(frag);
+    
+    bubble.appendChild(messageContent);
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(bubble);
+    
+    // Inserir no início do container de mensagens
+    const firstChild = DOMElements.widgetMessages.firstChild;
+    if (firstChild) {
+        DOMElements.widgetMessages.insertBefore(messageDiv, firstChild);
+    } else {
+        DOMElements.widgetMessages.appendChild(messageDiv);
+    }
+    
+    // Salvar no histórico com flag de boas-vindas
+    AppState.messageHistory.push({ 
+        content: welcomeText, 
+        sender: 'bot', 
+        timestamp: Date.now(),
+        isWelcome: true
+    });
+    
+    // Marcar como renderizada
+    AppState.welcomeRendered = true;
+    
+    // Scroll para baixo
+    scrollMessagesToBottom();
+    
+    // Anunciar para leitores de tela
+    announceToScreenReader(`Mensagem de boas-vindas: ${welcomeText}`);
 }
 
 // ===== INICIALIZAÇÃO =====
@@ -576,6 +643,14 @@ function openWidget() {
     b?.setAttribute('aria-expanded', 'true');
     updateNotificationBadge(0);
     
+    // Renderizar mensagem de boas-vindas se ainda não foi renderizada
+    if (!AppState.welcomeRendered) {
+        // Carregar config para obter mensagem de boas-vindas
+        loadChatConfig().then(cfg => {
+            renderWelcomeMessage(cfg);
+        });
+    }
+    
     // Focar no input de mensagem
     setTimeout(() => {
         if (DOMElements.messageInput) {
@@ -584,8 +659,6 @@ function openWidget() {
     }, 300);
     
     announceToScreenReader('Chat aberto');
-    
-    // // Mostrar mensagem de boas-vindas se for a primeira vez
     // if (AppState.messageHistory.length === 0) {
     //     showWelcomeMessage();
     // }
@@ -1021,12 +1094,14 @@ if (document.readyState === 'loading') {
         const cfg = await loadChatConfig();
         applyChatConfig(cfg);
         initializeApp();
+        // A mensagem de boas-vindas será renderizada quando o widget for aberto pela primeira vez
     });
 } else {
     (async () => {
         const cfg = await loadChatConfig();
         applyChatConfig(cfg);
         initializeApp();
+        // A mensagem de boas-vindas será renderizada quando o widget for aberto pela primeira vez
     })();
 }
 
