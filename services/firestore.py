@@ -229,17 +229,28 @@ def save_message(session_id, role, text, meta=None):
         return False
 
 
-def get_conversation_counts(days: int | None = None):
+def get_conversation_counts(
+    days: int | None = None,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
     """
     Conta conversas na coleção 'conversations'.
     
-    Se days for informado e > 0, considera apenas conversas com created_at
-    dentro dos últimos 'days' dias. Caso contrário, conta todas.
+    - Se date_start e date_end forem fornecidos, usa o intervalo [date_start, date_end].
+    - Caso contrário, se days > 0, usa os últimos 'days' dias.
+    - Se nada for informado, conta todas as conversas.
     """
     try:
         query = _db.collection("conversations")
         
-        if days and days > 0:
+        # Prioridade: intervalo manual
+        if date_start and date_end:
+            query = (
+                query.where("created_at", ">=", date_start)
+                     .where("created_at", "<=", date_end)
+            )
+        elif days and days > 0:
             today = datetime.utcnow()
             start = today - timedelta(days=days)
             query = query.where("created_at", ">=", start)
@@ -250,12 +261,9 @@ def get_conversation_counts(days: int | None = None):
         for doc in convs:
             data = doc.to_dict() or {}
             
-            # Opcional: segurança extra para documentos muito antigos sem created_at
-            if days and days > 0:
-                ts = data.get("created_at")
-                if not ts:
-                    # segue o mesmo padrão de get_daily_conversation_counts: ignora sem created_at
-                    continue
+            # Se usamos filtro por intervalo manual, podemos ignorar docs sem created_at
+            if (date_start or days) and not data.get("created_at"):
+                continue
             
             total += 1
         
@@ -291,20 +299,35 @@ def get_message_counts_by_role():
         }
 
 
-def get_daily_conversation_counts(days=7):
+def get_daily_conversation_counts(
+    days: int = 7,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
+    """
+    Retorna contagem de conversas por dia.
+    
+    - Se date_start e date_end forem fornecidos, usa o intervalo [date_start, date_end].
+    - Caso contrário, usa os últimos 'days' dias (comportamento padrão atual).
+    """
     try:
-        today = datetime.utcnow()
-        start = today - timedelta(days=days)
+        if date_start and date_end:
+            start = date_start
+            end = date_end
+        else:
+            today = datetime.utcnow()
+            start = today - timedelta(days=days)
+            end = None  # sem limite superior explícito (mantém comportamento antigo)
 
-        convs = (
-            _db.collection("conversations")
-               .where("created_at", ">=", start)
-               .stream()
-        )
+        query = _db.collection("conversations").where("created_at", ">=", start)
+        if end:
+            query = query.where("created_at", "<=", end)
 
-        stats = {}
+        convs = query.stream()
+
+        stats: dict[str, int] = {}
         for doc in convs:
-            data = doc.to_dict()
+            data = doc.to_dict() or {}
             ts = data.get("created_at")
             if not ts:
                 continue

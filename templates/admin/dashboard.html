@@ -3,17 +3,49 @@
 {% block content %}
 
 <div class="main-header-line">
-    <div class="d-flex justify-content-between align-items-center w-100">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100">
         <h1 class="mb-0">Dashboard</h1>
-        <div class="d-flex align-items-center gap-2">
-            <label for="dashboard-range" class="form-label mb-0 me-2 small text-muted">
-                Período:
-            </label>
-            <select id="dashboard-range" class="form-select form-select-sm" style="width: auto; min-width: 160px;">
-                <option value="7" selected>Últimos 7 dias</option>
-                <option value="30">Últimos 30 dias</option>
-                <option value="90">Últimos 90 dias</option>
-            </select>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Filtros rápidos (já existentes) -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="dashboard-range" class="form-label mb-0 me-2 small text-muted">
+                    Período rápido:
+                </label>
+                <select id="dashboard-range" class="form-select form-select-sm" style="width: auto; min-width: 160px;">
+                    <option value="7" selected>Últimos 7 dias</option>
+                    <option value="30">Últimos 30 dias</option>
+                    <option value="90">Últimos 90 dias</option>
+                </select>
+            </div>
+
+            <!-- Período personalizado -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted">ou personalizado:</span>
+
+                <label for="dashboard-date-start" class="form-label mb-0 small">De</label>
+                <input
+                    type="date"
+                    id="dashboard-date-start"
+                    class="form-control form-control-sm"
+                    style="width: auto;"
+                />
+
+                <label for="dashboard-date-end" class="form-label mb-0 small">até</label>
+                <input
+                    type="date"
+                    id="dashboard-date-end"
+                    class="form-control form-control-sm"
+                    style="width: auto;"
+                />
+
+                <button
+                    type="button"
+                    id="dashboard-apply-range"
+                    class="btn btn-sm btn-outline-primary"
+                >
+                    Aplicar
+                </button>
+            </div>
         </div>
     </div>
 
@@ -563,14 +595,22 @@ function createLeadsByAgeChart(labels, values) {
 
 /**
  * Carrega os dados da dashboard com filtros opcionais.
- * @param {Object} filters - Objeto com filtros (ex: { days: 7 })
+ * @param {Object} filters - Objeto com filtros (ex: { days: 7, date_start: "2025-01-01", date_end: "2025-01-10" })
  */
 function loadDashboardData(filters = {}) {
     const params = new URLSearchParams();
 
-    // Filtro de período (dias)
+    // Filtro por dias (rápido)
     if (filters.days && Number(filters.days) > 0) {
         params.append("days", String(filters.days));
+    }
+
+    // Filtro por intervalo de datas (manual)
+    if (filters.date_start) {
+        params.append("date_start", filters.date_start);
+    }
+    if (filters.date_end) {
+        params.append("date_end", filters.date_end);
     }
 
     const queryString = params.toString();
@@ -659,17 +699,53 @@ function loadDashboardData(filters = {}) {
 // Inicialização quando o DOM estiver pronto
 document.addEventListener("DOMContentLoaded", function () {
     const rangeSelect = document.getElementById("dashboard-range");
+    const dateStartInput = document.getElementById("dashboard-date-start");
+    const dateEndInput = document.getElementById("dashboard-date-end");
+    const applyRangeBtn = document.getElementById("dashboard-apply-range");
 
-    // Listener para mudar o período
+    // Filtro rápido por dias
     if (rangeSelect) {
         rangeSelect.addEventListener("change", function () {
             const days = parseInt(rangeSelect.value, 10) || 7;
+
+            // Quando o usuário escolhe um preset, limpa datas personalizadas
+            if (dateStartInput) dateStartInput.value = "";
+            if (dateEndInput) dateEndInput.value = "";
+
             loadDashboardData({ days: days });
         });
     }
 
-    // Carrega a dashboard inicialmente com 7 dias (comportamento atual)
-    loadDashboardData({ days: parseInt(rangeSelect?.value || "7", 10) || 7 });
+    // Filtro por intervalo de datas manual
+    if (applyRangeBtn && dateStartInput && dateEndInput) {
+        applyRangeBtn.addEventListener("click", function () {
+            const dateStart = dateStartInput.value;
+            const dateEnd = dateEndInput.value;
+
+            if (!dateStart || !dateEnd) {
+                // opcional: dar um feedback simples
+                console.warn("Selecione data inicial e final para aplicar o filtro.");
+                return;
+            }
+
+            // Quando usa intervalo manual, desmarca o select rápido
+            if (rangeSelect) {
+                rangeSelect.value = "";
+            }
+
+            loadDashboardData({
+                date_start: dateStart,
+                date_end: dateEnd,
+            });
+        });
+    }
+
+    // Carregamento inicial: mantém o comportamento atual (últimos 7 dias)
+    const initialDays = rangeSelect && rangeSelect.value
+        ? parseInt(rangeSelect.value, 10)
+        : 7;
+
+    loadDashboardData({ days: initialDays || 7 });
 });
 </script>
 

@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for, session
+from datetime import datetime
 from services.firestore import (
     get_conversation_counts,
     get_message_counts_by_role,
@@ -93,13 +94,38 @@ def api_reports():
     if days <= 0:
         days = 7
 
+    # Lê datas opcionais (formato YYYY-MM-DD)
+    raw_start = request.args.get("date_start") or ""
+    raw_end = request.args.get("date_end") or ""
+
+    date_start = date_end = None
+    if raw_start and raw_end:
+        try:
+            date_start = datetime.strptime(raw_start, "%Y-%m-%d")
+            date_end = datetime.strptime(raw_end, "%Y-%m-%d")
+        except ValueError:
+            # Se o parse falhar, mantém None e segue com 'days'
+            date_start = date_end = None
+
+    # Decide como filtrar conversas: intervalo manual OU days
+    if date_start and date_end:
+        conversation_counts = get_conversation_counts(
+            date_start=date_start,
+            date_end=date_end,
+        )
+        daily_conversations = get_daily_conversation_counts(
+            date_start=date_start,
+            date_end=date_end,
+        )
+    else:
+        conversation_counts = get_conversation_counts(days=days)
+        daily_conversations = get_daily_conversation_counts(days=days)
+
     data = {
-        # Usa o parâmetro days do filtro (ou 7 como padrão)
-        "conversation_counts": get_conversation_counts(days=days),
+        "conversation_counts": conversation_counts,
         # Por enquanto: todas as mensagens (pode ser estendido futuramente para receber days ou date_start/date_end)
         "message_counts": get_message_counts_by_role(),
-        # Usa o parâmetro days do filtro (ou 7 como padrão)
-        "daily_conversations": get_daily_conversation_counts(days=days),
+        "daily_conversations": daily_conversations,
         # Mantém comportamento atual (pode ser estendido futuramente para receber days ou date_start/date_end)
         "recent_conversations": get_recent_conversations(limit=10),
         # Por enquanto: todos os leads (pode ser estendido futuramente se os documentos de leads tiverem campos de timestamp consistentes)
