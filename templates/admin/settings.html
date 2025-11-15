@@ -94,8 +94,64 @@
             </div>
         </div>
         
-        <button id="save-chat-config" class="btn btn-primary">Salvar Configurações do Chat</button>
     </div>
+    
+    <!-- Previews lado a lado -->
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="card-section">
+                <div class="section-title-wrapper">
+                    <h5 class="section-title">
+                        <i class="bi bi-circle"></i>
+                        Preview do Launcher
+                    </h5>
+                </div>
+                <div class="launcher-preview-wrapper">
+                    <div class="launcher-preview-surface">
+                        <!-- canto inferior direito simulando a página -->
+                        <div class="launcher-preview-bubble" id="launcher-preview-bubble">
+                            <div class="launcher-preview-avatar">
+                                <img id="launcher-preview-avatar" src="/static/assets/logo.png" alt="Avatar do bot">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card-section">
+                <div class="section-title-wrapper">
+                    <h5 class="section-title">
+                       <i class="bi bi-eye" ></i>
+                        Pré-visualização do Chat
+                    </h5>
+                </div>
+
+                <div id="chat-preview" class="chat-preview">
+                    <div class="chat-preview-header">
+                        <div class="chat-preview-avatar">
+                            <img id="chat-preview-bot-avatar" src="/static/assets/logo.png" alt="Avatar do bot">
+                        </div>
+                        <div class="chat-preview-title-group">
+                            <div id="chat-preview-title" class="chat-preview-title">ChatLeo</div>
+                            <small class="chat-preview-subtitle">Janela de exemplo do usuário</small>
+                        </div>
+                    </div>
+
+                    <div class="chat-preview-body">
+                        <div class="chat-preview-bubble">
+                            <span id="chat-preview-message">
+                                Olá! 👋 Sou o assistente...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button id="save-chat-config" class="btn btn-primary mt-4">Salvar Configurações do Chat</button>
 </div>
 
 <!-- Seção 3: Troca de Senha -->
@@ -131,6 +187,66 @@
 <div id="settings-feedback" class="mt-3" style="display: none;"></div>
 
 <script>
+// Função para atualizar a pré-visualização do chat
+function updateChatPreview() {
+    const titleInput = document.getElementById("chat-title");
+    const messageInput = document.getElementById("welcome-message");
+    const botAvatarInput = document.getElementById("bot-avatar");
+    const primaryColorInput = document.getElementById("primary-color");
+    const secondaryColorInput = document.getElementById("secondary-color");
+
+    const previewRoot = document.getElementById("chat-preview");
+    const previewTitle = document.getElementById("chat-preview-title");
+    const previewMessage = document.getElementById("chat-preview-message");
+    const previewAvatar = document.getElementById("chat-preview-bot-avatar");
+
+    if (!previewRoot) return;
+
+    const title = (titleInput && titleInput.value) || "ChatLeo";
+    const message = (messageInput && messageInput.value) || "Olá! 👋 Sou o assistente...";
+    const botAvatar = (botAvatarInput && botAvatarInput.value) || "/static/assets/logo.png";
+    const primary = (primaryColorInput && primaryColorInput.value) || "#3D7EFF";
+    const secondary = (secondaryColorInput && secondaryColorInput.value) || "#8B5CF6";
+
+    if (previewTitle) {
+        previewTitle.textContent = title;
+    }
+
+    if (previewMessage) {
+        previewMessage.textContent = message;
+    }
+
+    if (previewAvatar) {
+        previewAvatar.src = botAvatar;
+    }
+
+    previewRoot.style.setProperty("--chat-preview-primary", primary);
+    previewRoot.style.setProperty("--chat-preview-secondary", secondary);
+}
+
+// Função para atualizar o preview do launcher
+function updateLauncherPreviewFromForm() {
+    const bubbleEl = document.getElementById("launcher-preview-bubble");
+    const avatarEl = document.getElementById("launcher-preview-avatar");
+    const primaryInput = document.getElementById("primary-color");
+    const secondaryInput = document.getElementById("secondary-color");
+    const botAvatarInput = document.getElementById("bot-avatar");
+
+    if (!bubbleEl || !avatarEl) {
+        return;
+    }
+
+    const primary = (primaryInput && primaryInput.value) || "#3D7EFF";
+    const secondary = (secondaryInput && secondaryInput.value) || "#8B5CF6";
+    const avatarUrl = (botAvatarInput && botAvatarInput.value) || "/static/assets/logo.png";
+
+    // Gradiente do bubble baseado nas cores escolhidas
+    bubbleEl.style.background = `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+
+    // Avatar
+    avatarEl.src = avatarUrl;
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const THEME_STORAGE_KEY = "chatleo_admin_theme";
     const toggle = document.getElementById("admin-theme-toggle");
@@ -201,6 +317,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.chat.secondary_color) {
                     document.getElementById("secondary-color").value = data.chat.secondary_color;
                 }
+                
+                // Atualizar pré-visualização com os valores carregados
+                updateChatPreview();
+                updateLauncherPreviewFromForm();
+            } else {
+                // Atualizar pré-visualização mesmo se não houver dados carregados
+                updateChatPreview();
+                updateLauncherPreviewFromForm();
             }
         } catch (err) {
             console.error("Erro ao carregar configurações:", err);
@@ -209,6 +333,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const theme = savedTheme || "dark";
             applyToggleVisual(theme);
             applyThemeToBody(theme);
+            // Atualizar pré-visualização com valores padrão mesmo em caso de erro
+            updateChatPreview();
+            updateLauncherPreviewFromForm();
         }
     }
 
@@ -258,17 +385,64 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // inicialização:
     loadSettings();
+    
+    // Adicionar listeners para atualizar pré-visualização em tempo real
+    const previewFields = [
+        "chat-title",
+        "welcome-message",
+        "bot-avatar",
+        "primary-color",
+        "secondary-color",
+    ];
+
+    previewFields.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("input", updateChatPreview);
+            el.addEventListener("change", updateChatPreview);
+        }
+    });
+    
+    // Adicionar listeners para atualizar preview do launcher em tempo real
+    const botAvatarInput = document.getElementById("bot-avatar");
+    const primaryInput = document.getElementById("primary-color");
+    const secondaryInput = document.getElementById("secondary-color");
+
+    if (botAvatarInput) {
+        botAvatarInput.addEventListener("input", updateLauncherPreviewFromForm);
+        botAvatarInput.addEventListener("blur", updateLauncherPreviewFromForm);
+    }
+
+    if (primaryInput) {
+        primaryInput.addEventListener("input", updateLauncherPreviewFromForm);
+        primaryInput.addEventListener("change", updateLauncherPreviewFromForm);
+    }
+
+    if (secondaryInput) {
+        secondaryInput.addEventListener("input", updateLauncherPreviewFromForm);
+        secondaryInput.addEventListener("change", updateLauncherPreviewFromForm);
+    }
 });
 
-// Função para mostrar feedback
-function showFeedback(message, isError = false) {
-    const feedback = document.getElementById("settings-feedback");
-    feedback.textContent = message;
-    feedback.className = `alert ${isError ? 'alert-danger' : 'alert-success'}`;
-    feedback.style.display = "block";
-    setTimeout(() => {
-        feedback.style.display = "none";
-    }, 5000);
+// Função para mostrar feedback usando SweetAlert2 (padrão Velzon)
+function showFeedback(message, isError = false, isWarning = false) {
+    const icon = isError ? 'error' : (isWarning ? 'warning' : 'success');
+    const title = isError
+        ? 'Ops...'
+        : isWarning
+            ? 'Atenção'
+            : 'Tudo certo!';
+
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: icon,
+        confirmButtonText: 'Ok',
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: 'btn btn-primary w-xs'
+        }
+    });
 }
 
 // Salvar configurações do chat
@@ -292,10 +466,18 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         });
         
         const data = await resp.json();
-        if (data.ok) {
+        if (data.ok && !data.firestore_disabled) {
             showFeedback("Configurações do chat salvas com sucesso!");
+        } else if (data.ok && data.firestore_disabled) {
+            showFeedback(
+                "Firestore está desabilitado neste ambiente. As configurações não foram salvas no banco.",
+                false,
+                true
+            );
+            return;
         } else {
             showFeedback(data.message || "Erro ao salvar configurações.", true);
+            return;
         }
     } catch (err) {
         showFeedback("Erro ao conectar ao servidor.", true);
