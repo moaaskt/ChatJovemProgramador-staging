@@ -304,7 +304,7 @@ footer {
     align-items: center;
     justify-content: space-between;
     padding: var(--space-4);
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, var(--chat-primary, #3D7EFF) 0%, var(--chat-secondary, #8B5CF6) 100%);
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     color: white;
 }
@@ -401,7 +401,7 @@ footer {
 }
 
 .widget-messages::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
+    background: var(--chat-primary, #3D7EFF);
     border-radius: var(--border-radius);
 }
 
@@ -459,12 +459,12 @@ footer {
 }
 
 .bot-message .message-avatar {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, var(--chat-primary, #3D7EFF) 0%, var(--chat-secondary, #8B5CF6) 100%);
     color: white;
 }
 
 .user-message .message-avatar {
-    background: var(--gradient-secondary);
+    background: linear-gradient(135deg, var(--chat-secondary, #8B5CF6) 0%, var(--chat-primary, #3D7EFF) 100%);
     color: white;
 }
 
@@ -477,7 +477,7 @@ footer {
 }
 
 .user-message .message-bubble {
-    background: var(--primary-color);
+    background: var(--chat-primary, #3D7EFF);
     color: white;
 }
 
@@ -543,10 +543,10 @@ footer {
     margin-bottom: var(--space-2);
 }
 
-.typing-dots span {
+.chatbot-widget .typing-dots span {
     width: 8px;
     height: 8px;
-    background: var(--primary-color);
+    background: var(--chat-primary, #3D7EFF);
     border-radius: var(--border-radius-full);
     animation: typingDots 1.4s infinite;
 }
@@ -588,7 +588,7 @@ footer {
 }
 
 .quick-btn:hover {
-    background: var(--primary-color);
+    background: var(--chat-primary, #3D7EFF);
     color: white;
     transform: translateY(-2px);
 }
@@ -613,7 +613,7 @@ footer {
 
 .widget-input input:focus {
     background: var(--bg-hover);
-    box-shadow: 0 0 0 2px var(--primary-color);
+    box-shadow: 0 0 0 2px var(--chat-primary, #3D7EFF);
 }
 
 .widget-input input::placeholder {
@@ -623,7 +623,7 @@ footer {
 #widget-send-btn {
     width: 40px;
     height: 40px;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, var(--chat-primary, #3D7EFF) 0%, var(--chat-secondary, #8B5CF6) 100%);
     border: none;
     border-radius: var(--border-radius-full);
     color: white;

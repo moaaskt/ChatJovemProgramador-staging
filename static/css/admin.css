@@ -1124,3 +1124,102 @@ button {
   background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
   border-color: #d1d5db;
 }
+
+/* ===== PRÉ-VISUALIZAÇÃO DO CHAT ===== */
+.chat-preview {
+  --chat-preview-primary: #3D7EFF;
+  --chat-preview-secondary: #8B5CF6;
+
+  max-width: 420px;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+
+.chat-preview-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(
+    135deg,
+    var(--chat-preview-primary),
+    var(--chat-preview-secondary)
+  );
+  color: #ffffff;
+}
+
+.chat-preview-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.chat-preview-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-preview-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-preview-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.chat-preview-subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.chat-preview-body {
+  padding: 14px 16px 16px;
+  background-color: #f9fafb;
+}
+
+.chat-preview-bubble {
+  display: inline-block;
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--chat-preview-primary);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.chat-preview-bubble span {
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Tema claro/escuro: respeitar ambos */
+.admin-body.theme-dark .chat-preview-body {
+  background-color: #020617;
+}
+
+.admin-body.theme-dark .chat-preview {
+  background-color: #1b2936;
+  border-color: #334155;
+}
+
+.admin-body.theme-dark .chat-preview-header {
+  border-bottom-color: #334155;
+}

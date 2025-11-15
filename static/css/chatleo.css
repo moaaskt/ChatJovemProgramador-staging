@@ -13,7 +13,7 @@
     transform:scale(.85) translateY(24px) !important;
   }
 }
-.chatleo-bubble__avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#7b2ff7 0%,#9c4eff 35%,#21d4fd 100%);box-shadow:0 10px 25px rgba(123,47,247,.35),0 0 15px rgba(33,212,253,.35);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s,opacity .2s;animation:chatleo-pulse 2.4s infinite ease-in-out}
+.chatleo-bubble__avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--chat-primary,#3D7EFF) 0%,var(--chat-secondary,#8B5CF6) 100%);box-shadow:0 10px 25px rgba(123,47,247,.35),0 0 15px rgba(33,212,253,.35);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s,opacity .2s;animation:chatleo-pulse 2.4s infinite ease-in-out}
 .chatleo-bubble--active .chatleo-bubble__avatar{transform:scale(1.05);box-shadow:0 20px 40px rgba(123,47,247,.45),0 0 30px rgba(33,212,253,.45)}
 .chatleo-bubble__avatar img{width:58px;height:58px;border-radius:50%;pointer-events:none}
 .chatleo-bubble__badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-weight:700;font-size:12px;display:inline-flex;align-items:center;justify-content:center;transform:translateZ(0);transition:opacity .2s,transform .2s}
