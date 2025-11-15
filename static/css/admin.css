@@ -519,22 +519,33 @@ button {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .chart-container-header h2,
 .chart-container-header h3 {
   margin: 0;
   color: var(--main-color);
-  font-size: 12px;
-  line-height: 16px;
-  opacity: .8;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 0.9;
 }
 
 .chart-container-header span {
   color: var(--app-logo);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.chart-container-header .chart-subtitle {
+  color: var(--app-logo);
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
 }
 
 /* TABELA DENTRO DO CARD */
@@ -1000,32 +1011,6 @@ button {
   margin-top: 8px;
 }
 
-.chart-container-header h3 {
-  margin: 0;
-  color: var(--main-color);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
-  opacity: 0.9;
-}
-
-.chart-container-header span {
-  color: var(--app-logo);
-  font-size: 11px;
-  font-weight: 400;
-  opacity: 0.8;
-}
-
-/* Ajuste para header dos gráficos */
-.chart-container-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
 
 /* Seção de tabela melhorada */
 .section-title-wrapper {
@@ -1039,7 +1024,7 @@ button {
   color: var(--main-color);
   font-size: 16px;
   font-weight: 500;
-  margin: 0;
+  margin: 7px;
 }
 
 .section-title i {
