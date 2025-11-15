@@ -5,7 +5,12 @@
 <div class="main-header-line">
     <div class="d-flex justify-content-between align-items-center w-100">
         <h1 class="mb-0">Dashboard</h1>
-        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#dashboardFilterModal">
+        <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#dashboardFilterModal"
+        >
             <i class="ri-filter-3-line me-1"></i> Filtrar
         </button>
     </div>
@@ -19,7 +24,7 @@
 </div>
 
 <!-- Modal de Filtros -->
-<div class="modal fade" id="dashboardFilterModal" tabindex="-1">
+<div class="modal fade" id="dashboardFilterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             
@@ -51,8 +56,8 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-light" id="filter-clear">Limpar</button>
-                <button class="btn btn-primary" id="filter-apply">Aplicar filtro</button>
+                <button class="btn btn-light" type="button" id="filter-clear">Limpar</button>
+                <button class="btn btn-primary" type="button" id="filter-apply" data-bs-dismiss="modal">Aplicar filtro</button>
             </div>
 
         </div>
@@ -700,36 +705,55 @@ function loadDashboardData(filters = {}) {
 
 // Inicialização quando o DOM estiver pronto
 document.addEventListener("DOMContentLoaded", function () {
-    // Listener para aplicar filtro
-    document.getElementById("filter-apply").addEventListener("click", function () {
-        const days = document.getElementById("filter-quick").value;
-        const dateStart = document.getElementById("filter-date-start").value;
-        const dateEnd = document.getElementById("filter-date-end").value;
+    const filterQuick = document.getElementById("filter-quick");
+    const dateStartInput = document.getElementById("filter-date-start");
+    const dateEndInput = document.getElementById("filter-date-end");
+    const applyBtn = document.getElementById("filter-apply");
+    const clearBtn = document.getElementById("filter-clear");
 
-        // Se datas estiverem preenchidas → usar datas
-        if (dateStart && dateEnd) {
-            loadDashboardData({
-                date_start: dateStart,
-                date_end: dateEnd,
-            });
-        } else {
-            // Caso contrário → usar filtro rápido
-            loadDashboardData({ days: parseInt(days) });
-        }
-
-        const modal = bootstrap.Modal.getInstance(document.getElementById("dashboardFilterModal"));
-        modal.hide();
+    // Segurança: logar se algum não existir
+    console.log("[Dashboard] Filtros encontrados:", {
+        filterQuick: !!filterQuick,
+        dateStartInput: !!dateStartInput,
+        dateEndInput: !!dateEndInput,
+        applyBtn: !!applyBtn,
+        clearBtn: !!clearBtn,
     });
 
-    // Listener para limpar filtros
-    document.getElementById("filter-clear").addEventListener("click", function () {
-        document.getElementById("filter-date-start").value = "";
-        document.getElementById("filter-date-end").value = "";
-        document.getElementById("filter-quick").value = "7";
-    });
+    // Listener do aplicar
+    if (applyBtn) {
+        applyBtn.addEventListener("click", function () {
+            const dateStart = dateStartInput ? dateStartInput.value : "";
+            const dateEnd = dateEndInput ? dateEndInput.value : "";
+            const quickValue = filterQuick ? filterQuick.value : "7";
 
-    // Carregamento inicial: mantém o comportamento atual (últimos 7 dias)
-    loadDashboardData({ days: 7 });
+            // Se ambas as datas estiverem preenchidas, prioriza intervalo manual
+            if (dateStart && dateEnd) {
+                loadDashboardData({
+                    date_start: dateStart,
+                    date_end: dateEnd,
+                });
+            } else {
+                const days = parseInt(quickValue || "7", 10) || 7;
+                loadDashboardData({ days: days });
+            }
+
+            // O modal será fechado automaticamente pelo data-bs-dismiss="modal"
+        });
+    }
+
+    // Listener do limpar
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            if (dateStartInput) dateStartInput.value = "";
+            if (dateEndInput) dateEndInput.value = "";
+            if (filterQuick) filterQuick.value = "7";
+        });
+    }
+
+    // Carregamento inicial padrão (por exemplo, 7 dias)
+    const initialDays = filterQuick ? parseInt(filterQuick.value || "7", 10) : 7;
+    loadDashboardData({ days: initialDays || 7 });
 });
 </script>
 
