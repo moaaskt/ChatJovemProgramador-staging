@@ -31,6 +31,17 @@
   --text-muted: #9aa0c6;
 }
 
+
+
+.chart-subtitle {
+  color: #4da3ff;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+
+
 /* Só afeta o painel admin */
 .admin-body {
   height: 100vh;
