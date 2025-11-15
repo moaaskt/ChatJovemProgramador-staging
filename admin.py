@@ -13,6 +13,7 @@ from services.firestore import (
     update_settings,
     verify_admin_password,
     update_admin_password,
+    _is_enabled,
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -146,6 +147,22 @@ def api_update_settings():
     global_cfg = payload.get("global") or {}
     chat_cfg = payload.get("chat") or {}
     
+    # Se não há nada pra salvar (nem global nem chat), apenas retorna ok
+    if not global_cfg and not chat_cfg:
+        return jsonify({"ok": True})
+    
+    # Verificar se o Firestore está desabilitado
+    firestore_disabled = not _is_enabled()
+    
+    if firestore_disabled:
+        # Não tenta salvar nada, apenas informa que não persistiu
+        return jsonify({
+            "ok": True,
+            "firestore_disabled": True,
+            "message": "Firestore desabilitado. Configurações não foram persistidas."
+        }), 200
+    
+    # Fluxo normal quando Firestore está habilitado
     ok_global = True
     ok_chat = True
     
