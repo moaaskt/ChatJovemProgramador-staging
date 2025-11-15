@@ -118,6 +118,46 @@ def get_or_create_conversation(session_id):
         return False
 
 
+def get_conversation(session_id):
+    """
+    Retorna o documento da conversa em conversations/{session_id} como dict.
+    Se Firestore estiver desabilitado ou ocorrer erro, retorna {}.
+    """
+    if not _is_enabled() or _db is None:
+        return {}
+
+    try:
+        conv_ref = _db.collection("conversations").document(session_id)
+        doc = conv_ref.get()
+        if not doc.exists:
+            return {}
+        return doc.to_dict() or {}
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em get_conversation({session_id}): {e}")
+        return {}
+
+
+def update_conversation(session_id, updates: dict):
+    """
+    Atualiza campos específicos da conversa em conversations/{session_id}.
+    Não lança exceções para não quebrar o fluxo do chat.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+
+    if not updates:
+        return False
+
+    try:
+        conv_ref = _db.collection("conversations").document(session_id)
+        conv_ref.set(updates, merge=True)
+        logger.debug(f"[Firestore] Conversa {session_id} atualizada com {list(updates.keys())}")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em update_conversation({session_id}): {e}")
+        return False
+
+
 def save_message(session_id, role, text, meta=None):
     """
     Salva mensagem em conversations/{session_id}/messages.
@@ -342,6 +382,40 @@ def get_conversation_messages(session_id, limit=200):
     except Exception as e:
         logger.error(f"[Firestore] Erro em get_conversation_messages({session_id}): {e}")
         return []
+
+
+def save_lead_from_conversation(session_id: str, lead_data: dict):
+    """
+    Salva um lead completo na coleção 'leads', a partir dos dados de uma conversa.
+    Espera que lead_data contenha: nome, cidade, estado, idade, email, interesse.
+    """
+    if not _is_enabled() or _db is None:
+        return False
+
+    if not lead_data:
+        return False
+
+    try:
+        doc = {
+            "session_id": session_id,
+            "nome": (lead_data.get("nome") or "").strip(),
+            "email": (lead_data.get("email") or "").strip(),
+            "cidade": (lead_data.get("cidade") or "").strip(),
+            "estado": (lead_data.get("estado") or "").strip().upper(),
+            "idade": lead_data.get("idade"),
+            "interesse": (lead_data.get("interesse") or "").strip(),
+            "createdAt": firestore.SERVER_TIMESTAMP,
+        }
+
+        # remove campos completamente vazios
+        doc = {k: v for k, v in doc.items() if v not in (None, "", {})}
+
+        _db.collection("leads").add(doc)
+        logger.info(f"[Firestore] Lead salvo a partir da conversa {session_id}")
+        return True
+    except Exception as e:
+        logger.error(f"[Firestore] Erro em save_lead_from_conversation({session_id}): {e}")
+        return False
 
 
 def get_leads_count_by_city():
