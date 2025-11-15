@@ -1496,3 +1496,41 @@ button {
 .conversation-list-skeleton-item .skeleton-line:nth-child(2) {
   width: 40%;
 }
+
+/* =========================
+   Skeleton Loading - Tema Claro
+========================== */
+
+/* Skeleton – ajustes para modo CLARO */
+.admin-body.theme-light .skeleton,
+.admin-body.theme-light .conversation-list-skeleton-item {
+  background-color: #e5e7eb; /* cinza claro suave */
+}
+
+.admin-body.theme-light .skeleton-line {
+  background-color: #e5e7eb;
+}
+
+.admin-body.theme-light .skeleton::before,
+.admin-body.theme-light .skeleton-line::before {
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(148, 163, 184, 0.35),
+    transparent
+  );
+}
+
+/* Skeleton – modo ESCURO (mantém o que já está hoje) */
+.admin-body.theme-dark .skeleton,
+.admin-body.theme-dark .conversation-list-skeleton-item {
+  background-color: #1e293b; /* tom escuro suave */
+}
+
+.admin-body.theme-dark .skeleton-line {
+  background-color: #1e293b;
+}
+
+.admin-body.theme-dark .conversation-list-skeleton-item {
+  background-color: rgba(15, 23, 42, 0.9);
+}

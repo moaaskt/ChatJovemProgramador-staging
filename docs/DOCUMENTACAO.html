@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DOCUMENTACAO.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%93%9A-documenta%C3%A7%C3%A3o-t%C3%A9cnica-completa---chatjovemprogramador">📚 Documentação Técnica Completa - ChatJovemProgramador</h1>
+<h2 id="%F0%9F%93%8B-%C3%ADndice">📋 Índice</h2>
+<ol>
+<li><a href="#1-vis%C3%A3o-geral-do-projeto">Visão Geral do Projeto</a></li>
+<li><a href="#2-arquitetura-e-estrutura-de-pastas">Arquitetura e Estrutura de Pastas</a></li>
+<li><a href="#3-backend">Backend</a></li>
+<li><a href="#4-frontend-widget-do-chat">Frontend (Widget do Chat)</a></li>
+<li><a href="#5-banco-de-dados-firestore">Banco de Dados (Firestore)</a></li>
+<li><a href="#6-fluxos-importantes">Fluxos Importantes</a></li>
+<li><a href="#7-como-rodar-o-projeto-localmente">Como Rodar o Projeto Localmente</a></li>
+<li><a href="#8-deploy">Deploy</a></li>
+<li><a href="#9-checklist-final">Checklist Final</a></li>
+</ol>
+<hr>
+<h2 id="1-vis%C3%A3o-geral-do-projeto">1. Visão Geral do Projeto</h2>
+<h3 id="11-nome-do-projeto">1.1 Nome do Projeto</h3>
+<p><strong>ChatJovemProgramador</strong> (também conhecido como &quot;ChatLeo&quot; ou &quot;Leozin&quot;)</p>
+<h3 id="12-objetivo">1.2 Objetivo</h3>
+<p>Desenvolver um assistente virtual inteligente especializado em responder dúvidas sobre o <strong>Programa Jovem Programador</strong>, utilizando Inteligência Artificial (Google Gemini) para fornecer respostas precisas, baseadas em dados oficiais extraídos do site do programa.</p>
+<h3 id="13-descri%C3%A7%C3%A3o-do-chatbot">1.3 Descrição do Chatbot</h3>
+<p>O chatbot é um assistente virtual que:</p>
+<ul>
+<li>Responde perguntas sobre o Programa Jovem Programador 24/7</li>
+<li>Utiliza dados extraídos em tempo real do site oficial do programa</li>
+<li>Possui personalidade amigável e prestativa</li>
+<li>Coleta informações de leads (nome, interesse, cidade, estado, idade) durante a conversa</li>
+<li>Mantém histórico de conversas quando Firestore está habilitado</li>
+<li>Oferece interface web acessível com recursos de acessibilidade (TTS, alto contraste, tamanho de fonte)</li>
+</ul>
+<h3 id="14-tecnologias-utilizadas">1.4 Tecnologias Utilizadas</h3>
+<h4 id="backend">Backend</h4>
+<ul>
+<li><strong>Python 3.x</strong>: Linguagem principal</li>
+<li><strong>Flask 2.3.2</strong>: Framework web para API REST</li>
+<li><strong>Flask-CORS 3.0.10</strong>: Habilita CORS para requisições cross-origin</li>
+<li><strong>Google Generative AI (Gemini) 0.3.2</strong>: API de IA para processamento de linguagem natural</li>
+<li><strong>Firebase Admin SDK (&gt;=6.0.0)</strong>: Integração com Firestore para persistência de dados</li>
+<li><strong>BeautifulSoup4</strong>: Web scraping para extração de dados do site oficial</li>
+<li><strong>python-dotenv 1.0.0</strong>: Gerenciamento de variáveis de ambiente</li>
+<li><strong>Werkzeug</strong>: Hashing de senhas para autenticação admin</li>
+</ul>
+<h4 id="frontend">Frontend</h4>
+<ul>
+<li><strong>HTML5</strong>: Estrutura do widget</li>
+<li><strong>CSS3</strong>: Estilização (com variáveis CSS para personalização)</li>
+<li><strong>JavaScript (Vanilla)</strong>: Lógica do widget, comunicação com backend, acessibilidade</li>
+<li><strong>Web Speech API</strong>: Text-to-Speech (TTS) para acessibilidade</li>
+</ul>
+<h4 id="banco-de-dados">Banco de Dados</h4>
+<ul>
+<li><strong>Google Firestore</strong>: Banco NoSQL para persistência de conversas, mensagens, leads e configurações</li>
+</ul>
+<h3 id="15-fluxo-geral-de-funcionamento">1.5 Fluxo Geral de Funcionamento</h3>
+<pre class="hljs"><code><div>┌─────────────┐
+│   Usuário   │
+│  (Browser)  │
+└──────┬──────┘
+       │
+       │ 1. Abre widget
+       │ 2. Envia mensagem
+       ▼
+┌─────────────────────────────────┐
+│      Frontend (JavaScript)      │
+│  - Gera session_id              │
+│  - Envia POST /api/chat        │
+│  - Exibe resposta              │
+└──────┬──────────────────────────┘
+       │
+       │ HTTP POST
+       ▼
+┌─────────────────────────────────┐
+│      Backend (Flask)            │
+│  - Recebe mensagem             │
+│  - Valida session_id            │
+│  - Salva no Firestore (se hab.)│
+│  - Processa lead (se necessário)│
+└──────┬──────────────────────────┘
+       │
+       │
+       ▼
+┌─────────────────────────────────┐
+│   Chatbot (Gemini API)          │
+│  - Processa pergunta            │
+│  - Gera resposta contextualizada│
+└──────┬──────────────────────────┘
+       │
+       │ Resposta
+       ▼
+┌─────────────────────────────────┐
+│      Firestore                  │
+│  - Salva mensagem               │
+│  - Atualiza conversa            │
+│  - Salva lead (se completo)     │
+└─────────────────────────────────┘
+</div></code></pre>
+<hr>
+<h2 id="2-arquitetura-e-estrutura-de-pastas">2. Arquitetura e Estrutura de Pastas</h2>
+<h3 id="21-arquitetura-geral">2.1 Arquitetura Geral</h3>
+<p>O projeto segue uma arquitetura em <strong>camadas</strong>:</p>
+<pre class="hljs"><code><div>┌─────────────────────────────────────────────┐
+│         CAMADA DE APRESENTAÇÃO             │
+│  (Templates HTML + CSS + JavaScript)        │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│         CAMADA DE APLICAÇÃO                  │
+│  (Flask Routes + Blueprints)                │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│         CAMADA DE SERVIÇOS                   │
+│  (Chatbot + Firestore + Scraper)            │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│         CAMADA DE DADOS                      │
+│  (Firestore + dados.json)                     │
+└──────────────────────────────────────────────┘
+</div></code></pre>
+<h3 id="22-fluxo-de-dados-backend-%E2%86%92-firestore-%E2%86%92-frontend-%E2%86%92-admin">2.2 Fluxo de Dados (Backend → Firestore → Frontend → Admin)</h3>
+<pre class="hljs"><code><div>┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐
+│ Backend  │─────▶│Firestore │─────▶│ Frontend│─────▶│  Admin   │
+│ (Flask)  │◀─────│          │◀─────│  (Widget)│◀─────│ (Panel) │
+└──────────┘      └──────────┘      └──────────┘      └──────────┘
+     │                 │                  │                 │
+     │                 │                  │                 │
+     ▼                 ▼                  ▼                 ▼
+┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐
+│ Gemini   │      │Conversas │      │  JS API  │      │Dashboard │
+│   API    │      │ Mensagens│      │  Calls  │      │ Analytics│
+│          │      │  Leads   │      │         │      │          │
+└──────────┘      └──────────┘      └──────────┘      └──────────┘
+</div></code></pre>
+<h3 id="23-estrutura-de-pastas">2.3 Estrutura de Pastas</h3>
+<pre class="hljs"><code><div>ChatJovemProgramador-staging/
+│
+├── app.py                          # Aplicação Flask principal
+├── admin.py                        # Blueprint do painel administrativo
+├── requirements.txt                # Dependências Python
+├── dados.json                      # Base de conhecimento (gerado pelo scraper)
+├── README.md                       # Documentação básica
+├── DOCUMENTACAO.md                 # Esta documentação
+│
+├── services/                       # Camada de serviços
+│   ├── __init__.py
+│   └── firestore.py               # Integração com Firestore
+│
+├── utils/                          # Utilitários e helpers
+│   ├── responder.py               # Classe Chatbot (integração Gemini)
+│   ├── scraper.py                 # Web scraping do site oficial
+│   ├── menu.py                     # Menu CLI (legado)
+│   └── dados.json                  # Backup/cache de dados
+│
+├── static/                         # Arquivos estáticos
+│   ├── assets/                     # Imagens e recursos
+│   │   ├── logo.png               # Logo do bot
+│   │   ├── logo-user.png          # Avatar do usuário
+│   │   ├── jovem_rodape.png       # Logo rodapé
+│   │   └── senac-logo.png         # Logo SENAC
+│   │
+│   ├── css/                        # Folhas de estilo
+│   │   ├── style.css              # Estilos gerais da página
+│   │   ├── chatleo.css            # Estilos do widget de chat
+│   │   └── admin.css              # Estilos do painel admin
+│   │
+│   └── js/                         # Scripts JavaScript
+│       └── script.js              # Lógica do widget de chat
+│
+├── templates/                      # Templates Jinja2
+│   ├── index.html                 # Página principal (com widget)
+│   │
+│   └── admin/                      # Templates do painel admin
+│       ├── base.html              # Template base
+│       ├── login.html             # Página de login
+│       ├── dashboard.html         # Dashboard principal
+│       ├── conversations.html     # Lista de conversas
+│       └── settings.html          # Configurações
+│
+├── tests/                          # Testes (estrutura)
+│   ├── unit/                      # Testes unitários
+│   └── e2e/                       # Testes end-to-end
+│
+└── docs/                           # Documentação adicional
+    ├── fluxo-geral-funcionamento.mmd
+    └── fluxo-geral-funcionamento.html
+</div></code></pre>
+<h3 id="24-explica%C3%A7%C3%A3o-de-cada-pastaarquivo">2.4 Explicação de Cada Pasta/Arquivo</h3>
+<h4 id="apppy"><code>/app.py</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Ponto de entrada da aplicação Flask</li>
+<li><strong>Funcionalidades</strong>:
+<ul>
+<li>Inicializa servidor Flask</li>
+<li>Configura CORS</li>
+<li>Inicializa Firestore e admin padrão</li>
+<li>Define rotas principais (<code>/</code>, <code>/api/chat</code>, <code>/api/chat-config</code>, <code>/health</code>)</li>
+<li>Gerencia fluxo de coleta de leads</li>
+<li>Integra com <code>utils/responder.py</code> para processar mensagens</li>
+</ul>
+</li>
+</ul>
+<h4 id="adminpy"><code>/admin.py</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Blueprint do painel administrativo</li>
+<li><strong>Funcionalidades</strong>:
+<ul>
+<li>Autenticação de administradores</li>
+<li>Dashboard com métricas e gráficos</li>
+<li>Visualização de conversas e mensagens</li>
+<li>Configurações do chat</li>
+<li>Gerenciamento de leads</li>
+</ul>
+</li>
+</ul>
+<h4 id="servicesfirestorepy"><code>/services/firestore.py</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Camada de abstração para Firestore</li>
+<li><strong>Funcionalidades</strong>:
+<ul>
+<li>Inicialização do Firebase Admin SDK</li>
+<li>CRUD de conversas e mensagens</li>
+<li>Gerenciamento de leads</li>
+<li>Configurações (settings)</li>
+<li>Autenticação de admins</li>
+<li>Queries e agregações para analytics</li>
+</ul>
+</li>
+</ul>
+<h4 id="utilsresponderpy"><code>/utils/responder.py</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Lógica do chatbot com Gemini</li>
+<li><strong>Funcionalidades</strong>:
+<ul>
+<li>Carrega base de conhecimento (<code>dados.json</code>)</li>
+<li>Cria contexto inicial (prompt de sistema)</li>
+<li>Inicializa modelo Gemini (com fallback)</li>
+<li>Processa mensagens e gera respostas</li>
+<li>Gerencia sessão de chat com histórico</li>
+</ul>
+</li>
+</ul>
+<h4 id="utilsscraperpy"><code>/utils/scraper.py</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Web scraping do site oficial</li>
+<li><strong>Funcionalidades</strong>:
+<ul>
+<li>Extrai informações sobre o programa</li>
+<li>Coleta dúvidas frequentes</li>
+<li>Raspa notícias completas (título + conteúdo)</li>
+<li>Extrai dados de apoiadores, patrocinadores, parceiros</li>
+<li>Coleta links de redes sociais e portais</li>
+<li>Gera arquivo <code>dados.json</code> com tudo estruturado</li>
+</ul>
+</li>
+</ul>
+<h4 id="static"><code>/static/</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Recursos estáticos (CSS, JS, imagens)</li>
+<li><strong>Estrutura</strong>:
+<ul>
+<li><code>css/</code>: Estilos do widget, página e admin</li>
+<li><code>js/script.js</code>: Lógica completa do widget (estado, eventos, API calls)</li>
+<li><code>assets/</code>: Imagens e logos</li>
+</ul>
+</li>
+</ul>
+<h4 id="templates"><code>/templates/</code></h4>
+<ul>
+<li><strong>Responsabilidade</strong>: Templates HTML renderizados pelo Flask</li>
+<li><strong>Estrutura</strong>:
+<ul>
+<li><code>index.html</code>: Página principal com widget embutido</li>
+<li><code>admin/*.html</code>: Painel administrativo (dashboard, conversas, settings)</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="3-backend">3. Backend</h2>
+<h3 id="31-como-o-servidor-flask-funciona">3.1 Como o Servidor Flask Funciona</h3>
+<p>O servidor Flask é inicializado em <code>app.py</code>:</p>
+<pre class="hljs"><code><div>app = Flask(__name__)
+app.config[<span class="hljs-string">'SECRET_KEY'</span>] = os.getenv(<span class="hljs-string">'FLASK_SECRET_KEY'</span>, <span class="hljs-string">'dev-secret-key-change-in-production'</span>)
+CORS(app)  <span class="hljs-comment"># Habilita CORS para requisições cross-origin</span>
+</div></code></pre>
+<p><strong>Características</strong>:</p>
+<ul>
+<li>Modo debug habilitado por padrão (desenvolvimento)</li>
+<li>Porta padrão: <code>5000</code></li>
+<li>Host: <code>0.0.0.0</code> (aceita conexões externas)</li>
+<li>CORS habilitado para permitir requisições do frontend</li>
+</ul>
+<h3 id="32-inicializa%C3%A7%C3%A3o-do-firebase">3.2 Inicialização do Firebase</h3>
+<p>A inicialização do Firebase ocorre no início de <code>app.py</code>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># Inicializa Firestore (se habilitado)</span>
+init_admin()
+<span class="hljs-comment"># Inicializa admin padrão após Firestore estar pronto</span>
+init_default_admin()
+</div></code></pre>
+<p><strong>Fluxo de inicialização</strong> (<code>services/firestore.py</code>):</p>
+<ol>
+<li>Verifica variável <code>AI_FIRESTORE_ENABLED</code></li>
+<li>Se <code>true</code>, lê <code>FIREBASE_CREDENTIALS</code> (JSON string)</li>
+<li>Faz parse do JSON e cria credenciais</li>
+<li>Inicializa Firebase Admin SDK</li>
+<li>Obtém cliente Firestore</li>
+<li>Cria admin padrão (<code>admin</code>/<code>admin123</code>) se não existir</li>
+</ol>
+<p><strong>Tratamento de erros</strong>:</p>
+<ul>
+<li>Se Firestore estiver desabilitado, todas as funções retornam silenciosamente</li>
+<li>Se houver erro na inicialização, o chat continua funcionando (graceful degradation)</li>
+</ul>
+<h3 id="33-como-funciona-o-firestore-e-onde-s%C3%A3o-salvas-as-conversas">3.3 Como Funciona o Firestore e Onde São Salvas as Conversas</h3>
+<h4 id="estrutura-de-cole%C3%A7%C3%B5es">Estrutura de Coleções</h4>
+<pre class="hljs"><code><div>Firestore
+│
+├── conversations/                    # Coleção de conversas
+│   └── {session_id}/                # Documento da conversa
+│       ├── session_id: string
+│       ├── iniciadoEm: timestamp
+│       ├── ultimaMensagemEm: timestamp
+│       ├── created_at: timestamp
+│       ├── updated_at: timestamp
+│       ├── total_user_messages: number
+│       ├── total_bot_messages: number
+│       ├── channel: &quot;web&quot;
+│       ├── status: &quot;open&quot; | &quot;closed&quot;
+│       ├── lead_stage: null | &quot;collecting&quot; | &quot;done&quot;
+│       ├── lead_done: boolean
+│       ├── lead_data: object
+│       │   ├── nome: string
+│       │   ├── interesse: string
+│       │   ├── cidade: string
+│       │   ├── estado: string
+│       │   └── idade: number
+│       │
+│       └── messages/                 # Subcoleção de mensagens
+│           └── {auto-id}/            # Documento de mensagem
+│               ├── role: &quot;user&quot; | &quot;bot&quot;
+│               ├── content: string
+│               ├── created_at: timestamp
+│               ├── papel: &quot;user&quot; | &quot;bot&quot; (legado)
+│               ├── texto: string (legado)
+│               ├── criadoEm: timestamp (legado)
+│               └── metadata: object (opcional)
+│
+├── leads/                            # Coleção de leads
+│   └── {auto-id}/
+│       ├── session_id: string
+│       ├── nome: string
+│       ├── email: string (opcional)
+│       ├── cidade: string
+│       ├── estado: string
+│       ├── idade: number
+│       ├── interesse: string
+│       └── createdAt: timestamp
+│
+├── settings/                         # Coleção de configurações
+│   ├── global/
+│   │   └── admin_theme: &quot;dark&quot; | &quot;light&quot;
+│   └── chat_config/
+│       ├── chat_title: string
+│       ├── welcome_message: string
+│       ├── bot_avatar: string
+│       ├── user_avatar: string
+│       ├── primary_color: string
+│       └── secondary_color: string
+│
+└── admin_users/                      # Coleção de usuários admin
+    └── {username}/
+        ├── username: string
+        ├── password_hash: string
+        ├── created_at: timestamp
+        └── updated_at: timestamp
+</div></code></pre>
+<h3 id="34-m%C3%A9todos-principais">3.4 Métodos Principais</h3>
+<h4 id="initadmin"><code>init_admin()</code></h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">init_admin</span><span class="hljs-params">()</span>:</span>
+    <span class="hljs-string">"""Inicializa Firebase Admin SDK usando FIREBASE_CREDENTIALS."""</span>
+</div></code></pre>
+<p><strong>O que faz</strong>:</p>
+<ul>
+<li>Verifica se Firestore está habilitado</li>
+<li>Lê credenciais do ambiente</li>
+<li>Inicializa Firebase Admin SDK</li>
+<li>Cria cliente Firestore global</li>
+</ul>
+<p><strong>Quando é chamado</strong>: No bootstrap da aplicação (<code>app.py</code>)</p>
+<h4 id="getorcreateconversationsessionid"><code>get_or_create_conversation(session_id)</code></h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_or_create_conversation</span><span class="hljs-params">(session_id)</span>:</span>
+    <span class="hljs-string">"""Cria ou atualiza documento de conversa."""</span>
+</div></code></pre>
+<p><strong>O que faz</strong>:</p>
+<ul>
+<li>Verifica se conversa existe em <code>conversations/{session_id}</code></li>
+<li>Se não existe, cria com campos iniciais</li>
+<li>Se existe, atualiza <code>ultimaMensagemEm</code> e <code>updated_at</code></li>
+</ul>
+<p><strong>Retorna</strong>: <code>True</code> se sucesso, <code>False</code> caso contrário (silencioso)</p>
+<h4 id="savemessagesessionid-role-text-metanone"><code>save_message(session_id, role, text, meta=None)</code></h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">save_message</span><span class="hljs-params">(session_id, role, text, meta=None)</span>:</span>
+    <span class="hljs-string">"""Salva mensagem em conversations/{session_id}/messages."""</span>
+</div></code></pre>
+<p><strong>O que faz</strong>:</p>
+<ul>
+<li>Cria documento em subcoleção <code>messages</code></li>
+<li>Normaliza <code>role</code> (&quot;assistant&quot; → &quot;bot&quot;)</li>
+<li>Salva campos novos e legados (compatibilidade)</li>
+<li>Atualiza contadores da conversa (<code>total_user_messages</code> ou <code>total_bot_messages</code>)</li>
+<li>Atualiza <code>ultimaMensagemEm</code> da conversa</li>
+</ul>
+<p><strong>Parâmetros</strong>:</p>
+<ul>
+<li><code>session_id</code>: ID da sessão</li>
+<li><code>role</code>: &quot;user&quot; ou &quot;assistant&quot;</li>
+<li><code>text</code>: Texto da mensagem</li>
+<li><code>meta</code>: Dict opcional com metadados</li>
+</ul>
+<h4 id="querychatbot-m%C3%A9todo-do-chatbot"><code>query_chatbot()</code> (método do Chatbot)</h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">gerar_resposta</span><span class="hljs-params">(self, pergunta: str)</span> -&gt; str:</span>
+    <span class="hljs-string">"""Gera resposta usando Gemini API."""</span>
+</div></code></pre>
+<p><strong>O que faz</strong>:</p>
+<ul>
+<li>Valida mensagem não vazia</li>
+<li>Verifica se <code>chat_session</code> existe (reinicializa se necessário)</li>
+<li>Envia mensagem para Gemini API</li>
+<li>Retorna resposta processada</li>
+<li>Trata erros com fallback e reinicialização automática</li>
+</ul>
+<p><strong>Localização</strong>: <code>utils/responder.py</code></p>
+<h3 id="35-rotas-do-flask">3.5 Rotas do Flask</h3>
+<h4 id="get"><code>GET /</code></h4>
+<pre class="hljs"><code><div><span class="hljs-meta">@app.route('/')</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">index</span><span class="hljs-params">()</span>:</span>
+    <span class="hljs-keyword">return</span> render_template(<span class="hljs-string">'index.html'</span>)
+</div></code></pre>
+<ul>
+<li>Renderiza página principal com widget embutido</li>
+</ul>
+<h4 id="get-apichat-config"><code>GET /api/chat-config</code></h4>
+<pre class="hljs"><code><div><span class="hljs-meta">@app.route('/api/chat-config', methods=['GET'])</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">api_chat_config</span><span class="hljs-params">()</span>:</span>
+</div></code></pre>
+<ul>
+<li>Retorna configurações do chat (título, mensagem de boas-vindas, avatares, cores)</li>
+<li>Lê de <code>settings/chat_config</code> no Firestore</li>
+<li>Retorna defaults se não houver configuração</li>
+</ul>
+<h4 id="post-apichat"><code>POST /api/chat</code></h4>
+<pre class="hljs"><code><div><span class="hljs-meta">@app.route('/api/chat', methods=['POST'])</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">chat</span><span class="hljs-params">()</span>:</span>
+</div></code></pre>
+<ul>
+<li><strong>Fluxo principal de chat</strong></li>
+<li>Recebe <code>message</code> e <code>session_id</code> (opcional)</li>
+<li>Gera <code>session_id</code> se não fornecido</li>
+<li>Se Firestore desabilitado: resposta direta do Gemini</li>
+<li>Se Firestore habilitado:
+<ol>
+<li>Cria/atualiza conversa</li>
+<li>Salva mensagem do usuário</li>
+<li>Verifica comando especial (&quot;apagar dados&quot;)</li>
+<li>Se lead concluído: resposta normal com IA</li>
+<li>Se lead em coleta: processa campo atual</li>
+<li>Salva resposta do bot</li>
+</ol>
+</li>
+</ul>
+<h4 id="get-health"><code>GET /health</code></h4>
+<pre class="hljs"><code><div><span class="hljs-meta">@app.route('/health')</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">health</span><span class="hljs-params">()</span>:</span>
+</div></code></pre>
+<ul>
+<li>Endpoint de health check</li>
+<li>Retorna status do chatbot e modelo em uso</li>
+</ul>
+<h4 id="rotas-admin-admin">Rotas Admin (<code>/admin/*</code>)</h4>
+<ul>
+<li><code>GET /admin/login</code>: Página de login</li>
+<li><code>POST /admin/api/login</code>: Autenticação</li>
+<li><code>GET /admin/</code>: Dashboard</li>
+<li><code>GET /admin/api/reports</code>: Métricas e analytics</li>
+<li><code>GET /admin/conversations</code>: Lista de conversas</li>
+<li><code>GET /admin/api/conversations</code>: API de conversas</li>
+<li><code>GET /admin/api/conversations/&lt;session_id&gt;/messages</code>: Mensagens de uma conversa</li>
+<li><code>GET /admin/settings</code>: Página de configurações</li>
+<li><code>GET /admin/api/settings</code>: Ler configurações</li>
+<li><code>POST /admin/api/settings</code>: Salvar configurações</li>
+<li><code>POST /admin/api/change-password</code>: Trocar senha</li>
+</ul>
+<h3 id="36-fluxo-completo-usu%C3%A1rio-%E2%86%92-js-%E2%86%92-flask-%E2%86%92-gemini-%E2%86%92-firestore-%E2%86%92-retorno">3.6 Fluxo Completo: Usuário → JS → Flask → Gemini → Firestore → Retorno</h3>
+<pre class="hljs"><code><div>1. USUÁRIO
+   └─&gt; Digita mensagem no widget
+       └─&gt; Pressiona Enter ou clica em enviar
+
+2. JAVASCRIPT (script.js)
+   └─&gt; sendMessage()
+       └─&gt; getOrCreateSessionId() (localStorage ou gera novo)
+       └─&gt; showTypingIndicator() (mostra &quot;digitando...&quot;)
+       └─&gt; sendToBackend(message)
+           └─&gt; fetch('/api/chat', {
+                 method: 'POST',
+                 body: JSON.stringify({ message, session_id })
+               })
+
+3. FLASK (app.py)
+   └─&gt; @app.route('/api/chat', methods=['POST'])
+       └─&gt; Recebe JSON: { message, session_id }
+       └─&gt; Valida mensagem não vazia
+       └─&gt; Se não tem session_id: gera novo (sess_{timestamp}_{random})
+
+4. FIRESTORE (se habilitado)
+   └─&gt; get_or_create_conversation(session_id)
+       └─&gt; Cria/atualiza documento em conversations/{session_id}
+   └─&gt; save_message(session_id, &quot;user&quot;, message)
+       └─&gt; Adiciona documento em conversations/{session_id}/messages
+
+5. FLUXO DE LEAD (se em coleta)
+   └─&gt; get_conversation(session_id)
+       └─&gt; Verifica lead_stage e lead_data
+   └─&gt; Se &quot;collecting&quot;:
+       └─&gt; get_next_lead_field(lead_data)
+       └─&gt; normalize_lead_answer(field, message)
+       └─&gt; Valida e salva resposta
+       └─&gt; Se todos campos preenchidos:
+           └─&gt; save_lead_from_conversation(session_id, lead_data)
+           └─&gt; Marca lead_done = True
+       └─&gt; Retorna próxima pergunta ou mensagem final
+
+6. GEMINI API (se lead concluído ou Firestore desabilitado)
+   └─&gt; chatbot_web.gerar_resposta(user_message)
+       └─&gt; Chatbot.gerar_resposta() (utils/responder.py)
+           └─&gt; chat_session.send_message(pergunta)
+           └─&gt; Gemini API processa com contexto inicial
+           └─&gt; Retorna resposta
+
+7. FIRESTORE (salvar resposta)
+   └─&gt; save_message(session_id, &quot;assistant&quot;, bot_response)
+       └─&gt; Adiciona documento em conversations/{session_id}/messages
+       └─&gt; Atualiza total_bot_messages
+
+8. FLASK (retorno)
+   └─&gt; return jsonify({
+         'response': bot_response,
+         'session_id': session_id
+       })
+
+9. JAVASCRIPT (recebe resposta)
+   └─&gt; hideTypingIndicator()
+   └─&gt; addMessage(bot_response, 'bot')
+       └─&gt; Cria elemento DOM
+       └─&gt; Renderiza mensagem
+       └─&gt; scrollMessagesToBottom()
+   └─&gt; Se TTS habilitado: speakText(bot_response)
+   └─&gt; setLocked(false) (libera input)
+</div></code></pre>
+<hr>
+<h2 id="4-frontend-widget-do-chat">4. Frontend (Widget do Chat)</h2>
+<h3 id="41-como-o-widget-funciona">4.1 Como o Widget Funciona</h3>
+<p>O widget é um componente JavaScript que:</p>
+<ul>
+<li><strong>Inicialização</strong>: Carrega quando DOM está pronto</li>
+<li><strong>Estado</strong>: Gerencia estado da aplicação (aberto/fechado, mensagens, preferências)</li>
+<li><strong>Comunicação</strong>: Envia mensagens via <code>fetch()</code> para <code>/api/chat</code></li>
+<li><strong>Renderização</strong>: Cria elementos DOM dinamicamente para mensagens</li>
+<li><strong>Acessibilidade</strong>: Suporta navegação por teclado, TTS, alto contraste, tamanho de fonte</li>
+</ul>
+<h3 id="42-estrutura-html">4.2 Estrutura HTML</h3>
+<p>O widget está embutido em <code>templates/index.html</code>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment">&lt;!-- Botão/Bolha Flutuante --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"chatbot-trigger"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"chatbot-trigger chatleo-bubble"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"chat-bubble chatleo-bubble__avatar"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"/static/assets/logo.png"</span> <span class="hljs-attr">alt</span>=<span class="hljs-string">"Abrir chat"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"chat-bubble-notification"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"chatleo-badge"</span> <span class="hljs-attr">hidden</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"chat-bubble-tooltip"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>💬 Precisa de ajuda? Clique aqui!<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Widget do Chatbot (Oculto inicialmente) --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"chatbot-widget"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"chatbot-widget"</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- Header --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"widget-header"</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- Título, status, controles de acessibilidade, minimizar/fechar --&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  
+  <span class="hljs-comment">&lt;!-- Conteúdo --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"widget-content"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"widget-messages"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"widget-messages"</span>&gt;</span>
+      <span class="hljs-comment">&lt;!-- Mensagens renderizadas dinamicamente --&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  
+  <span class="hljs-comment">&lt;!-- Input --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"widget-input-container"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"widget-quick-actions"</span>&gt;</span>
+      <span class="hljs-comment">&lt;!-- Botões de ação rápida --&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"widget-input"</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"widget-message-input"</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"widget-send-btn"</span>&gt;</span>➤<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+</div></code></pre>
+<h3 id="43-css-principal">4.3 CSS Principal</h3>
+<p>O CSS está em <code>static/css/chatleo.css</code> e <code>static/css/style.css</code>.</p>
+<p><strong>Características</strong>:</p>
+<ul>
+<li><strong>Variáveis CSS</strong> para personalização:<pre class="hljs"><code><div><span class="hljs-selector-class">.chatbot-widget</span> {
+  <span class="hljs-attribute">--chat-primary</span>: <span class="hljs-number">#3D7EFF</span>;
+  <span class="hljs-attribute">--chat-secondary</span>: <span class="hljs-number">#8B5CF6</span>;
+}
+</div></code></pre>
+</li>
+<li><strong>Responsividade</strong>: Media queries para mobile</li>
+<li><strong>Animações</strong>: Transições suaves para abertura/fechamento</li>
+<li><strong>Acessibilidade</strong>: Suporte a <code>prefers-reduced-motion</code></li>
+<li><strong>Safe Area</strong>: Suporte a safe area do iOS</li>
+</ul>
+<h3 id="44-javascript-envio-de-mensagens-recep%C3%A7%C3%A3o-indicador-%22digitando%22">4.4 JavaScript: Envio de Mensagens, Recepção, Indicador &quot;Digitando...&quot;</h3>
+<h4 id="envio-de-mensagens">Envio de Mensagens</h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">sendMessage</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">if</span> (isWaiting) <span class="hljs-keyword">return</span>; <span class="hljs-comment">// Previne múltiplos envios</span>
+    
+    <span class="hljs-keyword">const</span> message = DOMElements.messageInput?.value.trim();
+    <span class="hljs-keyword">if</span> (!message) <span class="hljs-keyword">return</span>;
+    
+    <span class="hljs-comment">// Adiciona mensagem do usuário na UI</span>
+    addMessage(message, <span class="hljs-string">'user'</span>);
+    
+    <span class="hljs-comment">// Limpa input</span>
+    DOMElements.messageInput.value = <span class="hljs-string">''</span>;
+    
+    <span class="hljs-comment">// Mostra indicador "digitando..."</span>
+    showTypingIndicator();
+    
+    <span class="hljs-comment">// Bloqueia input</span>
+    setLocked(<span class="hljs-literal">true</span>);
+    
+    <span class="hljs-comment">// Envia para backend</span>
+    <span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">async</span> (</span>) =&gt;</span> {
+        <span class="hljs-keyword">try</span> {
+            <span class="hljs-keyword">const</span> botResponse = <span class="hljs-keyword">await</span> sendToBackend(message);
+            hideTypingIndicator();
+            addMessage(botResponse || <span class="hljs-string">'Desculpe, estou indisponível.'</span>, <span class="hljs-string">'bot'</span>);
+            <span class="hljs-keyword">if</span> (AppState.isTTSEnabled &amp;&amp; botResponse) speakText(botResponse);
+        } <span class="hljs-keyword">catch</span> (err) {
+            hideTypingIndicator();
+            addMessage(<span class="hljs-string">'Erro ao conectar ao assistente. Tente novamente.'</span>, <span class="hljs-string">'bot'</span>);
+        } <span class="hljs-keyword">finally</span> {
+            setLocked(<span class="hljs-literal">false</span>); <span class="hljs-comment">// Libera input</span>
+        }
+    })();
+}
+</div></code></pre>
+<h4 id="recep%C3%A7%C3%A3o-de-respostas">Recepção de Respostas</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">sendToBackend</span>(<span class="hljs-params">message</span>) </span>{
+    <span class="hljs-keyword">const</span> sessionId = getOrCreateSessionId();
+    
+    <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> fetch(<span class="hljs-string">'/api/chat'</span>, {
+        <span class="hljs-attr">method</span>: <span class="hljs-string">'POST'</span>,
+        <span class="hljs-attr">headers</span>: { <span class="hljs-string">'Content-Type'</span>: <span class="hljs-string">'application/json'</span> },
+        <span class="hljs-attr">body</span>: <span class="hljs-built_in">JSON</span>.stringify({ 
+            message,
+            <span class="hljs-attr">session_id</span>: sessionId
+        })
+    });
+    
+    <span class="hljs-keyword">if</span> (response.ok) {
+        <span class="hljs-keyword">const</span> data = <span class="hljs-keyword">await</span> response.json();
+        <span class="hljs-comment">// Atualiza session_id se backend retornou um diferente</span>
+        <span class="hljs-keyword">if</span> (data.session_id &amp;&amp; data.session_id !== sessionId) {
+            localStorage.setItem(<span class="hljs-string">'chat_session_id'</span>, data.session_id);
+        }
+        <span class="hljs-keyword">return</span> data.response;
+    }
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+}
+</div></code></pre>
+<h4 id="indicador-%22digitando%22">Indicador &quot;Digitando...&quot;</h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">showTypingIndicator</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">const</span> indicator = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'widget-typing-indicator'</span>);
+    <span class="hljs-keyword">if</span> (!indicator) <span class="hljs-keyword">return</span>;
+    
+    <span class="hljs-comment">// Adiciona ao container de mensagens</span>
+    <span class="hljs-keyword">if</span> (DOMElements.widgetMessages &amp;&amp; DOMElements.typingIndicator) {
+        DOMElements.widgetMessages.appendChild(DOMElements.typingIndicator);
+    }
+    
+    <span class="hljs-comment">// Mostra visualmente</span>
+    indicator.classList.add(<span class="hljs-string">'active'</span>);
+    indicator.removeAttribute(<span class="hljs-string">'hidden'</span>);
+    indicator.setAttribute(<span class="hljs-string">'aria-hidden'</span>, <span class="hljs-string">'false'</span>);
+    
+    <span class="hljs-comment">// Anuncia para leitores de tela</span>
+    announceToScreenReader(<span class="hljs-string">'O assistente está digitando'</span>);
+    
+    <span class="hljs-comment">// Scroll para baixo</span>
+    scrollMessagesToBottom();
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">hideTypingIndicator</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">if</span> (DOMElements.typingIndicator) {
+        DOMElements.typingIndicator.classList.remove(<span class="hljs-string">'active'</span>);
+    }
+    <span class="hljs-keyword">const</span> indicator = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'widget-typing-indicator'</span>);
+    <span class="hljs-keyword">if</span> (indicator) {
+        indicator.setAttribute(<span class="hljs-string">'hidden'</span>, <span class="hljs-string">'true'</span>);
+        indicator.setAttribute(<span class="hljs-string">'aria-hidden'</span>, <span class="hljs-string">'true'</span>);
+    }
+}
+</div></code></pre>
+<h3 id="45-funcionalidades-de-acessibilidade">4.5 Funcionalidades de Acessibilidade</h3>
+<h4 id="text-to-speech-tts">Text-to-Speech (TTS)</h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">speakText</span>(<span class="hljs-params">text</span>) </span>{
+    <span class="hljs-keyword">if</span> (!AppState.isTTSEnabled || !(<span class="hljs-string">'speechSynthesis'</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">window</span>)) <span class="hljs-keyword">return</span>;
+    
+    speechSynthesis.cancel(); <span class="hljs-comment">// Para fala anterior</span>
+    
+    <span class="hljs-keyword">const</span> utterance = <span class="hljs-keyword">new</span> SpeechSynthesisUtterance(text);
+    utterance.voice = AppState.ttsVoice; <span class="hljs-comment">// Voz em português</span>
+    utterance.rate = <span class="hljs-number">0.9</span>;
+    utterance.pitch = <span class="hljs-number">1</span>;
+    utterance.volume = <span class="hljs-number">0.8</span>;
+    
+    speechSynthesis.speak(utterance);
+}
+</div></code></pre>
+<h4 id="alto-contraste">Alto Contraste</h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">toggleHighContrast</span>(<span class="hljs-params"></span>) </span>{
+    AppState.isHighContrast = !AppState.isHighContrast;
+    <span class="hljs-built_in">document</span>.body.classList.toggle(<span class="hljs-string">'high-contrast'</span>, AppState.isHighContrast);
+    saveUserPreferences();
+}
+</div></code></pre>
+<h4 id="tamanho-de-fonte">Tamanho de Fonte</h4>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">cycleFontSize</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">const</span> sizes = [<span class="hljs-string">'small'</span>, <span class="hljs-string">'normal'</span>, <span class="hljs-string">'large'</span>, <span class="hljs-string">'extra-large'</span>];
+    <span class="hljs-keyword">const</span> currentIndex = sizes.indexOf(AppState.currentFontSize);
+    <span class="hljs-keyword">const</span> nextIndex = (currentIndex + <span class="hljs-number">1</span>) % sizes.length;
+    AppState.currentFontSize = sizes[nextIndex];
+    
+    <span class="hljs-built_in">document</span>.body.className = <span class="hljs-built_in">document</span>.body.className.replace(<span class="hljs-regexp">/font-\w+/g</span>, <span class="hljs-string">''</span>);
+    <span class="hljs-built_in">document</span>.body.classList.add(<span class="hljs-string">`font-<span class="hljs-subst">${AppState.currentFontSize}</span>`</span>);
+    saveUserPreferences();
+}
+</div></code></pre>
+<h4 id="navega%C3%A7%C3%A3o-por-teclado">Navegação por Teclado</h4>
+<ul>
+<li><strong>ESC</strong>: Fecha widget</li>
+<li><strong>Alt + C</strong>: Abre/fecha chat</li>
+<li><strong>Alt + M</strong>: Minimiza widget</li>
+<li><strong>Enter</strong>: Envia mensagem</li>
+<li><strong>Tab</strong>: Navega entre elementos focáveis</li>
+</ul>
+<hr>
+<h2 id="5-banco-de-dados-firestore">5. Banco de Dados (Firestore)</h2>
+<h3 id="51-estrutura-das-cole%C3%A7%C3%B5es">5.1 Estrutura das Coleções</h3>
+<h4 id="conversations"><code>conversations/</code></h4>
+<p>Documento por sessão de conversa.</p>
+<p><strong>Campos</strong>:</p>
+<ul>
+<li><code>session_id</code> (string): ID único da sessão</li>
+<li><code>iniciadoEm</code> (timestamp): Quando a conversa começou (legado)</li>
+<li><code>ultimaMensagemEm</code> (timestamp): Última atividade (legado)</li>
+<li><code>created_at</code> (timestamp): Criação (padronizado)</li>
+<li><code>updated_at</code> (timestamp): Última atualização (padronizado)</li>
+<li><code>total_user_messages</code> (number): Contador de mensagens do usuário</li>
+<li><code>total_bot_messages</code> (number): Contador de mensagens do bot</li>
+<li><code>channel</code> (string): Canal de origem (&quot;web&quot;)</li>
+<li><code>status</code> (string): Status da conversa (&quot;open&quot; | &quot;closed&quot;)</li>
+<li><code>lead_stage</code> (string | null): Estágio do lead (&quot;collecting&quot; | &quot;done&quot; | null)</li>
+<li><code>lead_done</code> (boolean): Se lead foi concluído</li>
+<li><code>lead_data</code> (object): Dados do lead em coleta
+<ul>
+<li><code>nome</code> (string)</li>
+<li><code>interesse</code> (string)</li>
+<li><code>cidade</code> (string)</li>
+<li><code>estado</code> (string)</li>
+<li><code>idade</code> (number)</li>
+</ul>
+</li>
+</ul>
+<p><strong>Subcoleção</strong>: <code>messages/</code></p>
+<ul>
+<li>Documentos com auto-ID</li>
+<li>Campos: <code>role</code>, <code>content</code>, <code>created_at</code>, <code>papel</code>, <code>texto</code>, <code>criadoEm</code> (legado), <code>metadata</code></li>
+</ul>
+<h4 id="leads"><code>leads/</code></h4>
+<p>Documentos de leads completos.</p>
+<p><strong>Campos</strong>:</p>
+<ul>
+<li><code>session_id</code> (string): ID da conversa origem</li>
+<li><code>nome</code> (string)</li>
+<li><code>email</code> (string, opcional)</li>
+<li><code>cidade</code> (string)</li>
+<li><code>estado</code> (string, UF)</li>
+<li><code>idade</code> (number)</li>
+<li><code>interesse</code> (string)</li>
+<li><code>createdAt</code> (timestamp)</li>
+</ul>
+<h4 id="settings"><code>settings/</code></h4>
+<p>Configurações do sistema.</p>
+<p><strong>Documentos</strong>:</p>
+<ul>
+<li><code>global/</code>: Configurações globais
+<ul>
+<li><code>admin_theme</code> (string): &quot;dark&quot; | &quot;light&quot;</li>
+</ul>
+</li>
+<li><code>chat_config/</code>: Configurações do chat
+<ul>
+<li><code>chat_title</code> (string)</li>
+<li><code>welcome_message</code> (string)</li>
+<li><code>bot_avatar</code> (string)</li>
+<li><code>user_avatar</code> (string)</li>
+<li><code>primary_color</code> (string, hex)</li>
+<li><code>secondary_color</code> (string, hex)</li>
+</ul>
+</li>
+</ul>
+<h4 id="adminusers"><code>admin_users/</code></h4>
+<p>Usuários administradores.</p>
+<p><strong>Campos</strong>:</p>
+<ul>
+<li><code>username</code> (string)</li>
+<li><code>password_hash</code> (string): Hash bcrypt</li>
+<li><code>created_at</code> (timestamp)</li>
+<li><code>updated_at</code> (timestamp)</li>
+</ul>
+<h3 id="52-exemplos-de-documentos">5.2 Exemplos de Documentos</h3>
+<h4 id="exemplo-conversa">Exemplo: Conversa</h4>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"session_id"</span>: <span class="hljs-string">"sess_1704067200000_abc123"</span>,
+  <span class="hljs-attr">"iniciadoEm"</span>: <span class="hljs-string">"2024-01-01T10:00:00Z"</span>,
+  <span class="hljs-attr">"ultimaMensagemEm"</span>: <span class="hljs-string">"2024-01-01T10:15:00Z"</span>,
+  <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2024-01-01T10:00:00Z"</span>,
+  <span class="hljs-attr">"updated_at"</span>: <span class="hljs-string">"2024-01-01T10:15:00Z"</span>,
+  <span class="hljs-attr">"total_user_messages"</span>: <span class="hljs-number">5</span>,
+  <span class="hljs-attr">"total_bot_messages"</span>: <span class="hljs-number">5</span>,
+  <span class="hljs-attr">"channel"</span>: <span class="hljs-string">"web"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"open"</span>,
+  <span class="hljs-attr">"lead_stage"</span>: <span class="hljs-string">"done"</span>,
+  <span class="hljs-attr">"lead_done"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"lead_data"</span>: {
+    <span class="hljs-attr">"nome"</span>: <span class="hljs-string">"João Silva"</span>,
+    <span class="hljs-attr">"interesse"</span>: <span class="hljs-string">"Cursos de programação"</span>,
+    <span class="hljs-attr">"cidade"</span>: <span class="hljs-string">"Florianópolis"</span>,
+    <span class="hljs-attr">"estado"</span>: <span class="hljs-string">"SC"</span>,
+    <span class="hljs-attr">"idade"</span>: <span class="hljs-number">18</span>
+  }
+}
+</div></code></pre>
+<h4 id="exemplo-mensagem">Exemplo: Mensagem</h4>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"role"</span>: <span class="hljs-string">"user"</span>,
+  <span class="hljs-attr">"content"</span>: <span class="hljs-string">"Olá, quero saber sobre os cursos"</span>,
+  <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2024-01-01T10:00:00Z"</span>,
+  <span class="hljs-attr">"papel"</span>: <span class="hljs-string">"user"</span>,
+  <span class="hljs-attr">"texto"</span>: <span class="hljs-string">"Olá, quero saber sobre os cursos"</span>,
+  <span class="hljs-attr">"criadoEm"</span>: <span class="hljs-string">"2024-01-01T10:00:00Z"</span>,
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"source"</span>: <span class="hljs-string">"web"</span>
+  }
+}
+</div></code></pre>
+<h4 id="exemplo-lead">Exemplo: Lead</h4>
+<pre class="hljs"><code><div>{
+  <span class="hljs-attr">"session_id"</span>: <span class="hljs-string">"sess_1704067200000_abc123"</span>,
+  <span class="hljs-attr">"nome"</span>: <span class="hljs-string">"João Silva"</span>,
+  <span class="hljs-attr">"cidade"</span>: <span class="hljs-string">"Florianópolis"</span>,
+  <span class="hljs-attr">"estado"</span>: <span class="hljs-string">"SC"</span>,
+  <span class="hljs-attr">"idade"</span>: <span class="hljs-number">18</span>,
+  <span class="hljs-attr">"interesse"</span>: <span class="hljs-string">"Cursos de programação"</span>,
+  <span class="hljs-attr">"createdAt"</span>: <span class="hljs-string">"2024-01-01T10:10:00Z"</span>
+}
+</div></code></pre>
+<h3 id="53-como-salvar-conversas">5.3 Como Salvar Conversas</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Criar/atualizar conversa</span>
+get_or_create_conversation(session_id)
+
+<span class="hljs-comment"># Salvar mensagem</span>
+save_message(session_id, <span class="hljs-string">"user"</span>, <span class="hljs-string">"Olá!"</span>)
+save_message(session_id, <span class="hljs-string">"assistant"</span>, <span class="hljs-string">"Olá! Como posso ajudar?"</span>)
+</div></code></pre>
+<h3 id="54-como-salvar-mensagens">5.4 Como Salvar Mensagens</h3>
+<pre class="hljs"><code><div>save_message(
+    session_id=<span class="hljs-string">"sess_123"</span>,
+    role=<span class="hljs-string">"user"</span>,  <span class="hljs-comment"># ou "assistant"</span>
+    text=<span class="hljs-string">"Mensagem aqui"</span>,
+    meta={<span class="hljs-string">"source"</span>: <span class="hljs-string">"web"</span>, <span class="hljs-string">"type"</span>: <span class="hljs-string">"lead_question"</span>}  <span class="hljs-comment"># opcional</span>
+)
+</div></code></pre>
+<h3 id="55-como-buscar-hist%C3%B3rico">5.5 Como Buscar Histórico</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Buscar conversa</span>
+conversation = get_conversation(session_id)
+
+<span class="hljs-comment"># Buscar mensagens de uma conversa</span>
+messages = get_conversation_messages(session_id, limit=<span class="hljs-number">200</span>)
+
+<span class="hljs-comment"># Buscar todas as conversas (com filtros)</span>
+conversations = get_all_conversations(limit=<span class="hljs-number">50</span>, filters={<span class="hljs-string">"search"</span>: <span class="hljs-string">"sess_123"</span>})
+</div></code></pre>
+<h3 id="56-regras-de-seguran%C3%A7a">5.6 Regras de Segurança</h3>
+<p><strong>Recomendações para Firestore Security Rules</strong>:</p>
+<pre class="hljs"><code><div>rules_version = <span class="hljs-string">'2'</span>;
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    <span class="hljs-comment">// Conversas: leitura/escrita apenas autenticada (ou pública se necessário)</span>
+    match /conversations/{sessionId} {
+      allow read, <span class="hljs-attr">write</span>: <span class="hljs-keyword">if</span> request.auth != <span class="hljs-literal">null</span>;
+      <span class="hljs-comment">// OU para permitir escrita pública (com validação de estrutura):</span>
+      <span class="hljs-comment">// allow write: if request.resource.data.keys().hasAll(['session_id', 'created_at']);</span>
+      
+      <span class="hljs-comment">// Mensagens: mesma regra da conversa pai</span>
+      match /messages/{messageId} {
+        allow read, <span class="hljs-attr">write</span>: <span class="hljs-keyword">if</span> request.auth != <span class="hljs-literal">null</span>;
+      }
+    }
+    
+    <span class="hljs-comment">// Leads: apenas leitura autenticada, escrita pública (com validação)</span>
+    match /leads/{leadId} {
+      allow read: <span class="hljs-keyword">if</span> request.auth != <span class="hljs-literal">null</span>;
+      allow create: <span class="hljs-keyword">if</span> request.resource.data.keys().hasAll([<span class="hljs-string">'nome'</span>, <span class="hljs-string">'cidade'</span>, <span class="hljs-string">'estado'</span>]);
+    }
+    
+    <span class="hljs-comment">// Settings: apenas leitura pública, escrita autenticada</span>
+    match /settings/{settingId} {
+      allow read: <span class="hljs-keyword">if</span> <span class="hljs-literal">true</span>;
+      allow write: <span class="hljs-keyword">if</span> request.auth != <span class="hljs-literal">null</span>;
+    }
+    
+    <span class="hljs-comment">// Admin users: apenas leitura/escrita autenticada</span>
+    match /admin_users/{username} {
+      allow read, <span class="hljs-attr">write</span>: <span class="hljs-keyword">if</span> request.auth != <span class="hljs-literal">null</span>;
+    }
+  }
+}
+</div></code></pre>
+<p><strong>Nota</strong>: Ajuste as regras conforme sua necessidade de segurança.</p>
+<hr>
+<h2 id="6-fluxos-importantes">6. Fluxos Importantes</h2>
+<h3 id="61-fluxo-de-cria%C3%A7%C3%A3o-de-conversa">6.1 Fluxo de Criação de Conversa</h3>
+<pre class="hljs"><code><div>1. Usuário abre widget pela primeira vez
+   └─&gt; JavaScript: getOrCreateSessionId()
+       └─&gt; Verifica localStorage['chat_session_id']
+       └─&gt; Se não existe: gera sess_{timestamp}_{random}
+       └─&gt; Salva no localStorage
+
+2. Usuário envia primeira mensagem
+   └─&gt; POST /api/chat com { message, session_id }
+
+3. Backend recebe
+   └─&gt; Se session_id não fornecido: gera novo
+   └─&gt; get_or_create_conversation(session_id)
+       └─&gt; Verifica se conversations/{session_id} existe
+       └─&gt; Se não existe:
+           └─&gt; Cria documento com campos iniciais
+           └─&gt; created_at = SERVER_TIMESTAMP
+           └─&gt; total_user_messages = 0
+           └─&gt; total_bot_messages = 0
+           └─&gt; channel = &quot;web&quot;
+           └─&gt; status = &quot;open&quot;
+       └─&gt; Se existe:
+           └─&gt; Atualiza ultimaMensagemEm e updated_at
+
+4. Salva primeira mensagem
+   └─&gt; save_message(session_id, &quot;user&quot;, message)
+       └─&gt; Adiciona em conversations/{session_id}/messages
+       └─&gt; Incrementa total_user_messages
+</div></code></pre>
+<h3 id="62-fluxo-de-envio-de-mensagem">6.2 Fluxo de Envio de Mensagem</h3>
+<pre class="hljs"><code><div>1. Usuário digita e envia
+   └─&gt; JavaScript: sendMessage()
+       └─&gt; Valida mensagem não vazia
+       └─&gt; addMessage(message, 'user') [UI]
+       └─&gt; showTypingIndicator()
+       └─&gt; setLocked(true)
+       └─&gt; sendToBackend(message)
+
+2. Backend processa
+   └─&gt; Valida mensagem
+   └─&gt; get_or_create_conversation(session_id)
+   └─&gt; save_message(session_id, &quot;user&quot;, message)
+
+3. Processa resposta
+   └─&gt; Se lead em coleta: processa campo
+   └─&gt; Se lead concluído: chatbot.gerar_resposta(message)
+
+4. Salva resposta
+   └─&gt; save_message(session_id, &quot;assistant&quot;, response)
+
+5. Retorna para frontend
+   └─&gt; JSON: { response, session_id }
+
+6. Frontend renderiza
+   └─&gt; hideTypingIndicator()
+   └─&gt; addMessage(response, 'bot')
+   └─&gt; setLocked(false)
+</div></code></pre>
+<h3 id="63-fluxo-de-resposta-do-bot">6.3 Fluxo de Resposta do Bot</h3>
+<pre class="hljs"><code><div>1. Backend recebe mensagem
+   └─&gt; chatbot_web.gerar_resposta(user_message)
+
+2. Chatbot processa (utils/responder.py)
+   └─&gt; Verifica se chat_session existe
+   └─&gt; Se não: reinicializa modelo e envia contexto
+   └─&gt; Envia mensagem para Gemini: chat_session.send_message(pergunta)
+   └─&gt; Gemini processa com:
+       - Contexto inicial (prompt de sistema)
+       - Histórico da sessão
+       - Base de conhecimento (dados.json)
+
+3. Gemini retorna resposta
+   └─&gt; Extrai texto da resposta
+   └─&gt; Retorna string
+
+4. Backend salva resposta
+   └─&gt; save_message(session_id, &quot;assistant&quot;, response)
+
+5. Retorna para frontend
+</div></code></pre>
+<h3 id="64-fluxo-de-salvar-no-firestore">6.4 Fluxo de Salvar no Firestore</h3>
+<pre class="hljs"><code><div>1. Função save_message() chamada
+   └─&gt; Verifica se Firestore habilitado
+   └─&gt; Normaliza role (&quot;assistant&quot; → &quot;bot&quot;)
+   └─&gt; Monta dados da mensagem (novos + legados)
+   └─&gt; Adiciona documento em conversations/{session_id}/messages
+   └─&gt; Atualiza contadores da conversa:
+       - Se user: incrementa total_user_messages
+       - Se bot: incrementa total_bot_messages
+   └─&gt; Atualiza ultimaMensagemEm e updated_at da conversa
+
+2. Se erro: retorna False (silencioso, não quebra fluxo)
+</div></code></pre>
+<h3 id="65-fluxo-do-admin">6.5 Fluxo do Admin</h3>
+<h4 id="login">Login</h4>
+<pre class="hljs"><code><div>1. Acessa /admin/login
+   └─&gt; Renderiza template admin/login.html
+
+2. Usuário preenche credenciais
+   └─&gt; POST /admin/api/login
+       └─&gt; verify_admin_password(username, password)
+           └─&gt; Se Firestore desabilitado: fallback local (admin/admin123)
+           └─&gt; Se Firestore habilitado: busca em admin_users/{username}
+               └─&gt; Compara hash com check_password_hash()
+       └─&gt; Se válido: session['admin_logged'] = True
+       └─&gt; Retorna { ok: true }
+
+3. Redireciona para /admin/
+</div></code></pre>
+<h4 id="dashboard">Dashboard</h4>
+<pre class="hljs"><code><div>1. Acessa /admin/
+   └─&gt; Middleware: require_admin_login()
+       └─&gt; Verifica session['admin_logged']
+   └─&gt; Renderiza template admin/dashboard.html
+
+2. Frontend carrega dados
+   └─&gt; GET /admin/api/reports?days=7
+       └─&gt; get_conversation_counts(days=7)
+       └─&gt; get_message_counts_by_role()
+       └─&gt; get_daily_conversation_counts(days=7)
+       └─&gt; get_recent_conversations(limit=10)
+       └─&gt; get_leads_count_by_city()
+       └─&gt; get_leads_count_by_state()
+       └─&gt; get_leads_count_by_age_range()
+   └─&gt; Renderiza gráficos e métricas
+</div></code></pre>
+<h4 id="visualizar-conversas">Visualizar Conversas</h4>
+<pre class="hljs"><code><div>1. Acessa /admin/conversations
+   └─&gt; Renderiza template admin/conversations.html
+
+2. Frontend carrega lista
+   └─&gt; GET /admin/api/conversations?search=sess_123
+       └─&gt; get_all_conversations(limit=50, filters={&quot;search&quot;: &quot;sess_123&quot;})
+   └─&gt; Renderiza tabela
+
+3. Usuário clica em conversa
+   └─&gt; GET /admin/api/conversations/{session_id}/messages
+       └─&gt; get_conversation_messages(session_id, limit=200)
+   └─&gt; Renderiza mensagens em modal ou sidebar
+</div></code></pre>
+<hr>
+<h2 id="7-como-rodar-o-projeto-localmente">7. Como Rodar o Projeto Localmente</h2>
+<h3 id="71-pr%C3%A9-requisitos">7.1 Pré-requisitos</h3>
+<ul>
+<li><strong>Python 3.8+</strong> instalado</li>
+<li><strong>pip</strong> (gerenciador de pacotes Python)</li>
+<li><strong>Conta Google</strong> (para Gemini API e Firebase)</li>
+<li><strong>Git</strong> (opcional, para clonar repositório)</li>
+</ul>
+<h3 id="72-passo-a-passo">7.2 Passo a Passo</h3>
+<h4 id="1-clone-o-reposit%C3%B3rio-ou-baixe-os-arquivos">1. Clone o Repositório (ou baixe os arquivos)</h4>
+<pre class="hljs"><code><div>git <span class="hljs-built_in">clone</span> https://github.com/moaaskt/ChatJovemProgramador.git
+<span class="hljs-built_in">cd</span> ChatJovemProgramador
+</div></code></pre>
+<h4 id="2-crie-e-ative-um-ambiente-virtual">2. Crie e Ative um Ambiente Virtual</h4>
+<p><strong>Windows:</strong></p>
+<pre class="hljs"><code><div>python -m venv venv
+.\venv\Scripts\activate
+</div></code></pre>
+<p><strong>macOS/Linux:</strong></p>
+<pre class="hljs"><code><div>python3 -m venv venv
+<span class="hljs-built_in">source</span> venv/bin/activate
+</div></code></pre>
+<h4 id="3-instale-as-depend%C3%AAncias">3. Instale as Dependências</h4>
+<pre class="hljs"><code><div>pip install -r requirements.txt
+</div></code></pre>
+<p><strong>Dependências instaladas:</strong></p>
+<ul>
+<li>flask==2.3.2</li>
+<li>flask-cors==3.0.10</li>
+<li>google-generativeai==0.3.2</li>
+<li>python-dotenv==1.0.0</li>
+<li>firebase-admin&gt;=6.0.0</li>
+<li>beautifulsoup4 (implícito, usado no scraper)</li>
+<li>requests (implícito, usado no scraper)</li>
+</ul>
+<h4 id="4-configure-as-vari%C3%A1veis-de-ambiente">4. Configure as Variáveis de Ambiente</h4>
+<p>Crie um arquivo <code>.env</code> na raiz do projeto:</p>
+<pre class="hljs"><code><div># Chave da API do Google Gemini (OBRIGATÓRIA)
+GEMINI_API_KEY=&quot;sua_chave_gemini_aqui&quot;
+
+# Configuração do Firestore (OPCIONAL)
+# Se false, o chat funciona sem persistência
+AI_FIRESTORE_ENABLED=false
+
+# Se AI_FIRESTORE_ENABLED=true, configure abaixo:
+FIREBASE_CREDENTIALS='{&quot;type&quot;:&quot;service_account&quot;,&quot;project_id&quot;:&quot;seu-projeto&quot;,&quot;private_key_id&quot;:&quot;...&quot;,&quot;private_key&quot;:&quot;...&quot;,&quot;client_email&quot;:&quot;...&quot;,&quot;client_id&quot;:&quot;...&quot;,&quot;auth_uri&quot;:&quot;...&quot;,&quot;token_uri&quot;:&quot;...&quot;,&quot;auth_provider_x509_cert_url&quot;:&quot;...&quot;,&quot;client_x509_cert_url&quot;:&quot;...&quot;}'
+FIREBASE_PROJECT_ID=&quot;seu-projeto-id&quot;
+
+# Chave secreta do Flask (para sessões)
+FLASK_SECRET_KEY=&quot;sua-chave-secreta-aqui-mude-em-producao&quot;
+</div></code></pre>
+<p><strong>Como obter GEMINI_API_KEY:</strong></p>
+<ol>
+<li>Acesse <a href="https://makersuite.google.com/app/apikey">Google AI Studio</a></li>
+<li>Crie uma nova API key</li>
+<li>Copie e cole no <code>.env</code></li>
+</ol>
+<p><strong>Como obter FIREBASE_CREDENTIALS (se usar Firestore):</strong></p>
+<ol>
+<li>Acesse <a href="https://console.firebase.google.com/">Firebase Console</a></li>
+<li>Crie um projeto ou selecione existente</li>
+<li>Vá em <strong>Project Settings</strong> → <strong>Service Accounts</strong></li>
+<li>Clique em <strong>Generate new private key</strong></li>
+<li>Baixe o JSON</li>
+<li>Copie o conteúdo do JSON e cole como string em <code>FIREBASE_CREDENTIALS</code> (ou use caminho do arquivo)</li>
+</ol>
+<h4 id="5-execute-o-scraper-atualizar-base-de-conhecimento">5. Execute o Scraper (Atualizar Base de Conhecimento)</h4>
+<pre class="hljs"><code><div>python utils/scraper.py
+</div></code></pre>
+<p>Isso irá:</p>
+<ul>
+<li>Acessar o site oficial do Jovem Programador</li>
+<li>Extrair todas as informações (sobre, dúvidas, notícias, etc.)</li>
+<li>Salvar em <code>dados.json</code> na raiz do projeto</li>
+</ul>
+<p><strong>Tempo estimado</strong>: 2-5 minutos (depende da quantidade de notícias)</p>
+<h4 id="6-inicie-o-servidor-flask">6. Inicie o Servidor Flask</h4>
+<pre class="hljs"><code><div>python app.py
+</div></code></pre>
+<p>Você verá logs como:</p>
+<pre class="hljs"><code><div>🤖 Inicializando o Chatbot com Gemini...
+[Gemini] SDK version: ...
+[Gemini] Modelo selecionado: models/gemini-pro-latest
+✅ Chatbot pronto e online!
+[DEBUG] Iniciando Firestore...
+[Firestore] Desabilitado (AI_FIRESTORE_ENABLED=false)
+ * Running on http://0.0.0.0:5000
+</div></code></pre>
+<h4 id="7-acesse-o-chatbot">7. Acesse o Chatbot</h4>
+<p>Abra seu navegador e acesse:</p>
+<pre class="hljs"><code><div>http://localhost:5000
+</div></code></pre>
+<p>O widget de chat estará disponível no canto inferior direito da página.</p>
+<h3 id="73-configura%C3%A7%C3%B5es-adicionais">7.3 Configurações Adicionais</h3>
+<h4 id="habilitar-firestore-persist%C3%AAncia">Habilitar Firestore (Persistência)</h4>
+<ol>
+<li>Configure <code>AI_FIRESTORE_ENABLED=true</code> no <code>.env</code></li>
+<li>Configure <code>FIREBASE_CREDENTIALS</code> e <code>FIREBASE_PROJECT_ID</code></li>
+<li>Reinicie o servidor</li>
+</ol>
+<h4 id="acessar-painel-admin">Acessar Painel Admin</h4>
+<ol>
+<li>
+<p>Com Firestore habilitado:</p>
+<ul>
+<li>Acesse <code>http://localhost:5000/admin/login</code></li>
+<li>Usuário padrão: <code>admin</code></li>
+<li>Senha padrão: <code>admin123</code></li>
+</ul>
+</li>
+<li>
+<p>Sem Firestore:</p>
+<ul>
+<li>Mesmo usuário/senha (fallback local)</li>
+</ul>
+</li>
+</ol>
+<h3 id="74-problemas-comuns-e-solu%C3%A7%C3%B5es">7.4 Problemas Comuns e Soluções</h3>
+<h4 id="erro-%22geminiapikey-ausente-no-env%22">Erro: &quot;GEMINI_API_KEY ausente no .env&quot;</h4>
+<p><strong>Solução</strong>: Verifique se o arquivo <code>.env</code> existe e contém <code>GEMINI_API_KEY=&quot;sua_chave&quot;</code></p>
+<h4 id="erro-%22arquivo-dadosjson-n%C3%A3o-encontrado%22">Erro: &quot;Arquivo 'dados.json' não encontrado&quot;</h4>
+<p><strong>Solução</strong>: Execute <code>python utils/scraper.py</code> primeiro</p>
+<h4 id="erro-%22firestore-n%C3%A3o-inicializado%22">Erro: &quot;Firestore não inicializado&quot;</h4>
+<p><strong>Solução</strong>:</p>
+<ul>
+<li>Verifique se <code>AI_FIRESTORE_ENABLED=true</code> no <code>.env</code></li>
+<li>Verifique se <code>FIREBASE_CREDENTIALS</code> está correto (JSON válido)</li>
+<li>Verifique se o projeto Firebase existe</li>
+</ul>
+<h4 id="erro-%22port-5000-already-in-use%22">Erro: &quot;Port 5000 already in use&quot;</h4>
+<p><strong>Solução</strong>:</p>
+<ul>
+<li>Feche outro processo usando a porta 5000</li>
+<li>Ou altere a porta em <code>app.py</code>: <code>app.run(debug=True, port=5001, host='0.0.0.0')</code></li>
+</ul>
+<h4 id="widget-n%C3%A3o-aparece">Widget não aparece</h4>
+<p><strong>Solução</strong>:</p>
+<ul>
+<li>Verifique o console do navegador (F12) para erros JavaScript</li>
+<li>Verifique se os arquivos estáticos estão sendo servidos (<code>/static/css/chatleo.css</code>)</li>
+<li>Limpe o cache do navegador</li>
+</ul>
+<h4 id="mensagens-n%C3%A3o-s%C3%A3o-salvas">Mensagens não são salvas</h4>
+<p><strong>Solução</strong>:</p>
+<ul>
+<li>Verifique se <code>AI_FIRESTORE_ENABLED=true</code></li>
+<li>Verifique logs do servidor para erros do Firestore</li>
+<li>O chat funciona mesmo sem Firestore (mas não persiste)</li>
+</ul>
+<hr>
+<h2 id="8-deploy">8. Deploy</h2>
+<h3 id="81-como-fazer-deploy-em-produ%C3%A7%C3%A3o">8.1 Como Fazer Deploy em Produção</h3>
+<h4 id="op%C3%A7%C3%B5es-de-deploy">Opções de Deploy</h4>
+<ol>
+<li><strong>Heroku</strong></li>
+<li><strong>Railway</strong></li>
+<li><strong>Render</strong></li>
+<li><strong>Google Cloud Run</strong></li>
+<li><strong>AWS Elastic Beanstalk</strong></li>
+<li><strong>VPS próprio</strong> (DigitalOcean, Linode, etc.)</li>
+</ol>
+<h4 id="exemplo-deploy-no-heroku">Exemplo: Deploy no Heroku</h4>
+<p><strong>1. Instale Heroku CLI</strong></p>
+<pre class="hljs"><code><div><span class="hljs-comment"># Windows: baixe do site</span>
+<span class="hljs-comment"># macOS: brew install heroku/brew/heroku</span>
+<span class="hljs-comment"># Linux: snap install heroku</span>
+</div></code></pre>
+<p><strong>2. Crie arquivo <code>Procfile</code></strong></p>
+<pre class="hljs"><code><div>web: gunicorn app:app
+</div></code></pre>
+<p><strong>3. Atualize <code>requirements.txt</code></strong> (adicione gunicorn)</p>
+<pre class="hljs"><code><div>gunicorn==21.2.0
+</div></code></pre>
+<p><strong>4. Configure variáveis de ambiente no Heroku</strong></p>
+<pre class="hljs"><code><div>heroku config:<span class="hljs-built_in">set</span> GEMINI_API_KEY=<span class="hljs-string">"sua_chave"</span>
+heroku config:<span class="hljs-built_in">set</span> AI_FIRESTORE_ENABLED=<span class="hljs-string">"true"</span>
+heroku config:<span class="hljs-built_in">set</span> FIREBASE_CREDENTIALS=<span class="hljs-string">'{"type":"service_account",...}'</span>
+heroku config:<span class="hljs-built_in">set</span> FIREBASE_PROJECT_ID=<span class="hljs-string">"seu-projeto"</span>
+heroku config:<span class="hljs-built_in">set</span> FLASK_SECRET_KEY=<span class="hljs-string">"chave-secreta-forte"</span>
+</div></code></pre>
+<p><strong>5. Faça deploy</strong></p>
+<pre class="hljs"><code><div>heroku create seu-app
+git push heroku main
+heroku run python utils/scraper.py  <span class="hljs-comment"># Executar scraper uma vez</span>
+</div></code></pre>
+<h3 id="82-configura%C3%A7%C3%A3o-de-vari%C3%A1veis-de-ambiente-em-produ%C3%A7%C3%A3o">8.2 Configuração de Variáveis de Ambiente em Produção</h3>
+<p><strong>Variáveis obrigatórias:</strong></p>
+<ul>
+<li><code>GEMINI_API_KEY</code>: Chave da API do Gemini</li>
+<li><code>FLASK_SECRET_KEY</code>: Chave secreta forte (gere com <code>secrets.token_hex(32)</code>)</li>
+</ul>
+<p><strong>Variáveis opcionais (se usar Firestore):</strong></p>
+<ul>
+<li><code>AI_FIRESTORE_ENABLED</code>: &quot;true&quot; ou &quot;false&quot;</li>
+<li><code>FIREBASE_CREDENTIALS</code>: JSON string das credenciais</li>
+<li><code>FIREBASE_PROJECT_ID</code>: ID do projeto Firebase</li>
+</ul>
+<p><strong>Como gerar FLASK_SECRET_KEY:</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">import</span> secrets
+print(secrets.token_hex(<span class="hljs-number">32</span>))
+</div></code></pre>
+<h3 id="83-depend%C3%AAncias-obrigat%C3%B3rias">8.3 Dependências Obrigatórias</h3>
+<p>Certifique-se de que todas as dependências estão em <code>requirements.txt</code>:</p>
+<pre class="hljs"><code><div>flask==2.3.2
+flask-cors==3.0.10
+google-generativeai==0.3.2
+python-dotenv==1.0.0
+firebase-admin&gt;=6.0.0
+gunicorn==21.2.0  # Para produção
+</div></code></pre>
+<h3 id="84-observa%C3%A7%C3%B5es-importantes">8.4 Observações Importantes</h3>
+<h4 id="seguran%C3%A7a">Segurança</h4>
+<ul>
+<li><strong>NUNCA</strong> commite o arquivo <code>.env</code> no Git</li>
+<li>Use variáveis de ambiente do provedor de deploy</li>
+<li>Gere <code>FLASK_SECRET_KEY</code> forte e único</li>
+<li>Configure Firestore Security Rules adequadamente</li>
+</ul>
+<h4 id="performance">Performance</h4>
+<ul>
+<li>Execute o scraper periodicamente (cron job ou scheduler) para atualizar <code>dados.json</code></li>
+<li>Considere cachear respostas do Gemini se necessário</li>
+<li>Monitore uso da API do Gemini (limites de quota)</li>
+</ul>
+<h4 id="escalabilidade">Escalabilidade</h4>
+<ul>
+<li>Para múltiplas instâncias, use banco de dados compartilhado (Firestore)</li>
+<li>Considere usar Redis para cache de sessões (opcional)</li>
+<li>Configure CORS adequadamente para seu domínio</li>
+</ul>
+<h4 id="monitoramento">Monitoramento</h4>
+<ul>
+<li>Configure logs de erro (Sentry, Loggly, etc.)</li>
+<li>Monitore métricas do Firestore (leituras/escritas)</li>
+<li>Monitore uso da API do Gemini</li>
+</ul>
+<hr>
+<h2 id="9-checklist-final">9. Checklist Final</h2>
+<h3 id="%E2%9C%85-arquitetura">✅ Arquitetura</h3>
+<ul>
+<li><input type="checkbox" id="checkbox0" checked="true"><label for="checkbox0">Arquitetura em camadas documentada</label></li>
+<li><input type="checkbox" id="checkbox1" checked="true"><label for="checkbox1">Fluxo de dados explicado (Backend → Firestore → Frontend → Admin)</label></li>
+<li><input type="checkbox" id="checkbox2" checked="true"><label for="checkbox2">Estrutura de pastas detalhada</label></li>
+<li><input type="checkbox" id="checkbox3" checked="true"><label for="checkbox3">Responsabilidades de cada módulo definidas</label></li>
+</ul>
+<h3 id="%E2%9C%85-fluxos">✅ Fluxos</h3>
+<ul>
+<li><input type="checkbox" id="checkbox4" checked="true"><label for="checkbox4">Fluxo de criação de conversa documentado</label></li>
+<li><input type="checkbox" id="checkbox5" checked="true"><label for="checkbox5">Fluxo de envio de mensagem explicado</label></li>
+<li><input type="checkbox" id="checkbox6" checked="true"><label for="checkbox6">Fluxo de resposta do bot detalhado</label></li>
+<li><input type="checkbox" id="checkbox7" checked="true"><label for="checkbox7">Fluxo de salvar no Firestore descrito</label></li>
+<li><input type="checkbox" id="checkbox8" checked="true"><label for="checkbox8">Fluxo do admin documentado</label></li>
+</ul>
+<h3 id="%E2%9C%85-c%C3%B3digo-explicado">✅ Código Explicado</h3>
+<ul>
+<li><input type="checkbox" id="checkbox9" checked="true"><label for="checkbox9">Métodos principais documentados (</label><code>init_admin</code>, <code>get_or_create_conversation</code>, <code>save_message</code>, <code>gerar_resposta</code>)</li>
+<li><input type="checkbox" id="checkbox10" checked="true"><label for="checkbox10">Rotas do Flask explicadas</label></li>
+<li><input type="checkbox" id="checkbox11" checked="true"><label for="checkbox11">Estrutura do frontend (HTML, CSS, JS) documentada</label></li>
+<li><input type="checkbox" id="checkbox12" checked="true"><label for="checkbox12">Funcionalidades de acessibilidade explicadas</label></li>
+</ul>
+<h3 id="%E2%9C%85-banco-de-dados-documentado">✅ Banco de Dados Documentado</h3>
+<ul>
+<li><input type="checkbox" id="checkbox13" checked="true"><label for="checkbox13">Estrutura das coleções Firestore detalhada</label></li>
+<li><input type="checkbox" id="checkbox14" checked="true"><label for="checkbox14">Exemplos de documentos fornecidos</label></li>
+<li><input type="checkbox" id="checkbox15" checked="true"><label for="checkbox15">Como salvar conversas/mensagens explicado</label></li>
+<li><input type="checkbox" id="checkbox16" checked="true"><label for="checkbox16">Como buscar histórico documentado</label></li>
+<li><input type="checkbox" id="checkbox17" checked="true"><label for="checkbox17">Regras de segurança sugeridas</label></li>
+</ul>
+<h3 id="%E2%9C%85-instala%C3%A7%C3%A3o-e-deploy">✅ Instalação e Deploy</h3>
+<ul>
+<li><input type="checkbox" id="checkbox18" checked="true"><label for="checkbox18">Passo a passo para instalação local completo</label></li>
+<li><input type="checkbox" id="checkbox19" checked="true"><label for="checkbox19">Configuração de variáveis de ambiente explicada</label></li>
+<li><input type="checkbox" id="checkbox20" checked="true"><label for="checkbox20">Problemas comuns e soluções listados</label></li>
+<li><input type="checkbox" id="checkbox21" checked="true"><label for="checkbox21">Guia de deploy em produção fornecido</label></li>
+<li><input type="checkbox" id="checkbox22" checked="true"><label for="checkbox22">Observações importantes documentadas</label></li>
+</ul>
+<h3 id="%E2%9C%85-tecnologias-usadas">✅ Tecnologias Usadas</h3>
+<ul>
+<li><input type="checkbox" id="checkbox23" checked="true"><label for="checkbox23">Lista completa de tecnologias (Backend, Frontend, Banco de Dados)</label></li>
+<li><input type="checkbox" id="checkbox24" checked="true"><label for="checkbox24">Versões das dependências especificadas</label></li>
+<li><input type="checkbox" id="checkbox25" checked="true"><label for="checkbox25">Propósito de cada tecnologia explicado</label></li>
+</ul>
+<h3 id="%E2%9C%85-explica%C3%A7%C3%B5es-t%C3%A9cnicas--did%C3%A1ticas">✅ Explicações Técnicas + Didáticas</h3>
+<ul>
+<li><input type="checkbox" id="checkbox26" checked="true"><label for="checkbox26">Linguagem clara e profissional</label></li>
+<li><input type="checkbox" id="checkbox27" checked="true"><label for="checkbox27">Títulos e subtítulos organizados</label></li>
+<li><input type="checkbox" id="checkbox28" checked="true"><label for="checkbox28">Exemplos de código fornecidos</label></li>
+<li><input type="checkbox" id="checkbox29" checked="true"><label for="checkbox29">Diagramas ASCII de fluxos incluídos</label></li>
+<li><input type="checkbox" id="checkbox30" checked="true"><label for="checkbox30">Explicações passo a passo detalhadas</label></li>
+</ul>
+<hr>
+<h2 id="%F0%9F%93%9D-notas-finais">📝 Notas Finais</h2>
+<p>Esta documentação cobre todos os aspectos técnicos do projeto <strong>ChatJovemProgramador</strong>. Para dúvidas ou sugestões de melhoria, consulte o código-fonte ou entre em contato com a equipe de desenvolvimento.</p>
+<p><strong>Última atualização</strong>: Janeiro 2025</p>
+<p><strong>Versão do Projeto</strong>: Staging</p>
+<hr>
+<h2 id="%F0%9F%94%97-links-%C3%BAteis">🔗 Links Úteis</h2>
+<ul>
+<li><a href="https://flask.palletsprojects.com/">Documentação Flask</a></li>
+<li><a href="https://ai.google.dev/docs">Documentação Google Gemini</a></li>
+<li><a href="https://firebase.google.com/docs/firestore">Documentação Firestore</a></li>
+<li><a href="https://firebase.google.com/docs/admin/setup">Documentação Firebase Admin SDK</a></li>
+</ul>
+<hr>
+<p><strong>Desenvolvido com ❤️ pela equipe do SENAC Palhoça</strong></p>
+
+</body>
+</html>

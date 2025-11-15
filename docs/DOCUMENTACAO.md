@@ -1497,5 +1497,5 @@ Esta documentação cobre todos os aspectos técnicos do projeto **ChatJovemProg
 
 ---
 
-**Desenvolvido com ❤️ pela equipe do SENAC Palhoça**
+**Desenvolvido com ❤️ pelos alunos do Matheus**
 
