@@ -3,50 +3,11 @@
 {% block content %}
 
 <div class="main-header-line">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100">
+    <div class="d-flex justify-content-between align-items-center w-100">
         <h1 class="mb-0">Dashboard</h1>
-        <div class="d-flex flex-wrap align-items-center gap-2">
-            <!-- Filtros rápidos (já existentes) -->
-            <div class="d-flex align-items-center gap-2">
-                <label for="dashboard-range" class="form-label mb-0 me-2 small text-muted">
-                    Período rápido:
-                </label>
-                <select id="dashboard-range" class="form-select form-select-sm" style="width: auto; min-width: 160px;">
-                    <option value="7" selected>Últimos 7 dias</option>
-                    <option value="30">Últimos 30 dias</option>
-                    <option value="90">Últimos 90 dias</option>
-                </select>
-            </div>
-
-            <!-- Período personalizado -->
-            <div class="d-flex align-items-center gap-2">
-                <span class="small text-muted">ou personalizado:</span>
-
-                <label for="dashboard-date-start" class="form-label mb-0 small">De</label>
-                <input
-                    type="date"
-                    id="dashboard-date-start"
-                    class="form-control form-control-sm"
-                    style="width: auto;"
-                />
-
-                <label for="dashboard-date-end" class="form-label mb-0 small">até</label>
-                <input
-                    type="date"
-                    id="dashboard-date-end"
-                    class="form-control form-control-sm"
-                    style="width: auto;"
-                />
-
-                <button
-                    type="button"
-                    id="dashboard-apply-range"
-                    class="btn btn-sm btn-outline-primary"
-                >
-                    Aplicar
-                </button>
-            </div>
-        </div>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#dashboardFilterModal">
+            <i class="ri-filter-3-line me-1"></i> Filtrar
+        </button>
     </div>
 
     <div class="action-buttons">
@@ -54,6 +15,47 @@
         <button class="menu-button">
             <i class="bi bi-list"></i>
         </button>
+    </div>
+</div>
+
+<!-- Modal de Filtros -->
+<div class="modal fade" id="dashboardFilterModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h5 class="modal-title">Filtrar Dados da Dashboard</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Filtro rápido -->
+                <label class="form-label fw-semibold">Período rápido</label>
+                <select id="filter-quick" class="form-select mb-3">
+                    <option value="7" selected>Últimos 7 dias</option>
+                    <option value="30">Últimos 30 dias</option>
+                    <option value="90">Últimos 90 dias</option>
+                </select>
+
+                <hr>
+
+                <!-- Intervalo manual -->
+                <label class="form-label fw-semibold">Período personalizado</label>
+                
+                <div class="d-flex gap-2 mb-3">
+                    <input type="date" id="filter-date-start" class="form-control">
+                    <input type="date" id="filter-date-end" class="form-control">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-light" id="filter-clear">Limpar</button>
+                <button class="btn btn-primary" id="filter-apply">Aplicar filtro</button>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -698,54 +700,36 @@ function loadDashboardData(filters = {}) {
 
 // Inicialização quando o DOM estiver pronto
 document.addEventListener("DOMContentLoaded", function () {
-    const rangeSelect = document.getElementById("dashboard-range");
-    const dateStartInput = document.getElementById("dashboard-date-start");
-    const dateEndInput = document.getElementById("dashboard-date-end");
-    const applyRangeBtn = document.getElementById("dashboard-apply-range");
+    // Listener para aplicar filtro
+    document.getElementById("filter-apply").addEventListener("click", function () {
+        const days = document.getElementById("filter-quick").value;
+        const dateStart = document.getElementById("filter-date-start").value;
+        const dateEnd = document.getElementById("filter-date-end").value;
 
-    // Filtro rápido por dias
-    if (rangeSelect) {
-        rangeSelect.addEventListener("change", function () {
-            const days = parseInt(rangeSelect.value, 10) || 7;
-
-            // Quando o usuário escolhe um preset, limpa datas personalizadas
-            if (dateStartInput) dateStartInput.value = "";
-            if (dateEndInput) dateEndInput.value = "";
-
-            loadDashboardData({ days: days });
-        });
-    }
-
-    // Filtro por intervalo de datas manual
-    if (applyRangeBtn && dateStartInput && dateEndInput) {
-        applyRangeBtn.addEventListener("click", function () {
-            const dateStart = dateStartInput.value;
-            const dateEnd = dateEndInput.value;
-
-            if (!dateStart || !dateEnd) {
-                // opcional: dar um feedback simples
-                console.warn("Selecione data inicial e final para aplicar o filtro.");
-                return;
-            }
-
-            // Quando usa intervalo manual, desmarca o select rápido
-            if (rangeSelect) {
-                rangeSelect.value = "";
-            }
-
+        // Se datas estiverem preenchidas → usar datas
+        if (dateStart && dateEnd) {
             loadDashboardData({
                 date_start: dateStart,
                 date_end: dateEnd,
             });
-        });
-    }
+        } else {
+            // Caso contrário → usar filtro rápido
+            loadDashboardData({ days: parseInt(days) });
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById("dashboardFilterModal"));
+        modal.hide();
+    });
+
+    // Listener para limpar filtros
+    document.getElementById("filter-clear").addEventListener("click", function () {
+        document.getElementById("filter-date-start").value = "";
+        document.getElementById("filter-date-end").value = "";
+        document.getElementById("filter-quick").value = "7";
+    });
 
     // Carregamento inicial: mantém o comportamento atual (últimos 7 dias)
-    const initialDays = rangeSelect && rangeSelect.value
-        ? parseInt(rangeSelect.value, 10)
-        : 7;
-
-    loadDashboardData({ days: initialDays || 7 });
+    loadDashboardData({ days: 7 });
 });
 </script>
 
