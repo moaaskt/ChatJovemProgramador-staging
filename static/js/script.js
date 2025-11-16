@@ -998,13 +998,99 @@ const FRIENDLY_NAMES = {
     "programajovemprogramador.com.br": "Programa Jovem Programador",
 };
 
+// ===== RENDERIZAR MARKDOWN PARA FRAGMENTO DOM (DOM-SAFE) =====
+function renderMarkdownToFragment(text) {
+    /**
+     * Converte texto com markdown simples (**negrito**, *itálico*, \n) em DocumentFragment.
+     * NÃO usa innerHTML - apenas DOM API para segurança.
+     * 
+     * @param {string} text - Texto que pode conter **negrito**, *itálico* e \n
+     * @returns {DocumentFragment} Fragmento DOM com TextNodes, <strong>, <em>, <br>
+     */
+    const fragment = document.createDocumentFragment();
+    if (!text) return fragment;
+    
+    // Primeiro, tratar quebras de linha reais (\n) e literais (\\n)
+    // Substituir quebras de linha por um marcador temporário único
+    const LINE_BREAK_MARKER = '\uE000'; // Caractere privado não usado
+    const processedText = text
+        .replace(/\r\n/g, LINE_BREAK_MARKER) // Windows: \r\n
+        .replace(/\n/g, LINE_BREAK_MARKER)   // Unix: \n
+        .replace(/\\n/g, LINE_BREAK_MARKER); // Literal: \n
+    
+    // Regex para encontrar tokens de markdown: **texto**, *texto*
+    // Ordem: negrito primeiro (para não confundir com itálico), depois itálico
+    const markdownRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = markdownRegex.exec(processedText)) !== null) {
+        const matchStart = match.index;
+        const matchText = match[0];
+        
+        // Adicionar texto antes do match (tratando quebras de linha)
+        if (matchStart > lastIndex) {
+            const segment = processedText.substring(lastIndex, matchStart);
+            appendTextWithLineBreaks(fragment, segment, LINE_BREAK_MARKER);
+        }
+        
+        // Processar o token encontrado
+        if (matchText.startsWith('**') && matchText.endsWith('**')) {
+            // Negrito: **texto** -> <strong>texto</strong>
+            const content = matchText.slice(2, -2); // Remove ** do início e fim
+            const strong = document.createElement('strong');
+            strong.textContent = content;
+            fragment.appendChild(strong);
+        } else if (matchText.startsWith('*') && matchText.endsWith('*') && matchText.length > 2) {
+            // Itálico: *texto* -> <em>texto</em>
+            // Verificar que não é parte de um negrito (já processado acima)
+            const content = matchText.slice(1, -1); // Remove * do início e fim
+            const em = document.createElement('em');
+            em.textContent = content;
+            fragment.appendChild(em);
+        }
+        
+        lastIndex = matchStart + matchText.length;
+    }
+    
+    // Adicionar texto restante após o último match (tratando quebras de linha)
+    if (lastIndex < processedText.length) {
+        const tail = processedText.substring(lastIndex);
+        appendTextWithLineBreaks(fragment, tail, LINE_BREAK_MARKER);
+    }
+    
+    // Se não encontrou nenhum markdown, retorna apenas TextNode (com quebras de linha tratadas)
+    if (lastIndex === 0) {
+        appendTextWithLineBreaks(fragment, processedText, LINE_BREAK_MARKER);
+    }
+    
+    return fragment;
+}
+
+// Helper para adicionar texto tratando quebras de linha
+function appendTextWithLineBreaks(fragment, text, marker) {
+    if (!text) return;
+    const parts = text.split(marker);
+    for (let i = 0; i < parts.length; i++) {
+        if (parts[i]) {
+            fragment.appendChild(document.createTextNode(parts[i]));
+        }
+        if (i < parts.length - 1) {
+            fragment.appendChild(document.createElement('br'));
+        }
+    }
+}
+
 function linkifyText(text) {
     const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
     text.replace(urlRegex, (match, offset) => {
         if (offset > lastIndex) {
-            fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
+            // Trecho de texto antes da URL: processar markdown
+            const segment = text.substring(lastIndex, offset);
+            const mdFrag = renderMarkdownToFragment(segment);
+            fragment.appendChild(mdFrag);
         }
         let url = match;
         if (url.startsWith('www.')) {
@@ -1027,7 +1113,10 @@ function linkifyText(text) {
         return match;
     });
     if (lastIndex < text.length) {
-        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+        // Trecho de texto após a última URL: processar markdown
+        const tail = text.substring(lastIndex);
+        const mdFrag = renderMarkdownToFragment(tail);
+        fragment.appendChild(mdFrag);
     }
     return fragment;
 }

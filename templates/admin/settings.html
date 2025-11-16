@@ -11,45 +11,83 @@
     </div>
 </div>
 
-<!-- Seção 1: Tema do Painel -->
-<div class="card-section mt-4">
-    <div class="section-title-wrapper">
-        <h5 class="section-title">
-            <i class="bi bi-palette"></i>
-            Tema do Painel
-        </h5>
-    </div>
-    
-    <div class="card p-4">
-        <div class="mb-3">
-            <label class="form-label d-block mb-2">Tema</label>
+<!-- Seção 1: Tema do Painel e Segurança lado a lado -->
+<div class="row mt-4">
+
+    <div class="col-md-6">
+        <div class="card-section">
+            <div class="section-title-wrapper">
+                <h5 class="section-title">
+                    <i class="bi bi-shield-lock"></i>
+                    Segurança
+                </h5>
+            </div>
             
-            <!-- valor real que será salvo -->
-            <input type="hidden"
-                   id="admin-theme-value"
-                   value="{{ admin_theme or 'dark' }}">
-            
-            <div class="theme-toggle-wrapper">
-                <span class="theme-toggle-label">Claro</span>
+            <div class="card p-4">
+                <div class="mb-3">
+                    <label for="current-password" class="form-label">Senha Atual</label>
+                    <input type="password" id="current-password" class="form-control" placeholder="Digite sua senha atual">
+                </div>
                 
-                <button type="button"
-                        id="admin-theme-toggle"
-                        class="theme-toggle"
-                        data-theme="{{ admin_theme or 'dark' }}"
-                        aria-label="Alternar tema do painel">
-                    <span class="theme-toggle-icon">🌞</span>
-                    <span class="theme-toggle-thumb"></span>
-                    <span class="theme-toggle-icon">🌙</span>
-                </button>
+                <div class="mb-3">
+                    <label for="new-password" class="form-label">Nova Senha</label>
+                    <input type="password" id="new-password" class="form-control" placeholder="Digite a nova senha">
+                </div>
                 
-                <span class="theme-toggle-label">Escuro</span>
+                <div class="mb-3">
+                    <label for="confirm-password" class="form-label">Confirmar Nova Senha</label>
+                    <input type="password" id="confirm-password" class="form-control" placeholder="Confirme a nova senha">
+                </div>
+                
+                <button id="change-password" class="btn btn-primary">Alterar Senha</button>
             </div>
         </div>
-        
-        <small class="text-muted">
-            O tema é aplicado ao painel administrativo como modo claro ou escuro.
-        </small>
     </div>
+
+
+    <div class="col-md-6 mb-3 mb-md-0">
+        <div class="card-section">
+            <div class="section-title-wrapper">
+                <h5 class="section-title">
+                    <i class="bi bi-palette"></i>
+                    Tema do Painel
+                </h5>
+            </div>
+            
+            <div class="card p-4">
+                <div class="mb-3">
+                    <label class="form-label d-block mb-2">Tema</label>
+                    
+                    <!-- valor real que será salvo -->
+                    <input type="hidden"
+                           id="admin-theme-value"
+                           value="{{ admin_theme or 'dark' }}">
+                    
+                    <div class="theme-toggle-wrapper">
+                        <span class="theme-toggle-label">Claro</span>
+                        
+                        <button type="button"
+                                id="admin-theme-toggle"
+                                class="theme-toggle"
+                                data-theme="{{ admin_theme or 'dark' }}"
+                                aria-label="Alternar tema do painel">
+                            <span class="theme-toggle-icon">🌞</span>
+                            <span class="theme-toggle-thumb"></span>
+                            <span class="theme-toggle-icon">🌙</span>
+                        </button>
+                        
+                        <span class="theme-toggle-label">Escuro</span>
+                    </div>
+                </div>
+                
+                <small class="text-muted">
+                    O tema é aplicado ao painel administrativo como modo claro ou escuro.
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    
 </div>
 
 <!-- Seção 2: Personalização do Chat -->
@@ -179,35 +217,6 @@
     </div>
     
     <button id="save-chat-config" class="btn btn-primary mt-4">Salvar Configurações do Chat</button>
-</div>
-
-<!-- Seção 3: Troca de Senha -->
-<div class="card-section mt-4">
-    <div class="section-title-wrapper">
-        <h5 class="section-title">
-            <i class="bi bi-shield-lock"></i>
-            Segurança
-        </h5>
-    </div>
-    
-    <div class="card p-4">
-        <div class="mb-3">
-            <label for="current-password" class="form-label">Senha Atual</label>
-            <input type="password" id="current-password" class="form-control" placeholder="Digite sua senha atual">
-        </div>
-        
-        <div class="mb-3">
-            <label for="new-password" class="form-label">Nova Senha</label>
-            <input type="password" id="new-password" class="form-control" placeholder="Digite a nova senha">
-        </div>
-        
-        <div class="mb-3">
-            <label for="confirm-password" class="form-label">Confirmar Nova Senha</label>
-            <input type="password" id="confirm-password" class="form-control" placeholder="Confirme a nova senha">
-        </div>
-        
-        <button id="change-password" class="btn btn-primary">Alterar Senha</button>
-    </div>
 </div>
 
 <!-- Mensagens de feedback -->
