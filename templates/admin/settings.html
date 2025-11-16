@@ -94,6 +94,29 @@
             </div>
         </div>
         
+        <!-- Botões rápidos -->
+        <div class="mb-3 mt-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <label class="form-label mb-0">Botões rápidos</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="quick-actions-enabled" role="switch">
+                    <label class="form-check-label" for="quick-actions-enabled">Ativar botões rápidos no chat</label>
+                </div>
+            </div>
+            
+            <div id="quick-actions-list" class="mb-3">
+                <!-- Linhas de botões serão injetadas via JS -->
+            </div>
+            
+            <button type="button" id="add-quick-action-btn" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-plus"></i> Adicionar botão rápido
+            </button>
+            
+            <small class="text-muted d-block mt-2">
+                Configure os botões rápidos que aparecerão no chat. Máximo de 4 botões recomendado.
+            </small>
+        </div>
+        
     </div>
     
     <!-- Previews lado a lado -->
@@ -145,6 +168,10 @@
                                 Olá! 👋 Sou o assistente...
                             </span>
                         </div>
+                    </div>
+
+                    <div class="chat-preview-quick-actions" id="chat-preview-quick-actions" style="padding: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <!-- Botões de preview serão injetados via JS -->
                     </div>
                 </div>
             </div>
@@ -247,6 +274,145 @@ function updateLauncherPreviewFromForm() {
     avatarEl.src = avatarUrl;
 }
 
+// ===== FUNÇÕES PARA GERENCIAR BOTÕES RÁPIDOS =====
+
+// Renderiza o formulário de botões rápidos
+function renderQuickActionsForm(actions) {
+    const container = document.getElementById("quick-actions-list");
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Se actions for vazio, criar pelo menos 1 linha vazia para iniciar
+    const actionsToRender = Array.isArray(actions) && actions.length > 0 ? actions : [{}];
+    
+    actionsToRender.forEach((action, index) => {
+        addQuickActionRow(action, index);
+    });
+}
+
+// Adiciona uma nova linha de botão rápido
+function addQuickActionRow(initialData = {}, index = null) {
+    const container = document.getElementById("quick-actions-list");
+    if (!container) return;
+    
+    // Limite de 4 botões
+    const existingRows = container.querySelectorAll('.quick-action-row');
+    if (existingRows.length >= 4) {
+        return;
+    }
+    
+    // Se index não foi fornecido, usar o próximo índice disponível
+    if (index === null) {
+        index = existingRows.length;
+    }
+    
+    const row = document.createElement('div');
+    row.className = 'quick-action-row mb-3';
+    row.dataset.index = index;
+    
+    row.innerHTML = `
+        <div class="row g-2">
+            <div class="col-md-5">
+                <label class="form-label small">Texto do botão (label)</label>
+                <input type="text" class="form-control form-control-sm" 
+                       placeholder="Ex: 💻 Como começar?" 
+                       value="${(initialData.label || '').replace(/"/g, '&quot;')}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small">Mensagem enviada (message)</label>
+                <input type="text" class="form-control form-control-sm" 
+                       placeholder="Ex: Como começar na programação?" 
+                       value="${(initialData.message || '').replace(/"/g, '&quot;')}">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-quick-action-btn" title="Remover botão">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(row);
+    
+    // Conectar botão remover
+    const removeBtn = row.querySelector('.remove-quick-action-btn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            row.remove();
+            updateChatPreview(); // Atualizar preview ao remover
+        });
+    }
+    
+    // Atualizar preview quando os inputs mudarem
+    const inputs = row.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('input', updateChatPreview);
+    });
+}
+
+// Coleta os botões rápidos do formulário
+function collectQuickActionsFromForm() {
+    const container = document.getElementById("quick-actions-list");
+    if (!container) return [];
+    
+    const rows = container.querySelectorAll('.quick-action-row');
+    const actions = [];
+    
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs.length >= 2) {
+            const label = inputs[0].value.trim();
+            const message = inputs[1].value.trim();
+            
+            // Ignora linhas completamente vazias
+            if (label || message) {
+                actions.push({
+                    label: label || message, // Fallback: se não tiver label, usa message
+                    message: message || label // Fallback: se não tiver message, usa label
+                });
+            }
+        }
+    });
+    
+    return actions;
+}
+
+// Atualiza o preview dos botões rápidos no chat-preview
+function updateQuickActionsPreview() {
+    const previewContainer = document.getElementById("chat-preview-quick-actions");
+    if (!previewContainer) return;
+    
+    const enabled = document.getElementById("quick-actions-enabled")?.checked || false;
+    const actions = collectQuickActionsFromForm();
+    
+    previewContainer.innerHTML = '';
+    
+    if (enabled && actions.length > 0) {
+        actions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.className = 'preview-quick-btn';
+            btn.textContent = action.label || action.message;
+            btn.style.cssText = 'margin: 4px; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: inherit; cursor: default;';
+            btn.disabled = true;
+            previewContainer.appendChild(btn);
+        });
+        previewContainer.style.display = 'flex';
+        previewContainer.style.flexWrap = 'wrap';
+    } else {
+        previewContainer.style.display = 'none';
+    }
+}
+
+// Atualizar updateChatPreview para incluir botões rápidos
+// Salvar referência original
+const originalUpdateChatPreview = updateChatPreview;
+// Sobrescrever função
+window.updateChatPreview = function() {
+    originalUpdateChatPreview();
+    updateQuickActionsPreview();
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     const THEME_STORAGE_KEY = "chatleo_admin_theme";
     const toggle = document.getElementById("admin-theme-toggle");
@@ -318,11 +484,23 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("secondary-color").value = data.chat.secondary_color;
                 }
                 
+                // Carregar configurações de botões rápidos
+                const quickActionsEnabled = data.chat.quick_actions_enabled || false;
+                const quickActionsCheckbox = document.getElementById("quick-actions-enabled");
+                if (quickActionsCheckbox) {
+                    quickActionsCheckbox.checked = quickActionsEnabled;
+                }
+                
+                const quickActions = Array.isArray(data.chat.quick_actions) ? data.chat.quick_actions : [];
+                renderQuickActionsForm(quickActions);
+                
                 // Atualizar pré-visualização com os valores carregados
                 updateChatPreview();
                 updateLauncherPreviewFromForm();
             } else {
                 // Atualizar pré-visualização mesmo se não houver dados carregados
+                // Renderizar formulário de botões rápidos vazio
+                renderQuickActionsForm([]);
                 updateChatPreview();
                 updateLauncherPreviewFromForm();
             }
@@ -422,6 +600,20 @@ document.addEventListener("DOMContentLoaded", function () {
         secondaryInput.addEventListener("input", updateLauncherPreviewFromForm);
         secondaryInput.addEventListener("change", updateLauncherPreviewFromForm);
     }
+    
+    // Event listener para checkbox de enable dos botões rápidos
+    const quickActionsEnabledCheckbox = document.getElementById("quick-actions-enabled");
+    if (quickActionsEnabledCheckbox) {
+        quickActionsEnabledCheckbox.addEventListener("change", updateChatPreview);
+    }
+    
+    // Event listener para botão "Adicionar botão rápido"
+    const addQuickActionBtn = document.getElementById("add-quick-action-btn");
+    if (addQuickActionBtn) {
+        addQuickActionBtn.addEventListener("click", function() {
+            addQuickActionRow({});
+        });
+    }
 });
 
 // Função para mostrar feedback usando SweetAlert2 (padrão Velzon)
@@ -447,6 +639,9 @@ function showFeedback(message, isError = false, isWarning = false) {
 
 // Salvar configurações do chat
 document.getElementById("save-chat-config").addEventListener("click", async function() {
+    const quickActionsEnabled = document.getElementById("quick-actions-enabled").checked;
+    const quickActions = collectQuickActionsFromForm();
+    
     const chatConfig = {
         chat_title: document.getElementById("chat-title").value,
         welcome_message: document.getElementById("welcome-message").value,
@@ -454,6 +649,8 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         user_avatar: document.getElementById("user-avatar").value,
         primary_color: document.getElementById("primary-color").value,
         secondary_color: document.getElementById("secondary-color").value,
+        quick_actions_enabled: quickActionsEnabled,
+        quick_actions: quickActions,
     };
     
     try {

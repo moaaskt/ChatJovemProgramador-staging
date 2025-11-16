@@ -336,6 +336,8 @@ def api_chat_config():
         "user_avatar": chat_cfg.get("user_avatar", "/static/assets/logo-user.png"),
         "primary_color": chat_cfg.get("primary_color", "#3D7EFF"),
         "secondary_color": chat_cfg.get("secondary_color", "#8B5CF6"),
+        "quick_actions_enabled": bool(chat_cfg.get("quick_actions_enabled", False)),
+        "quick_actions": chat_cfg.get("quick_actions") or [],
     }
     return jsonify(data)
 

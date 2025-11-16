@@ -162,6 +162,81 @@ function applyChatConfig(cfg) {
             widgetRoot.dataset.secondaryColor = cfg.secondary_color;
         }
     }
+    
+    // Renderizar botões rápidos se configurados
+    renderQuickActionsFromConfig(cfg);
+}
+
+// ===== RENDERIZAR BOTÕES RÁPIDOS DO CONFIG =====
+function renderQuickActionsFromConfig(config) {
+    const container = document.querySelector('.widget-quick-actions');
+    if (!container) return;
+    
+    const enabled = !!config.quick_actions_enabled;
+    const actions = Array.isArray(config.quick_actions) ? config.quick_actions : [];
+    
+    if (enabled && actions.length > 0) {
+        // Limpa qualquer botão hardcoded (isso também remove os listeners)
+        container.innerHTML = '';
+        
+        actions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-btn';
+            btn.type = 'button';
+            
+            // Label visível: action.label (fallback para message)
+            const label = action.label || action.message || '';
+            btn.textContent = label;
+            
+            // Mensagem enviada: action.message (fallback para label)
+            const payload = action.message || label;
+            btn.dataset.message = payload;
+            
+            btn.setAttribute('tabindex', '0');
+            btn.setAttribute('aria-label', label);
+            // Não definir quickBtnListener aqui - será feito em setupQuickButtonsListeners
+            
+            container.appendChild(btn);
+        });
+        
+        // (Re)capturar quick buttons dinâmicos e bindar listeners
+        DOMElements.quickBtns = container.querySelectorAll('.quick-btn');
+        setupQuickButtonsListeners();
+    } else {
+        // Se desativado ou sem ações configuradas:
+        // Não mexe no conteúdo (mantém hardcoded).
+        // Mas ainda precisa bindar listeners nos botões hardcoded (apenas se não tiverem)
+        setupQuickButtonsListeners();
+    }
+}
+
+// ===== CONFIGURAR LISTENERS DOS BOTÕES RÁPIDOS =====
+function setupQuickButtonsListeners() {
+    // Recapturar botões (pode ter mudado se foram renderizados dinamicamente)
+    DOMElements.quickBtns = document.querySelectorAll('.quick-btn');
+    
+    if (!DOMElements.quickBtns || DOMElements.quickBtns.length === 0) {
+        return;
+    }
+    
+    DOMElements.quickBtns.forEach(btn => {
+        // Verificar se já tem listener (usando flag data attribute)
+        if (btn.dataset.quickBtnListener === 'true') {
+            return; // Já tem listener, pular
+        }
+        
+        // Marcar como tendo listener
+        btn.dataset.quickBtnListener = 'true';
+        
+        // Adicionar listeners
+        btn.addEventListener('click', handleQuickAction);
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleQuickAction.call(btn, e);
+            }
+        });
+    });
 }
 
 // ===== RENDERIZAR MENSAGEM DE BOAS-VINDAS =====
@@ -345,16 +420,8 @@ function setupEventListeners() {
         DOMElements.sendBtn.addEventListener('click', sendMessage);
     }
     
-    // Botões de ação rápida
-    DOMElements.quickBtns.forEach(btn => {
-        btn.addEventListener('click', handleQuickAction);
-        btn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleQuickAction.call(btn);
-            }
-        });
-    });
+    // Botões de ação rápida - usar função auxiliar
+    setupQuickButtonsListeners();
     
     // Navegação por teclado global (não-passiva para permitir preventDefault)
     document.addEventListener('keydown', handleGlobalKeydown, { passive: false });
@@ -839,8 +906,12 @@ function handleQuickAction(e) {
     const target = e && e.target ? e.target : null;
     const button = (target && target.closest('.quick-btn')) || (target && target.closest('.chatleo-quick-button')) || this;
     if (!button) return;
-    const message = button.textContent.trim();
-    if (DOMElements.messageInput) {
+    
+    // Prioriza dataset.message (configurado dinamicamente), fallback para textContent (hardcoded)
+    const payload = button.dataset.message || button.textContent.trim();
+    const message = payload.trim();
+    
+    if (DOMElements.messageInput && message) {
         DOMElements.messageInput.value = message;
         sendMessage();
     }
