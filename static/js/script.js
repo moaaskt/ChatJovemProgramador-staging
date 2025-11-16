@@ -175,39 +175,37 @@ function renderQuickActionsFromConfig(config) {
     const enabled = !!config.quick_actions_enabled;
     const actions = Array.isArray(config.quick_actions) ? config.quick_actions : [];
     
-    if (enabled && actions.length > 0) {
-        // Limpa qualquer botão hardcoded (isso também remove os listeners)
+    // Se desativado ou sem ações, não exibir nada
+    if (!enabled || actions.length === 0) {
         container.innerHTML = '';
-        
-        actions.forEach(action => {
-            const btn = document.createElement('button');
-            btn.className = 'quick-btn';
-            btn.type = 'button';
-            
-            // Label visível: action.label (fallback para message)
-            const label = action.label || action.message || '';
-            btn.textContent = label;
-            
-            // Mensagem enviada: action.message (fallback para label)
-            const payload = action.message || label;
-            btn.dataset.message = payload;
-            
-            btn.setAttribute('tabindex', '0');
-            btn.setAttribute('aria-label', label);
-            // Não definir quickBtnListener aqui - será feito em setupQuickButtonsListeners
-            
-            container.appendChild(btn);
-        });
-        
-        // (Re)capturar quick buttons dinâmicos e bindar listeners
-        DOMElements.quickBtns = container.querySelectorAll('.quick-btn');
-        setupQuickButtonsListeners();
-    } else {
-        // Se desativado ou sem ações configuradas:
-        // Não mexe no conteúdo (mantém hardcoded).
-        // Mas ainda precisa bindar listeners nos botões hardcoded (apenas se não tiverem)
-        setupQuickButtonsListeners();
+        container.setAttribute('hidden', 'true');
+        DOMElements.quickBtns = [];
+        return;
     }
+    
+    // Ativado e com ações: mostrar
+    container.removeAttribute('hidden');
+    container.innerHTML = '';
+    
+    actions.forEach(action => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-btn';
+        btn.type = 'button';
+        
+        const label = action.label || action.message || '';
+        const payload = action.message || label;
+        
+        btn.textContent = label;
+        btn.dataset.message = payload;
+        btn.setAttribute('tabindex', '0');
+        btn.setAttribute('aria-label', label);
+        
+        container.appendChild(btn);
+    });
+    
+    // Atualiza referência e listeners
+    DOMElements.quickBtns = container.querySelectorAll('.quick-btn');
+    setupQuickButtonsListeners();
 }
 
 // ===== CONFIGURAR LISTENERS DOS BOTÕES RÁPIDOS =====
@@ -903,15 +901,15 @@ function showWelcomeMessage() {
 // ===== AÇÕES RÁPIDAS =====
 function handleQuickAction(e) {
     if (isWaiting) return;
-    const target = e && e.target ? e.target : null;
-    const button = (target && target.closest('.quick-btn')) || (target && target.closest('.chatleo-quick-button')) || this;
+    
+    const button = this instanceof HTMLElement ? this : (e && e.currentTarget);
     if (!button) return;
     
-    // Prioriza dataset.message (configurado dinamicamente), fallback para textContent (hardcoded)
-    const payload = button.dataset.message || button.textContent.trim();
+    const payload = button.dataset.message || button.textContent || '';
     const message = payload.trim();
+    if (!message) return;
     
-    if (DOMElements.messageInput && message) {
+    if (DOMElements.messageInput) {
         DOMElements.messageInput.value = message;
         sendMessage();
     }
