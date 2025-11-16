@@ -1052,7 +1052,8 @@ function renderMarkdownToFragment(text) {
     }
     
     // Adicionar texto restante após o último match (tratando quebras de linha)
-    if (lastIndex < processedText.length) {
+    // Só executa se encontrou pelo menos um match (lastIndex > 0)
+    if (lastIndex > 0 && lastIndex < processedText.length) {
         const tail = processedText.substring(lastIndex);
         appendTextWithLineBreaks(fragment, tail, LINE_BREAK_MARKER);
     }

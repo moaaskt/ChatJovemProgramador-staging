@@ -133,27 +133,7 @@
         </div>
         
         <!-- Botões rápidos -->
-        <div class="mb-3 mt-4">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <label class="form-label mb-0">Botões rápidos</label>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="quick-actions-enabled" role="switch">
-                    <label class="form-check-label" for="quick-actions-enabled">Ativar botões rápidos no chat</label>
-                </div>
-            </div>
-            
-            <div id="quick-actions-list" class="mb-3">
-                <!-- Linhas de botões serão injetadas via JS -->
-            </div>
-            
-            <button type="button" id="add-quick-action-btn" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-plus"></i> Adicionar botão rápido
-            </button>
-            
-            <small class="text-muted d-block mt-2">
-                Configure os botões rápidos que aparecerão no chat. Máximo de 4 botões recomendado.
-            </small>
-        </div>
+        
         
     </div>
     
@@ -215,7 +195,27 @@
             </div>
         </div>
     </div>
-    
+    <div class="mb-3 mt-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <label class="form-label mb-0">Botões rápidos</label>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="quick-actions-enabled" role="switch">
+                <label class="form-check-label" for="quick-actions-enabled">Ativar botões rápidos no chat</label>
+            </div>
+        </div>
+        
+        <div id="quick-actions-list" class="mb-3">
+            <!-- Linhas de botões serão injetadas via JS -->
+        </div>
+        
+        <button type="button" id="add-quick-action-btn" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-plus"></i> Adicionar botão rápido
+        </button>
+        
+        <small class="text-muted d-block mt-2">
+            Configure os botões rápidos que aparecerão no chat. Máximo de 4 botões recomendado.
+        </small>
+    </div>
     <button id="save-chat-config" class="btn btn-primary mt-4">Salvar Configurações do Chat</button>
 </div>
 
