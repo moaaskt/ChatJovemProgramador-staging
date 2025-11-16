@@ -1318,6 +1318,53 @@ button {
   word-break: break-word;
 }
 
+/* Mensagem do BOT na pré-visualização */
+.chat-preview-bot-message {
+  display: flex;
+  justify-content: flex-start;  /* bot à esquerda */
+  margin-bottom: 10px;
+}
+
+.chat-preview-bot-bubble {
+  display: inline-block;
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px; /* canto inferior ESQUERDO mais reto */
+  background: var(--chat-preview-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.chat-preview-bot-bubble span {
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Mensagem do USUÁRIO na pré-visualização */
+.chat-preview-user-message {
+  display: flex;
+  justify-content: flex-end;    /* user à direita */
+}
+
+.chat-preview-user-bubble {
+  display: inline-block;
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 16px 16px 4px 16px; /* canto inferior DIREITO mais reto */
+  background: var(--chat-preview-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.chat-preview-user-bubble span {
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Tema claro/escuro: respeitar ambos */
 .admin-body.theme-dark .chat-preview-body {
   background-color: #020617;

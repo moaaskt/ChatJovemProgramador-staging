@@ -161,6 +161,45 @@ function applyChatConfig(cfg) {
             widgetRoot.style.setProperty("--chat-secondary", cfg.secondary_color);
             widgetRoot.dataset.secondaryColor = cfg.secondary_color;
         }
+        
+        // Aplicar papel de parede
+        const enabled = cfg.chat_background_enabled !== false; // default: true
+        const type = cfg.chat_background_type || 'default';
+        const color = cfg.chat_background_color || '';
+        const imageUrl = cfg.chat_background_image_url || '';
+        
+        // Reseta estilos customizados antes
+        widgetRoot.style.removeProperty('background-image');
+        widgetRoot.style.removeProperty('background-color');
+        widgetRoot.removeAttribute('data-has-background');
+        
+        if (enabled && type !== 'default') {
+            widgetRoot.setAttribute('data-has-background', 'true');
+            
+            if (type === 'image' && imageUrl) {
+                widgetRoot.style.backgroundImage = `url("${imageUrl}")`;
+                widgetRoot.style.backgroundSize = 'cover';
+                widgetRoot.style.backgroundPosition = 'center';
+                widgetRoot.style.backgroundRepeat = 'no-repeat';
+            } else if (type === 'color' && color) {
+                widgetRoot.style.backgroundColor = color;
+            }
+        }
+        
+        // Sincronizar o rodapé (.widget-input-container) com o papel de parede
+        const inputContainer = widgetRoot.querySelector('.widget-input-container');
+        if (inputContainer) {
+            // Limpa qualquer estilo inline anterior
+            inputContainer.style.removeProperty('background');
+            inputContainer.style.removeProperty('background-color');
+            
+            if (enabled && type !== 'default') {
+                // Quando há papel de parede, deixamos o rodapé transparente
+                // para o fundo do widget aparecer por trás
+                inputContainer.style.backgroundColor = 'transparent';
+            }
+            // Caso contrário, deixamos o CSS padrão assumir (var(--bg-secondary))
+        }
     }
     
     // Renderizar botões rápidos se configurados
