@@ -132,8 +132,38 @@
             </div>
         </div>
         
-      
-        
+        <!-- Papel de Parede do Chat -->
+        <div class="mb-3 mt-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <label class="form-label mb-0">Papel de Parede do Chat</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="chat-background-enabled" role="switch" checked>
+                    <label class="form-check-label" for="chat-background-enabled">Ativar papel de parede</label>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="chat-background-type" class="form-label">Tipo de Fundo</label>
+                <select id="chat-background-type" class="form-select">
+                    <option value="default">Usar padrão do sistema</option>
+                    <option value="color">Cor sólida</option>
+                    <option value="image">Imagem</option>
+                </select>
+            </div>
+            
+            <div class="mb-3" id="chat-background-color-wrapper" style="display: none;">
+                <label for="chat-background-color" class="form-label">Cor de Fundo</label>
+                <input type="color" id="chat-background-color" class="form-control form-control-color" value="#1b2936">
+            </div>
+            
+            <div class="mb-3" id="chat-background-image-wrapper" style="display: none;">
+                <label for="chat-background-image-url" class="form-label">URL da Imagem de Fundo</label>
+                <input type="text" id="chat-background-image-url" class="form-control" placeholder="https://exemplo.com/imagem.jpg">
+                <small class="text-muted d-block mt-2">
+                    Informe uma URL válida de uma imagem. A imagem será redimensionada para cobrir todo o fundo do chat.
+                </small>
+            </div>
+        </div>
         
     </div>
     
@@ -226,6 +256,24 @@
 <div id="settings-feedback" class="mt-3" style="display: none;"></div>
 
 <script>
+// Função para mostrar/esconder campos de papel de parede baseado no tipo
+function toggleBackgroundFields(type) {
+    const colorWrapper = document.getElementById("chat-background-color-wrapper");
+    const imageWrapper = document.getElementById("chat-background-image-wrapper");
+    
+    if (type === "color") {
+        if (colorWrapper) colorWrapper.style.display = "block";
+        if (imageWrapper) imageWrapper.style.display = "none";
+    } else if (type === "image") {
+        if (colorWrapper) colorWrapper.style.display = "none";
+        if (imageWrapper) imageWrapper.style.display = "block";
+    } else {
+        // default
+        if (colorWrapper) colorWrapper.style.display = "none";
+        if (imageWrapper) imageWrapper.style.display = "none";
+    }
+}
+
 // Função para atualizar a pré-visualização do chat
 function updateChatPreview() {
     const titleInput = document.getElementById("chat-title");
@@ -504,6 +552,33 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("secondary-color").value = data.chat.secondary_color;
                 }
                 
+                // Carregar configurações de papel de parede
+                const chatBgEnabled = data.chat.chat_background_enabled !== undefined 
+                    ? data.chat.chat_background_enabled 
+                    : true; // default: true
+                const chatBgType = data.chat.chat_background_type || "default";
+                const chatBgColor = data.chat.chat_background_color || "";
+                const chatBgImageUrl = data.chat.chat_background_image_url || "";
+                
+                const bgEnabledCheckbox = document.getElementById("chat-background-enabled");
+                const bgTypeSelect = document.getElementById("chat-background-type");
+                const bgColorInput = document.getElementById("chat-background-color");
+                const bgImageUrlInput = document.getElementById("chat-background-image-url");
+                
+                if (bgEnabledCheckbox) {
+                    bgEnabledCheckbox.checked = chatBgEnabled;
+                }
+                if (bgTypeSelect) {
+                    bgTypeSelect.value = chatBgType;
+                    toggleBackgroundFields(chatBgType);
+                }
+                if (bgColorInput && chatBgColor) {
+                    bgColorInput.value = chatBgColor;
+                }
+                if (bgImageUrlInput) {
+                    bgImageUrlInput.value = chatBgImageUrl;
+                }
+                
                 // Carregar configurações de botões rápidos
                 const chat = data.chat || {};
                 
@@ -649,6 +724,16 @@ document.addEventListener("DOMContentLoaded", function () {
             addQuickActionRow({});
         });
     }
+    
+    // Event listener para tipo de fundo do papel de parede
+    const bgTypeSelect = document.getElementById("chat-background-type");
+    if (bgTypeSelect) {
+        bgTypeSelect.addEventListener("change", function() {
+            toggleBackgroundFields(this.value);
+        });
+        // Inicializar visibilidade dos campos
+        toggleBackgroundFields(bgTypeSelect.value);
+    }
 });
 
 // Função para mostrar feedback usando SweetAlert2 (padrão Velzon)
@@ -686,6 +771,10 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         secondary_color: document.getElementById("secondary-color").value,
         quick_actions_enabled: quickActionsEnabled,
         quick_actions: quickActions,
+        chat_background_enabled: document.getElementById("chat-background-enabled").checked,
+        chat_background_type: document.getElementById("chat-background-type").value || "default",
+        chat_background_color: document.getElementById("chat-background-color").value || "",
+        chat_background_image_url: document.getElementById("chat-background-image-url").value || "",
     };
     
     try {

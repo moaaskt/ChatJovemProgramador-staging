@@ -355,6 +355,11 @@ def api_chat_config():
         "secondary_color": chat_cfg.get("secondary_color", "#8B5CF6"),
         "quick_actions_enabled": quick_actions_enabled,
         "quick_actions": quick_actions,
+        # Novos campos de papel de parede
+        "chat_background_enabled": chat_cfg.get("chat_background_enabled", True),
+        "chat_background_type": chat_cfg.get("chat_background_type", "default"),
+        "chat_background_color": chat_cfg.get("chat_background_color", ""),
+        "chat_background_image_url": chat_cfg.get("chat_background_image_url", ""),
     }
     return jsonify(data)
 

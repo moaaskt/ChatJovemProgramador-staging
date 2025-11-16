@@ -280,6 +280,9 @@ footer {
     width: 400px;
     height: 600px;
     background: var(--bg-card);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-xl);
     border: 1px solid var(--bg-tertiary);
@@ -486,6 +489,12 @@ footer {
     word-wrap: break-word;
     overflow-wrap: anywhere;
     word-break: break-word;
+}
+
+/* Melhorar contraste das mensagens quando houver papel de parede */
+.chatbot-widget[data-has-background="true"] .bot-message .message-bubble {
+    background: rgba(27, 41, 54, 0.95);
+    backdrop-filter: blur(4px);
 }
 
 .user-message .message-bubble,

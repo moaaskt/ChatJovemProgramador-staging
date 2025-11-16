@@ -161,6 +161,30 @@ function applyChatConfig(cfg) {
             widgetRoot.style.setProperty("--chat-secondary", cfg.secondary_color);
             widgetRoot.dataset.secondaryColor = cfg.secondary_color;
         }
+        
+        // Aplicar papel de parede
+        const enabled = cfg.chat_background_enabled !== false; // default: true
+        const type = cfg.chat_background_type || 'default';
+        const color = cfg.chat_background_color || '';
+        const imageUrl = cfg.chat_background_image_url || '';
+        
+        // Reseta estilos customizados antes
+        widgetRoot.style.removeProperty('background-image');
+        widgetRoot.style.removeProperty('background-color');
+        widgetRoot.removeAttribute('data-has-background');
+        
+        if (enabled && type !== 'default') {
+            widgetRoot.setAttribute('data-has-background', 'true');
+            
+            if (type === 'image' && imageUrl) {
+                widgetRoot.style.backgroundImage = `url("${imageUrl}")`;
+                widgetRoot.style.backgroundSize = 'cover';
+                widgetRoot.style.backgroundPosition = 'center';
+                widgetRoot.style.backgroundRepeat = 'no-repeat';
+            } else if (type === 'color' && color) {
+                widgetRoot.style.backgroundColor = color;
+            }
+        }
     }
     
     // Renderizar botões rápidos se configurados
