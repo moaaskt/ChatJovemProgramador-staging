@@ -185,6 +185,21 @@ function applyChatConfig(cfg) {
                 widgetRoot.style.backgroundColor = color;
             }
         }
+        
+        // Sincronizar o rodapé (.widget-input-container) com o papel de parede
+        const inputContainer = widgetRoot.querySelector('.widget-input-container');
+        if (inputContainer) {
+            // Limpa qualquer estilo inline anterior
+            inputContainer.style.removeProperty('background');
+            inputContainer.style.removeProperty('background-color');
+            
+            if (enabled && type !== 'default') {
+                // Quando há papel de parede, deixamos o rodapé transparente
+                // para o fundo do widget aparecer por trás
+                inputContainer.style.backgroundColor = 'transparent';
+            }
+            // Caso contrário, deixamos o CSS padrão assumir (var(--bg-secondary))
+        }
     }
     
     // Renderizar botões rápidos se configurados

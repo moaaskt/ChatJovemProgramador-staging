@@ -616,6 +616,11 @@ footer {
     border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 }
 
+/* Quando o widget estiver com papel de parede, o rodapé deve "fundir" com o fundo */
+.chatbot-widget[data-has-background="true"] .widget-input-container {
+    background: transparent;
+}
+
 .widget-quick-actions {
     display: flex;
     gap: var(--space-2);
