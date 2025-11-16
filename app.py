@@ -320,10 +320,27 @@ def normalize_lead_answer(field: str, answer: str):
 def index():
     return render_template('index.html')
 
+# Defaults para botões rápidos
+DEFAULT_QUICK_ACTIONS = [
+    {"label": "💻 Como começar?",      "message": "Quero saber como começar na programação."},
+    {"label": "🎯 Dicas de carreira",  "message": "Quais são as dicas de carreira em tecnologia?"},
+    {"label": "🔧 Ferramentas úteis",  "message": "Quais ferramentas são úteis para programação?"},
+    {"label": "📚 Recursos de estudo", "message": "Quais são os melhores recursos de estudo?"}
+]
+
 @app.route('/api/chat-config', methods=['GET'])
 def api_chat_config():
     """Endpoint público para configs do chat widget."""
     chat_cfg = get_settings("chat_config") or {}
+    
+    # Processar quick_actions com defaults
+    quick_actions = chat_cfg.get("quick_actions")
+    if not isinstance(quick_actions, list) or len(quick_actions) == 0:
+        quick_actions = DEFAULT_QUICK_ACTIONS
+    
+    quick_actions_enabled = chat_cfg.get("quick_actions_enabled")
+    if quick_actions_enabled is None:
+        quick_actions_enabled = True  # ligado por padrão quando estamos usando os defaults
     
     # Defaults seguros
     data = {
@@ -336,6 +353,8 @@ def api_chat_config():
         "user_avatar": chat_cfg.get("user_avatar", "/static/assets/logo-user.png"),
         "primary_color": chat_cfg.get("primary_color", "#3D7EFF"),
         "secondary_color": chat_cfg.get("secondary_color", "#8B5CF6"),
+        "quick_actions_enabled": quick_actions_enabled,
+        "quick_actions": quick_actions,
     }
     return jsonify(data)
 

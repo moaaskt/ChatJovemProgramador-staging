@@ -162,6 +162,79 @@ function applyChatConfig(cfg) {
             widgetRoot.dataset.secondaryColor = cfg.secondary_color;
         }
     }
+    
+    // Renderizar botões rápidos se configurados
+    renderQuickActionsFromConfig(cfg);
+}
+
+// ===== RENDERIZAR BOTÕES RÁPIDOS DO CONFIG =====
+function renderQuickActionsFromConfig(config) {
+    const container = document.querySelector('.widget-quick-actions');
+    if (!container) return;
+    
+    const enabled = !!config.quick_actions_enabled;
+    const actions = Array.isArray(config.quick_actions) ? config.quick_actions : [];
+    
+    // Se desativado ou sem ações, não exibir nada
+    if (!enabled || actions.length === 0) {
+        container.innerHTML = '';
+        container.setAttribute('hidden', 'true');
+        DOMElements.quickBtns = [];
+        return;
+    }
+    
+    // Ativado e com ações: mostrar
+    container.removeAttribute('hidden');
+    container.innerHTML = '';
+    
+    actions.forEach(action => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-btn';
+        btn.type = 'button';
+        
+        const label = action.label || action.message || '';
+        const payload = action.message || label;
+        
+        btn.textContent = label;
+        btn.dataset.message = payload;
+        btn.setAttribute('tabindex', '0');
+        btn.setAttribute('aria-label', label);
+        
+        container.appendChild(btn);
+    });
+    
+    // Atualiza referência e listeners
+    DOMElements.quickBtns = container.querySelectorAll('.quick-btn');
+    setupQuickButtonsListeners();
+}
+
+// ===== CONFIGURAR LISTENERS DOS BOTÕES RÁPIDOS =====
+function setupQuickButtonsListeners() {
+    // Recapturar botões (pode ter mudado se foram renderizados dinamicamente)
+    DOMElements.quickBtns = document.querySelectorAll('.quick-btn');
+    
+    if (!DOMElements.quickBtns || DOMElements.quickBtns.length === 0) {
+        return;
+    }
+    
+    DOMElements.quickBtns.forEach(btn => {
+        // Verificar se já tem listener (usando flag data attribute)
+        if (btn.dataset.quickBtnListener === 'true') {
+            return; // Já tem listener, pular
+        }
+        
+        // Marcar como tendo listener
+        btn.dataset.quickBtnListener = 'true';
+        
+        // Adicionar listeners
+        btn.addEventListener('click', handleQuickAction);
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleQuickAction.call(btn, e);
+            }
+        });
+    });
 }
 
 // ===== RENDERIZAR MENSAGEM DE BOAS-VINDAS =====
@@ -345,16 +418,8 @@ function setupEventListeners() {
         DOMElements.sendBtn.addEventListener('click', sendMessage);
     }
     
-    // Botões de ação rápida
-    DOMElements.quickBtns.forEach(btn => {
-        btn.addEventListener('click', handleQuickAction);
-        btn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleQuickAction.call(btn);
-            }
-        });
-    });
+    // Botões de ação rápida - usar função auxiliar
+    setupQuickButtonsListeners();
     
     // Navegação por teclado global (não-passiva para permitir preventDefault)
     document.addEventListener('keydown', handleGlobalKeydown, { passive: false });
@@ -836,10 +901,14 @@ function showWelcomeMessage() {
 // ===== AÇÕES RÁPIDAS =====
 function handleQuickAction(e) {
     if (isWaiting) return;
-    const target = e && e.target ? e.target : null;
-    const button = (target && target.closest('.quick-btn')) || (target && target.closest('.chatleo-quick-button')) || this;
+    
+    const button = this instanceof HTMLElement ? this : (e && e.currentTarget);
     if (!button) return;
-    const message = button.textContent.trim();
+    
+    const payload = button.dataset.message || button.textContent || '';
+    const message = payload.trim();
+    if (!message) return;
+    
     if (DOMElements.messageInput) {
         DOMElements.messageInput.value = message;
         sendMessage();
@@ -927,13 +996,100 @@ const FRIENDLY_NAMES = {
     "programajovemprogramador.com.br": "Programa Jovem Programador",
 };
 
+// ===== RENDERIZAR MARKDOWN PARA FRAGMENTO DOM (DOM-SAFE) =====
+function renderMarkdownToFragment(text) {
+    /**
+     * Converte texto com markdown simples (**negrito**, *itálico*, \n) em DocumentFragment.
+     * NÃO usa innerHTML - apenas DOM API para segurança.
+     * 
+     * @param {string} text - Texto que pode conter **negrito**, *itálico* e \n
+     * @returns {DocumentFragment} Fragmento DOM com TextNodes, <strong>, <em>, <br>
+     */
+    const fragment = document.createDocumentFragment();
+    if (!text) return fragment;
+    
+    // Primeiro, tratar quebras de linha reais (\n) e literais (\\n)
+    // Substituir quebras de linha por um marcador temporário único
+    const LINE_BREAK_MARKER = '\uE000'; // Caractere privado não usado
+    const processedText = text
+        .replace(/\r\n/g, LINE_BREAK_MARKER) // Windows: \r\n
+        .replace(/\n/g, LINE_BREAK_MARKER)   // Unix: \n
+        .replace(/\\n/g, LINE_BREAK_MARKER); // Literal: \n
+    
+    // Regex para encontrar tokens de markdown: **texto**, *texto*
+    // Ordem: negrito primeiro (para não confundir com itálico), depois itálico
+    const markdownRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = markdownRegex.exec(processedText)) !== null) {
+        const matchStart = match.index;
+        const matchText = match[0];
+        
+        // Adicionar texto antes do match (tratando quebras de linha)
+        if (matchStart > lastIndex) {
+            const segment = processedText.substring(lastIndex, matchStart);
+            appendTextWithLineBreaks(fragment, segment, LINE_BREAK_MARKER);
+        }
+        
+        // Processar o token encontrado
+        if (matchText.startsWith('**') && matchText.endsWith('**')) {
+            // Negrito: **texto** -> <strong>texto</strong>
+            const content = matchText.slice(2, -2); // Remove ** do início e fim
+            const strong = document.createElement('strong');
+            strong.textContent = content;
+            fragment.appendChild(strong);
+        } else if (matchText.startsWith('*') && matchText.endsWith('*') && matchText.length > 2) {
+            // Itálico: *texto* -> <em>texto</em>
+            // Verificar que não é parte de um negrito (já processado acima)
+            const content = matchText.slice(1, -1); // Remove * do início e fim
+            const em = document.createElement('em');
+            em.textContent = content;
+            fragment.appendChild(em);
+        }
+        
+        lastIndex = matchStart + matchText.length;
+    }
+    
+    // Adicionar texto restante após o último match (tratando quebras de linha)
+    // Só executa se encontrou pelo menos um match (lastIndex > 0)
+    if (lastIndex > 0 && lastIndex < processedText.length) {
+        const tail = processedText.substring(lastIndex);
+        appendTextWithLineBreaks(fragment, tail, LINE_BREAK_MARKER);
+    }
+    
+    // Se não encontrou nenhum markdown, retorna apenas TextNode (com quebras de linha tratadas)
+    if (lastIndex === 0) {
+        appendTextWithLineBreaks(fragment, processedText, LINE_BREAK_MARKER);
+    }
+    
+    return fragment;
+}
+
+// Helper para adicionar texto tratando quebras de linha
+function appendTextWithLineBreaks(fragment, text, marker) {
+    if (!text) return;
+    const parts = text.split(marker);
+    for (let i = 0; i < parts.length; i++) {
+        if (parts[i]) {
+            fragment.appendChild(document.createTextNode(parts[i]));
+        }
+        if (i < parts.length - 1) {
+            fragment.appendChild(document.createElement('br'));
+        }
+    }
+}
+
 function linkifyText(text) {
     const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
     text.replace(urlRegex, (match, offset) => {
         if (offset > lastIndex) {
-            fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
+            // Trecho de texto antes da URL: processar markdown
+            const segment = text.substring(lastIndex, offset);
+            const mdFrag = renderMarkdownToFragment(segment);
+            fragment.appendChild(mdFrag);
         }
         let url = match;
         if (url.startsWith('www.')) {
@@ -956,7 +1112,10 @@ function linkifyText(text) {
         return match;
     });
     if (lastIndex < text.length) {
-        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+        // Trecho de texto após a última URL: processar markdown
+        const tail = text.substring(lastIndex);
+        const mdFrag = renderMarkdownToFragment(tail);
+        fragment.appendChild(mdFrag);
     }
     return fragment;
 }
