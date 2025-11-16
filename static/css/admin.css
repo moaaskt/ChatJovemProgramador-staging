@@ -1053,6 +1053,7 @@ button {
 .metric-card {
   position: relative;
   overflow: hidden;
+  border-radius: 10px;
   background: linear-gradient(135deg, rgba(61, 126, 255, 0.1) 0%, rgba(4, 15, 50, 0.95) 100%);
   border: 1px solid rgba(61, 126, 255, 0.2);
   box-shadow: 0 4px 20px rgba(61, 126, 255, 0.15);
@@ -1425,11 +1426,20 @@ button {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 /* Skeleton para cards da dashboard */
 .metric-card .metric-content {
   position: relative;
   z-index: 2;
-  transition: opacity 0.18s ease-out;
+  transition: opacity 0.25s ease;
 }
 
 .metric-card.loading .metric-content {
@@ -1442,9 +1452,11 @@ button {
   position: absolute;
   inset: 0;              /* cobre todo o card */
   border-radius: inherit;
+  overflow: hidden;
   pointer-events: none;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: none !important;
 }
 
 .metric-card.loading .metric-skeleton {
@@ -1540,10 +1552,14 @@ button {
 .admin-body.theme-light .skeleton-chart,
 .admin-body.theme-light .conversation-list-skeleton-item,
 .admin-body.theme-light .skeleton-line {
-  background-color: #e2e8f0 !important; /* cinza azuladinho, mais contraste */
-  box-shadow:
-    inset 0 0 0 1px rgba(148, 163, 184, 0.2),
-    0 14px 30px rgba(15, 23, 42, 0.06);
+  background: linear-gradient(90deg, #F3F4F6 0%, #E9EBEE 50%, #F3F4F6 100%) !important;
+  box-shadow: none !important;
+  opacity: 0.85;
+  background-size: 200% 100%;
+}
+
+.admin-body.theme-light .metric-skeleton {
+  animation: shimmer 1.2s infinite;
 }
 
 .admin-body.theme-light .skeleton::before,
@@ -1554,9 +1570,9 @@ button {
   background: linear-gradient(
     125deg,
     transparent 0%,
-    rgba(148, 163, 184, 0.30) 38%,
-    rgba(148, 163, 184, 0.40) 50%,
-    rgba(148, 163, 184, 0.30) 62%,
+    rgba(255, 255, 255, 0.4) 35%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 65%,
     transparent 100%
   );
 }
