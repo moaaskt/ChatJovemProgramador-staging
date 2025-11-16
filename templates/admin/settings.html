@@ -100,166 +100,218 @@
     </div>
     
     <div class="card p-4">
-        <div class="mb-3">
-            <label for="chat-title" class="form-label">Título do Chat</label>
-            <input type="text" id="chat-title" class="form-control" placeholder="ChatLeo">
-        </div>
-        
-        <div class="mb-3">
-            <label for="welcome-message" class="form-label">Mensagem de Boas-vindas</label>
-            <textarea id="welcome-message" class="form-control" rows="3" placeholder="Olá! 👋 Sou o assistente..."></textarea>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="bot-avatar" class="form-label">URL Avatar do Bot</label>
-                <input type="text" id="bot-avatar" class="form-control" placeholder="/static/assets/logo.png">
+        <div class="row g-4 chat-config-layout">
+            <!-- Coluna esquerda: Formulário -->
+            <div class="col-lg-7">
+                <!-- Subseção: Identidade do Chat -->
+                <div class="chat-config-section">
+                    <div class="chat-config-section-header">
+                        <h6 class="chat-config-title">
+                            <i class="bi bi-person-badge"></i>
+                            Identidade do Chat
+                        </h6>
+                        <p class="chat-config-subtitle">Defina como o assistente será exibido para os usuários.</p>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="chat-title" class="form-label">Título do Chat</label>
+                            <input type="text" id="chat-title" class="form-control" placeholder="ChatLeo">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="welcome-message" class="form-label">Mensagem de Boas-vindas</label>
+                            <textarea id="welcome-message" class="form-control" rows="3" placeholder="Olá! 👋 Sou o assistente..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bot-avatar" class="form-label">URL Avatar do Bot</label>
+                            <input type="text" id="bot-avatar" class="form-control" placeholder="/static/assets/logo.png">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="user-avatar" class="form-label">URL Avatar do Usuário</label>
+                            <input type="text" id="user-avatar" class="form-control" placeholder="/static/assets/logo-user.png">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subseção: Cores & Estilo -->
+                <div class="chat-config-section">
+                    <div class="chat-config-section-header">
+                        <h6 class="chat-config-title">
+                            <i class="bi bi-palette"></i>
+                            Cores & Estilo
+                        </h6>
+                        <p class="chat-config-subtitle">Personalize as cores do chat e das mensagens.</p>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="primary-color" class="form-label">Cor Primária</label>
+                            <input type="color" id="primary-color" class="form-control form-control-color" value="#3D7EFF">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="secondary-color" class="form-label">Cor Secundária</label>
+                            <input type="color" id="secondary-color" class="form-control form-control-color" value="#8B5CF6">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="bot-bubble-color" class="form-label">Cor do Balão do Bot</label>
+                            <input type="color" id="bot-bubble-color" class="form-control form-control-color" value="#3D7EFF">
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                Cor das mensagens do assistente
+                            </small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="user-bubble-color" class="form-label">Cor do Balão do Usuário</label>
+                            <input
+                                type="color"
+                                id="user-bubble-color"
+                                class="form-control form-control-color"
+                                value="#3D7EFF"
+                            >
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                Cor das mensagens do usuário
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subseção: Papel de Parede do Chat -->
+                <div class="chat-config-section">
+                    <div class="chat-config-section-header">
+                        <div class="d-flex align-items-center justify-content-between w-100">
+                            <div>
+                                <h6 class="chat-config-title mb-0">
+                                    <i class="bi bi-image"></i>
+                                    Papel de Parede do Chat
+                                </h6>
+                                <p class="chat-config-subtitle mb-0">Configure o fundo do chat com cor ou imagem personalizada.</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="chat-background-enabled" role="switch" checked>
+                                <label class="form-check-label" for="chat-background-enabled">Ativar</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="chat-background-type" class="form-label">Tipo de Fundo</label>
+                            <select id="chat-background-type" class="form-select">
+                                <option value="default">Usar padrão do sistema</option>
+                                <option value="color">Cor sólida</option>
+                                <option value="image">Imagem</option>
+                            </select>
+                        </div>
+                        <div class="col-12" id="chat-background-color-wrapper" style="display: none;">
+                            <label for="chat-background-color" class="form-label">Cor de Fundo</label>
+                            <input type="color" id="chat-background-color" class="form-control form-control-color" value="#1b2936">
+                        </div>
+                        <div class="col-12" id="chat-background-image-wrapper" style="display: none;">
+                            <label for="chat-background-image-url" class="form-label">URL da Imagem de Fundo</label>
+                            <input type="text" id="chat-background-image-url" class="form-control" placeholder="https://exemplo.com/imagem.jpg">
+                            <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                                Informe uma URL válida de uma imagem. A imagem será redimensionada para cobrir todo o fundo do chat.
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6 mb-3">
-                <label for="user-avatar" class="form-label">URL Avatar do Usuário</label>
-                <input type="text" id="user-avatar" class="form-control" placeholder="/static/assets/logo-user.png">
+            
+            <!-- Coluna direita: Previews -->
+            <div class="col-lg-5">
+                <div class="chat-config-preview-stack">
+                    <!-- Preview do Launcher -->
+                    <div class="chat-config-preview-card">
+                        <div class="chat-config-preview-card-header">
+                            <h6 class="chat-config-preview-label mb-0">
+                                <i class="bi bi-circle"></i>
+                                Preview do Launcher
+                            </h6>
+                        </div>
+                        <div class="launcher-preview-wrapper">
+                            <div class="launcher-preview-surface">
+                                <div class="launcher-preview-bubble" id="launcher-preview-bubble">
+                                    <div class="launcher-preview-avatar">
+                                        <img id="launcher-preview-avatar" src="/static/assets/logo.png" alt="Avatar do bot">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pré-visualização do Chat -->
+                    <div class="chat-config-preview-card">
+                        <div class="chat-config-preview-card-header">
+                            <h6 class="chat-config-preview-label mb-0">
+                                <i class="bi bi-eye"></i>
+                                Pré-visualização do Chat
+                            </h6>
+                        </div>
+                        <div id="chat-preview" class="chat-preview">
+                            <div class="chat-preview-header">
+                                <div class="chat-preview-avatar">
+                                    <img id="chat-preview-bot-avatar" src="/static/assets/logo.png" alt="Avatar do bot">
+                                </div>
+                                <div class="chat-preview-title-group">
+                                    <div id="chat-preview-title" class="chat-preview-title">ChatLeo</div>
+                                    <small class="chat-preview-subtitle">Janela de exemplo do usuário</small>
+                                </div>
+                            </div>
+                            <div class="chat-preview-body">
+                                <div class="chat-preview-bot-message">
+                                    <div class="chat-preview-bot-bubble">
+                                        <span id="chat-preview-bot-message">
+                                            Olá! 👋 Sou o assistente...
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="chat-preview-user-message">
+                                    <div class="chat-preview-user-bubble">
+                                        <span id="chat-preview-user-message">
+                                            Olá! Como você pode me ajudar?
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-preview-quick-actions" id="chat-preview-quick-actions" style="padding: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <!-- Botões de preview serão injetados via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="primary-color" class="form-label">Cor Primária</label>
-                <input type="color" id="primary-color" class="form-control form-control-color" value="#3D7EFF">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label for="secondary-color" class="form-label">Cor Secundária</label>
-                <input type="color" id="secondary-color" class="form-control form-control-color" value="#8B5CF6">
-            </div>
+    </div>
+
+
+    <!-- Botões rápidos -->
+    <div class="card-section mt-4">
+        <div class="section-title-wrapper">
+            <h5 class="section-title">
+                <i class="bi bi-lightning-charge"></i>
+                Botões rápidos
+            </h5>
         </div>
-        
-        <!-- Papel de Parede do Chat -->
-        <div class="mb-3 mt-4">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <label class="form-label mb-0">Papel de Parede do Chat</label>
+        <div class="card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 quick-actions-header">
+                <div>
+                    <h6 class="mb-0">Botões rápidos</h6>
+                    <small class="text-muted d-block">Sugestões de perguntas que aparecem ao abrir o chat.</small>
+                </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="chat-background-enabled" role="switch" checked>
-                    <label class="form-check-label" for="chat-background-enabled">Ativar papel de parede</label>
+                    <input class="form-check-input" type="checkbox" id="quick-actions-enabled" role="switch">
+                    <label class="form-check-label" for="quick-actions-enabled">Ativar botões rápidos no chat</label>
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label for="chat-background-type" class="form-label">Tipo de Fundo</label>
-                <select id="chat-background-type" class="form-select">
-                    <option value="default">Usar padrão do sistema</option>
-                    <option value="color">Cor sólida</option>
-                    <option value="image">Imagem</option>
-                </select>
+            <div id="quick-actions-list" class="mb-3">
+                <!-- Linhas de botões serão injetadas via JS -->
             </div>
             
-            <div class="mb-3" id="chat-background-color-wrapper" style="display: none;">
-                <label for="chat-background-color" class="form-label">Cor de Fundo</label>
-                <input type="color" id="chat-background-color" class="form-control form-control-color" value="#1b2936">
-            </div>
+            <button type="button" id="add-quick-action-btn" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-plus"></i> Adicionar botão rápido
+            </button>
             
-            <div class="mb-3" id="chat-background-image-wrapper" style="display: none;">
-                <label for="chat-background-image-url" class="form-label">URL da Imagem de Fundo</label>
-                <input type="text" id="chat-background-image-url" class="form-control" placeholder="https://exemplo.com/imagem.jpg">
-                <small class="text-muted d-block mt-2">
-                    Informe uma URL válida de uma imagem. A imagem será redimensionada para cobrir todo o fundo do chat.
-                </small>
-            </div>
+            <small class="text-muted d-block mt-2">
+                Configure os botões rápidos que aparecerão no chat. Máximo de 4 botões recomendado.
+            </small>
         </div>
-        
-    </div>
-    
-    <!-- Previews lado a lado -->
-    <div class="row mt-4">
-        <div class="col-md-6 mb-3 mb-md-0">
-            <div class="card-section">
-                <div class="section-title-wrapper">
-                    <h5 class="section-title">
-                        <i class="bi bi-circle"></i>
-                        Preview do Launcher
-                    </h5>
-                </div>
-                <div class="launcher-preview-wrapper">
-                    <div class="launcher-preview-surface">
-                        <!-- canto inferior direito simulando a página -->
-                        <div class="launcher-preview-bubble" id="launcher-preview-bubble">
-                            <div class="launcher-preview-avatar">
-                                <img id="launcher-preview-avatar" src="/static/assets/logo.png" alt="Avatar do bot">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card-section">
-                <div class="section-title-wrapper">
-                    <h5 class="section-title">
-                       <i class="bi bi-eye" ></i>
-                        Pré-visualização do Chat
-                    </h5>
-                </div>
-
-                <div id="chat-preview" class="chat-preview">
-                    <div class="chat-preview-header">
-                        <div class="chat-preview-avatar">
-                            <img id="chat-preview-bot-avatar" src="/static/assets/logo.png" alt="Avatar do bot">
-                        </div>
-                        <div class="chat-preview-title-group">
-                            <div id="chat-preview-title" class="chat-preview-title">ChatLeo</div>
-                            <small class="chat-preview-subtitle">Janela de exemplo do usuário</small>
-                        </div>
-                    </div>
-
-                    <div class="chat-preview-body">
-                        <!-- Mensagem do BOT (esquerda) -->
-                        <div class="chat-preview-bot-message">
-                            <div class="chat-preview-bot-bubble">
-                                <span id="chat-preview-bot-message">
-                                    Olá! 👋 Sou o assistente...
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Mensagem do USUÁRIO (direita) -->
-                        <div class="chat-preview-user-message">
-                            <div class="chat-preview-user-bubble">
-                                <span id="chat-preview-user-message">
-                                    Olá! Como você pode me ajudar?
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="chat-preview-quick-actions" id="chat-preview-quick-actions" style="padding: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-                        <!-- Botões de preview serão injetados via JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-      <!-- Botões rápidos -->
-    <div class="mb-3 mt-4">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <label class="form-label mb-0">Botões rápidos</label>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="quick-actions-enabled" role="switch">
-                <label class="form-check-label" for="quick-actions-enabled">Ativar botões rápidos no chat</label>
-            </div>
-        </div>
-        
-        <div id="quick-actions-list" class="mb-3">
-            <!-- Linhas de botões serão injetadas via JS -->
-        </div>
-        
-        <button type="button" id="add-quick-action-btn" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-plus"></i> Adicionar botão rápido
-        </button>
-        
-        <small class="text-muted d-block mt-2">
-            Configure os botões rápidos que aparecerão no chat. Máximo de 4 botões recomendado.
-        </small>
     </div>
     <button id="save-chat-config" class="btn btn-primary mt-4">Salvar Configurações do Chat</button>
 </div>
@@ -326,8 +378,16 @@ function updateChatPreview() {
         previewAvatar.src = botAvatar;
     }
 
+    const botBubbleColorInput = document.getElementById("bot-bubble-color");
+    const botBubbleColor = (botBubbleColorInput && botBubbleColorInput.value) || primary;
+    
+    const userBubbleColorInput = document.getElementById("user-bubble-color");
+    const userBubbleColor = (userBubbleColorInput && userBubbleColorInput.value) || primary;
+    
     previewRoot.style.setProperty("--chat-preview-primary", primary);
     previewRoot.style.setProperty("--chat-preview-secondary", secondary);
+    previewRoot.style.setProperty("--chat-preview-bot-bubble-color", botBubbleColor);
+    previewRoot.style.setProperty("--chat-preview-user-bubble-color", userBubbleColor);
     
     // Aplicar papel de parede na pré-visualização
     const bgEnabledInput = document.getElementById("chat-background-enabled");
@@ -433,14 +493,14 @@ function addQuickActionRow(initialData = {}, index = null) {
     row.dataset.index = index;
     
     row.innerHTML = `
-        <div class="row g-2">
-            <div class="col-md-5">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
                 <label class="form-label small">Texto do botão (label)</label>
                 <input type="text" class="form-control form-control-sm" 
                        placeholder="Ex: 💻 Como começar?" 
                        value="${(initialData.label || '').replace(/"/g, '&quot;')}">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-7">
                 <label class="form-label small">Mensagem enviada (message)</label>
                 <input type="text" class="form-control form-control-sm" 
                        placeholder="Ex: Como começar na programação?" 
@@ -605,6 +665,26 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("secondary-color").value = data.chat.secondary_color;
                 }
                 
+                // Carregar cor do balão do bot
+                const botBubbleColorInput = document.getElementById("bot-bubble-color");
+                if (botBubbleColorInput) {
+                    if (data.chat.bot_bubble_color) {
+                        botBubbleColorInput.value = data.chat.bot_bubble_color;
+                    } else {
+                        // Fallback: usa cor primária se não tiver cor específica do bot
+                        botBubbleColorInput.value = data.chat.primary_color || "#3D7EFF";
+                    }
+                }
+                
+                // Carregar cor do balão do usuário
+                const userBubbleColorInput = document.getElementById("user-bubble-color");
+                if (userBubbleColorInput && data.chat) {
+                    userBubbleColorInput.value =
+                        data.chat.user_bubble_color ||
+                        data.chat.primary_color ||
+                        "#3D7EFF";
+                }
+                
                 // Carregar configurações de papel de parede
                 const chatBgEnabled = data.chat.chat_background_enabled !== undefined 
                     ? data.chat.chat_background_enabled 
@@ -738,6 +818,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "chat-background-type",
         "chat-background-color",
         "chat-background-image-url",
+        "bot-bubble-color",
+        "user-bubble-color",
     ];
 
     previewFields.forEach(function (id) {
@@ -819,6 +901,9 @@ document.getElementById("save-chat-config").addEventListener("click", async func
     const quickActionsEnabled = document.getElementById("quick-actions-enabled").checked;
     const quickActions = collectQuickActionsFromForm();
     
+    const botBubbleColorInput = document.getElementById("bot-bubble-color");
+    const userBubbleColorInput = document.getElementById("user-bubble-color");
+    
     const chatConfig = {
         chat_title: document.getElementById("chat-title").value,
         welcome_message: document.getElementById("welcome-message").value,
@@ -826,6 +911,12 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         user_avatar: document.getElementById("user-avatar").value,
         primary_color: document.getElementById("primary-color").value,
         secondary_color: document.getElementById("secondary-color").value,
+        bot_bubble_color: botBubbleColorInput && botBubbleColorInput.value
+            ? botBubbleColorInput.value
+            : document.getElementById("primary-color").value,
+        user_bubble_color: userBubbleColorInput && userBubbleColorInput.value
+            ? userBubbleColorInput.value
+            : document.getElementById("primary-color").value,
         quick_actions_enabled: quickActionsEnabled,
         quick_actions: quickActions,
         chat_background_enabled: document.getElementById("chat-background-enabled").checked,

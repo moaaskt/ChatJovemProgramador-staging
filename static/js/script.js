@@ -161,6 +161,32 @@ function applyChatConfig(cfg) {
             widgetRoot.style.setProperty("--chat-secondary", cfg.secondary_color);
             widgetRoot.dataset.secondaryColor = cfg.secondary_color;
         }
+    }
+    
+    // Aplicar cores também no escopo global para o launcher
+    const root = document.documentElement;
+    if (cfg.primary_color) {
+        root.style.setProperty("--chat-primary", cfg.primary_color);
+    }
+    if (cfg.secondary_color) {
+        root.style.setProperty("--chat-secondary", cfg.secondary_color);
+    }
+    
+    // Continuar aplicação de outras configs se widgetRoot existir
+    if (widgetRoot) {
+        if (cfg.bot_bubble_color) {
+            widgetRoot.style.setProperty("--chat-bot-bubble-color", cfg.bot_bubble_color);
+        } else if (cfg.primary_color) {
+            // Fallback: se não tiver cor específica do bot, usa a primária
+            widgetRoot.style.setProperty("--chat-bot-bubble-color", cfg.primary_color);
+        }
+        
+        // user bubble
+        if (cfg.user_bubble_color) {
+            widgetRoot.style.setProperty("--chat-user-bubble-color", cfg.user_bubble_color);
+        } else if (cfg.primary_color) {
+            widgetRoot.style.setProperty("--chat-user-bubble-color", cfg.primary_color);
+        }
         
         // Aplicar papel de parede
         const enabled = cfg.chat_background_enabled !== false; // default: true
