@@ -211,10 +211,22 @@
                     </div>
 
                     <div class="chat-preview-body">
-                        <div class="chat-preview-bubble">
-                            <span id="chat-preview-message">
-                                Olá! 👋 Sou o assistente...
-                            </span>
+                        <!-- Mensagem do BOT (esquerda) -->
+                        <div class="chat-preview-bot-message">
+                            <div class="chat-preview-bot-bubble">
+                                <span id="chat-preview-bot-message">
+                                    Olá! 👋 Sou o assistente...
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Mensagem do USUÁRIO (direita) -->
+                        <div class="chat-preview-user-message">
+                            <div class="chat-preview-user-bubble">
+                                <span id="chat-preview-user-message">
+                                    Olá! Como você pode me ajudar?
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -284,7 +296,8 @@ function updateChatPreview() {
 
     const previewRoot = document.getElementById("chat-preview");
     const previewTitle = document.getElementById("chat-preview-title");
-    const previewMessage = document.getElementById("chat-preview-message");
+    const previewBotMessage = document.getElementById("chat-preview-bot-message");
+    const previewUserMessage = document.getElementById("chat-preview-user-message");
     const previewAvatar = document.getElementById("chat-preview-bot-avatar");
 
     if (!previewRoot) return;
@@ -299,8 +312,14 @@ function updateChatPreview() {
         previewTitle.textContent = title;
     }
 
-    if (previewMessage) {
-        previewMessage.textContent = message;
+    // Atualiza textos das bolhas
+    if (previewBotMessage) {
+        // mensagem de boas-vindas configurada
+        previewBotMessage.textContent = message;
+    }
+    if (previewUserMessage) {
+        // mensagem de exemplo do usuário (pode deixar fixa)
+        previewUserMessage.textContent = "Olá! Como você pode me ajudar?";
     }
 
     if (previewAvatar) {
