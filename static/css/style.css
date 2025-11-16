@@ -394,6 +394,7 @@ footer {
     flex: 1;
     padding: var(--space-4);
     overflow-y: auto;
+    overflow-x: hidden;
     scroll-behavior: smooth;
 }
 
@@ -475,11 +476,21 @@ footer {
 }
 
 .message-bubble {
-    max-width: 80%;
     background: var(--bg-secondary);
     padding: var(--space-3) var(--space-4);
     border-radius: var(--border-radius-lg);
     position: relative;
+    display: inline-block;
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.user-message .message-bubble,
+.bot-message .message-bubble {
+    max-width: min(80%, 480px);
 }
 
 .user-message .message-bubble {
@@ -705,8 +716,12 @@ footer {
         padding: 0.5rem;
     }
     
+    .user-message .message-bubble,
+    .bot-message .message-bubble {
+        max-width: 100%;
+    }
+    
     .message-bubble {
-        max-width: 85%;
         font-size: 0.9rem;
     }
     
@@ -844,8 +859,9 @@ footer {
 
 .widget-messages {
     flex: 1 1 auto;
-    min-height: 0;          /* evita “sobra” de espaço */
+    min-height: 0;          /* evita "sobra" de espaço */
     overflow-y: auto;
+    overflow-x: hidden;
     padding-bottom: 12px;   /* respiro acima do composer */
 }
 
