@@ -76,6 +76,12 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
 }
+
+body.chat-open {
+    overflow: hidden;
+    touch-action: none;
+}
+
 /* ====== RODA-PÉ ===== */
 footer {
     background-color: #0f172a ;
@@ -666,7 +672,9 @@ footer {
     
     .chatbot-widget {
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
+        top: 0;
+        left: 0;
         right: 0;
         bottom: 0;
         border-radius: 0;
@@ -693,7 +701,7 @@ footer {
     }
     
     .widget-messages {
-        max-height: calc(100vh - 200px);
+        max-height: calc(100dvh - 200px);
         padding: 0.5rem;
     }
     
@@ -798,7 +806,7 @@ footer {
 
 @media (max-height: 600px) and (max-width: 768px) {
     .widget-messages {
-        max-height: calc(100vh - 160px);
+        max-height: calc(100dvh - 160px);
     }
     
     .widget-input-container {

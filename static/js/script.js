@@ -636,6 +636,8 @@ function openWidget() {
     DOMElements.chatbotWidget.classList.add('active');
     DOMElements.chatbotWidget.classList.remove('minimized');
     
+    document.body.classList.add('chat-open');
+    
     // Esconder bolha quando o chat estiver aberto e limpar badge
     const b = bubbleRoot();
     b?.classList.remove('chatleo-bubble--active');
@@ -672,6 +674,8 @@ function closeWidget() {
     
     DOMElements.chatbotWidget.classList.remove('active', 'minimized');
     
+    document.body.classList.remove('chat-open');
+    
     // Mostrar bolha novamente e atualizar ARIA
     const b = bubbleRoot();
     b?.classList.remove('is-hidden');
@@ -700,6 +704,7 @@ function minimizeWidget() {
     if (AppState.isMinimized) {
         AppState.isWidgetOpen = false;
         DOMElements.chatbotWidget.classList.remove('active');
+        document.body.classList.remove('chat-open');
         b?.setAttribute('aria-expanded', 'false');
         announceToScreenReader('Chat minimizado');
     } else {
