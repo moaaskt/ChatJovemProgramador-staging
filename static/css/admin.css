@@ -1330,7 +1330,7 @@ button {
   max-width: 80%;
   padding: 10px 14px;
   border-radius: 16px 16px 16px 4px; /* canto inferior ESQUERDO mais reto */
-  background: var(--chat-preview-primary);
+  background: var(--chat-preview-bot-bubble-color, var(--chat-preview-primary));
   color: #ffffff;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
   font-size: 0.85rem;

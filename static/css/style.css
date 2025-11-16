@@ -493,13 +493,12 @@ footer {
 
 /* Bolhas de mensagem do bot no widget real */
 .bot-message .message-bubble {
-    background: var(--chat-primary, #3D7EFF);
+    background: var(--chat-bot-bubble-color, var(--chat-primary, #3D7EFF));
     color: #ffffff;
 }
 
 /* Melhorar contraste das mensagens quando houver papel de parede */
 .chatbot-widget[data-has-background="true"] .bot-message .message-bubble {
-    background: rgba(27, 41, 54, 0.95);
     backdrop-filter: blur(4px);
 }
 

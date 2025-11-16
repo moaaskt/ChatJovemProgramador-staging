@@ -131,6 +131,20 @@
                 <input type="color" id="secondary-color" class="form-control form-control-color" value="#8B5CF6">
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="bot-bubble-color" class="form-label">Cor do Balão do Bot</label>
+                <input
+                    type="color"
+                    id="bot-bubble-color"
+                    class="form-control form-control-color"
+                    value="#3D7EFF"
+                >
+                <small class="text-muted d-block mt-1">
+                    Cor das mensagens enviadas pelo assistente (bot).
+                </small>
+            </div>
+        </div>
         
         <!-- Papel de Parede do Chat -->
         <div class="mb-3 mt-4">
@@ -326,8 +340,12 @@ function updateChatPreview() {
         previewAvatar.src = botAvatar;
     }
 
+    const botBubbleColorInput = document.getElementById("bot-bubble-color");
+    const botBubbleColor = (botBubbleColorInput && botBubbleColorInput.value) || primary;
+    
     previewRoot.style.setProperty("--chat-preview-primary", primary);
     previewRoot.style.setProperty("--chat-preview-secondary", secondary);
+    previewRoot.style.setProperty("--chat-preview-bot-bubble-color", botBubbleColor);
     
     // Aplicar papel de parede na pré-visualização
     const bgEnabledInput = document.getElementById("chat-background-enabled");
@@ -605,6 +623,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("secondary-color").value = data.chat.secondary_color;
                 }
                 
+                // Carregar cor do balão do bot
+                const botBubbleColorInput = document.getElementById("bot-bubble-color");
+                if (botBubbleColorInput) {
+                    if (data.chat.bot_bubble_color) {
+                        botBubbleColorInput.value = data.chat.bot_bubble_color;
+                    } else {
+                        // Fallback: usa cor primária se não tiver cor específica do bot
+                        botBubbleColorInput.value = data.chat.primary_color || "#3D7EFF";
+                    }
+                }
+                
                 // Carregar configurações de papel de parede
                 const chatBgEnabled = data.chat.chat_background_enabled !== undefined 
                     ? data.chat.chat_background_enabled 
@@ -738,6 +767,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "chat-background-type",
         "chat-background-color",
         "chat-background-image-url",
+        "bot-bubble-color",
     ];
 
     previewFields.forEach(function (id) {
@@ -819,6 +849,8 @@ document.getElementById("save-chat-config").addEventListener("click", async func
     const quickActionsEnabled = document.getElementById("quick-actions-enabled").checked;
     const quickActions = collectQuickActionsFromForm();
     
+    const botBubbleColorInput = document.getElementById("bot-bubble-color");
+    
     const chatConfig = {
         chat_title: document.getElementById("chat-title").value,
         welcome_message: document.getElementById("welcome-message").value,
@@ -826,6 +858,9 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         user_avatar: document.getElementById("user-avatar").value,
         primary_color: document.getElementById("primary-color").value,
         secondary_color: document.getElementById("secondary-color").value,
+        bot_bubble_color: botBubbleColorInput && botBubbleColorInput.value
+            ? botBubbleColorInput.value
+            : document.getElementById("primary-color").value,
         quick_actions_enabled: quickActionsEnabled,
         quick_actions: quickActions,
         chat_background_enabled: document.getElementById("chat-background-enabled").checked,
