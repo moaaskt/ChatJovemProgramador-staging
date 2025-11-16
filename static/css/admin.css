@@ -1354,7 +1354,7 @@ button {
   max-width: 80%;
   padding: 10px 14px;
   border-radius: 16px 16px 4px 16px; /* canto inferior DIREITO mais reto */
-  background: var(--chat-preview-primary);
+  background: var(--chat-preview-user-bubble-color, var(--chat-preview-primary));
   color: #ffffff;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
   font-size: 0.85rem;

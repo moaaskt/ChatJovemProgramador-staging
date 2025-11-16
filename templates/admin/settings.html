@@ -157,6 +157,18 @@
                                 Cor das mensagens do assistente
                             </small>
                         </div>
+                        <div class="col-md-4">
+                            <label for="user-bubble-color" class="form-label">Cor do Balão do Usuário</label>
+                            <input
+                                type="color"
+                                id="user-bubble-color"
+                                class="form-control form-control-color"
+                                value="#3D7EFF"
+                            >
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                Cor das mensagens do usuário
+                            </small>
+                        </div>
                     </div>
                 </div>
                 
@@ -369,9 +381,13 @@ function updateChatPreview() {
     const botBubbleColorInput = document.getElementById("bot-bubble-color");
     const botBubbleColor = (botBubbleColorInput && botBubbleColorInput.value) || primary;
     
+    const userBubbleColorInput = document.getElementById("user-bubble-color");
+    const userBubbleColor = (userBubbleColorInput && userBubbleColorInput.value) || primary;
+    
     previewRoot.style.setProperty("--chat-preview-primary", primary);
     previewRoot.style.setProperty("--chat-preview-secondary", secondary);
     previewRoot.style.setProperty("--chat-preview-bot-bubble-color", botBubbleColor);
+    previewRoot.style.setProperty("--chat-preview-user-bubble-color", userBubbleColor);
     
     // Aplicar papel de parede na pré-visualização
     const bgEnabledInput = document.getElementById("chat-background-enabled");
@@ -660,6 +676,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }
                 
+                // Carregar cor do balão do usuário
+                const userBubbleColorInput = document.getElementById("user-bubble-color");
+                if (userBubbleColorInput && data.chat) {
+                    userBubbleColorInput.value =
+                        data.chat.user_bubble_color ||
+                        data.chat.primary_color ||
+                        "#3D7EFF";
+                }
+                
                 // Carregar configurações de papel de parede
                 const chatBgEnabled = data.chat.chat_background_enabled !== undefined 
                     ? data.chat.chat_background_enabled 
@@ -794,6 +819,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "chat-background-color",
         "chat-background-image-url",
         "bot-bubble-color",
+        "user-bubble-color",
     ];
 
     previewFields.forEach(function (id) {
@@ -876,6 +902,7 @@ document.getElementById("save-chat-config").addEventListener("click", async func
     const quickActions = collectQuickActionsFromForm();
     
     const botBubbleColorInput = document.getElementById("bot-bubble-color");
+    const userBubbleColorInput = document.getElementById("user-bubble-color");
     
     const chatConfig = {
         chat_title: document.getElementById("chat-title").value,
@@ -886,6 +913,9 @@ document.getElementById("save-chat-config").addEventListener("click", async func
         secondary_color: document.getElementById("secondary-color").value,
         bot_bubble_color: botBubbleColorInput && botBubbleColorInput.value
             ? botBubbleColorInput.value
+            : document.getElementById("primary-color").value,
+        user_bubble_color: userBubbleColorInput && userBubbleColorInput.value
+            ? userBubbleColorInput.value
             : document.getElementById("primary-color").value,
         quick_actions_enabled: quickActionsEnabled,
         quick_actions: quickActions,

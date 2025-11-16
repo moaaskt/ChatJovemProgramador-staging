@@ -508,7 +508,7 @@ footer {
 }
 
 .user-message .message-bubble {
-    background: var(--chat-primary, #3D7EFF);
+    background: var(--chat-user-bubble-color, var(--chat-primary, #3D7EFF));
     color: white;
 }
 

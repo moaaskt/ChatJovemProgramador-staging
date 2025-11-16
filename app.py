@@ -357,6 +357,10 @@ def api_chat_config():
             "bot_bubble_color",
             chat_cfg.get("primary_color", "#3D7EFF"),
         ),
+        "user_bubble_color": chat_cfg.get(
+            "user_bubble_color",
+            chat_cfg.get("primary_color", "#3D7EFF"),
+        ),
         "quick_actions_enabled": quick_actions_enabled,
         "quick_actions": quick_actions,
         # Novos campos de papel de parede

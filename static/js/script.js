@@ -181,6 +181,13 @@ function applyChatConfig(cfg) {
             widgetRoot.style.setProperty("--chat-bot-bubble-color", cfg.primary_color);
         }
         
+        // user bubble
+        if (cfg.user_bubble_color) {
+            widgetRoot.style.setProperty("--chat-user-bubble-color", cfg.user_bubble_color);
+        } else if (cfg.primary_color) {
+            widgetRoot.style.setProperty("--chat-user-bubble-color", cfg.primary_color);
+        }
+        
         // Aplicar papel de parede
         const enabled = cfg.chat_background_enabled !== false; // default: true
         const type = cfg.chat_background_type || 'default';
