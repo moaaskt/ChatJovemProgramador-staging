@@ -1365,6 +1365,161 @@ button {
   word-break: break-word;
 }
 
+/* ===== NOVOS ESTILOS PARA CONFIGURAÇÃO DO CHAT ===== */
+
+/* Layout principal do formulário de configuração */
+.chat-config-layout {
+  margin: 0;
+}
+
+/* Subseções do formulário (Identidade, Cores, Papel de Parede) */
+.chat-config-section {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  margin-bottom: 16px;
+}
+
+.admin-body.theme-dark .chat-config-section {
+  background: #020617;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.chat-config-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.chat-config-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #1e293b;
+}
+
+.admin-body.theme-dark .chat-config-title {
+  color: #f1f5f9;
+}
+
+.chat-config-title i {
+  font-size: 1rem;
+  color: #3b82f6;
+}
+
+.admin-body.theme-dark .chat-config-title i {
+  color: #60a5fa;
+}
+
+.chat-config-subtitle {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.admin-body.theme-dark .chat-config-subtitle {
+  color: #9ca3af;
+}
+
+/* Stack de previews (coluna direita) */
+.chat-config-preview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chat-config-preview-card {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.admin-body.theme-dark .chat-config-preview-card {
+  background: #020617;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.chat-config-preview-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.chat-config-preview-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1e293b;
+}
+
+.admin-body.theme-dark .chat-config-preview-label {
+  color: #f1f5f9;
+}
+
+.chat-config-preview-label i {
+  font-size: 0.9rem;
+  color: #3b82f6;
+}
+
+.admin-body.theme-dark .chat-config-preview-label i {
+  color: #60a5fa;
+}
+
+/* Estilos para botões rápidos */
+.quick-actions-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  margin-bottom: 16px !important;
+}
+
+.admin-body.theme-dark .quick-actions-header {
+  border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+.quick-actions-header small {
+  font-size: 0.78rem;
+}
+
+.quick-action-row {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.08);
+  margin-bottom: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.admin-body.theme-dark .quick-action-row {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.quick-action-row:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.admin-body.theme-dark .quick-action-row:hover {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+/* Responsividade */
+@media (max-width: 991.98px) {
+  .chat-config-layout {
+    flex-direction: column;
+  }
+  
+  .chat-config-preview-stack {
+    margin-top: 20px;
+  }
+}
+
 /* Tema claro/escuro: respeitar ambos */
 .admin-body.theme-dark .chat-preview-body {
   background-color: #020617;
