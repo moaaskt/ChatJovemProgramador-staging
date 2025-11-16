@@ -1,5 +1,5 @@
 /* Variáveis CSS para personalização do chat */
-.chatbot-widget {
+:root {
   --chat-primary: #3D7EFF;
   --chat-secondary: #8B5CF6;
 }
