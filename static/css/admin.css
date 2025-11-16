@@ -64,6 +64,7 @@
 .admin-body.theme-light {
   background-color: #f3f4f6;
   color: #111827;
+  --list-item-hover: #f3f4f6;
 }
 
 .admin-body.theme-light .app-left {
