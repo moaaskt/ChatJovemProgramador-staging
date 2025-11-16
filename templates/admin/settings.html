@@ -309,6 +309,40 @@ function updateChatPreview() {
 
     previewRoot.style.setProperty("--chat-preview-primary", primary);
     previewRoot.style.setProperty("--chat-preview-secondary", secondary);
+    
+    // Aplicar papel de parede na pré-visualização
+    const bgEnabledInput = document.getElementById("chat-background-enabled");
+    const bgTypeInput = document.getElementById("chat-background-type");
+    const bgColorInput = document.getElementById("chat-background-color");
+    const bgImageUrlInput = document.getElementById("chat-background-image-url");
+    
+    const previewBody = previewRoot.querySelector(".chat-preview-body");
+    
+    if (previewBody) {
+        const enabled = bgEnabledInput ? bgEnabledInput.checked : true;
+        const type = bgTypeInput ? bgTypeInput.value || "default" : "default";
+        const color = bgColorInput ? bgColorInput.value || "" : "";
+        const imageUrl = bgImageUrlInput ? bgImageUrlInput.value || "" : "";
+        
+        // Reset estilos anteriores
+        previewBody.style.removeProperty("background-image");
+        previewBody.style.removeProperty("background-color");
+        previewBody.style.removeProperty("background-size");
+        previewBody.style.removeProperty("background-position");
+        previewBody.style.removeProperty("background-repeat");
+        
+        if (enabled && type !== "default") {
+            if (type === "image" && imageUrl) {
+                previewBody.style.backgroundImage = `url("${imageUrl}")`;
+                previewBody.style.backgroundSize = "cover";
+                previewBody.style.backgroundPosition = "center";
+                previewBody.style.backgroundRepeat = "no-repeat";
+            } else if (type === "color" && color) {
+                previewBody.style.backgroundColor = color;
+            }
+            // Se não tiver valor válido, fica com o padrão do CSS
+        }
+    }
 }
 
 // Função para atualizar o preview do launcher
@@ -681,6 +715,10 @@ document.addEventListener("DOMContentLoaded", function () {
         "bot-avatar",
         "primary-color",
         "secondary-color",
+        "chat-background-enabled",
+        "chat-background-type",
+        "chat-background-color",
+        "chat-background-image-url",
     ];
 
     previewFields.forEach(function (id) {
