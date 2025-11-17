@@ -1103,6 +1103,8 @@ button {
 
 /* Cards de gráficos ApexCharts */
 .apex-chart-card {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, rgba(4, 15, 50, 0.95) 0%, rgba(1, 8, 31, 0.98) 100%);
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
@@ -1674,15 +1676,15 @@ button {
 .apex-chart-container .chart-skeleton {
   position: absolute;
   inset: 0;
-  border-radius: 14px;
+  border-radius: inherit;
   display: none;
+  height: 100%;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
 
 .chart-skeleton,
 .skeleton-chart {
-  height: 240px;
   border-radius: 14px;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
