@@ -295,7 +295,7 @@ def normalize_lead_answer(field: str, answer: str):
     # Cidade: usa normalização esperta, com fallback pro texto cru
     if field == "cidade":
         normalized = normalize_city_name(answer)
-        return normalized or answer[:120]
+        return normalized
 
     # Estado (UF): normaliza usando a helper de UF
     if field == "estado":

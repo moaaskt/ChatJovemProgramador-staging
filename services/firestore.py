@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from firebase_admin import initialize_app, credentials, firestore
 from firebase_admin.exceptions import FirebaseError
 from werkzeug.security import generate_password_hash, check_password_hash
+import difflib
+import unicodedata
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG) 
@@ -461,70 +463,55 @@ def get_conversation_messages(session_id, limit=200):
 
 
 def normalize_city_name(city: str) -> str | None:
-    """
-    Normaliza o nome da cidade removendo prefixos comuns, estados e formatando para Title Case.
-    Exemplos:
-    - "eu falo de palhoça, sc" -> "Palhoça"
-    - "sou de florianópolis" -> "Florianópolis"
-    - "moro em palhoça - sc" -> "Palhoça"
-    Retorna None se a cidade não puder ser normalizada (vazia ou muito curta).
-    """
     if not city:
         return None
-    
-    # Converte para lowercase
-    city = city.lower().strip()
-    
-    if not city:
-        return None
-    
-    # Remove prefixos comuns no início da frase (case-insensitive)
-    prefixes = [
-        "eu sou de",
-        "eu moro em",
-        "eu falo de",
-        "sou de",
-        "moro em",
-        "falo de",
-        "sou",
-        "moro",
-        "falo"
+
+    valid_cities = [
+        "Araranguá", "Blumenau", "Biguaçu", "Brusque", "Caçador", "Canoinhas",
+        "Chapecó", "Concórdia", "Criciúma", "Curitibanos", "Florianópolis",
+        "Fraiburgo", "Jaraguá do Sul", "Joaçaba", "Joinville", "Lages",
+        "Palhoça", "Porto União", "Rio do Sul", "São Miguel do Oeste",
+        "Tubarão", "Videira", "Xanxerê", "São José", "Tijucas"
     ]
-    
-    for prefix in prefixes:
-        if city.startswith(prefix):
-            city = city[len(prefix):].strip()
-            break
-    
-    # Corta tudo após vírgula ou hífen (geralmente estado)
-    if "," in city:
-        city = city.split(",")[0].strip()
-    if "-" in city:
-        city = city.split("-")[0].strip()
-    
-    # Remove palavras genéricas no começo
-    generic_words = ["cidade de", "município de", "cidade", "município"]
-    for word in generic_words:
-        if city.startswith(word):
-            city = city[len(word):].strip()
-            break
-    
-    # Remove espaços extras e faz strip final
-    city = " ".join(city.split())
-    city = city.strip()
-    
-    # Validação: se ficou com menos de 2 caracteres, retorna None
-    if len(city) < 2:
-        return None
-    
-    # Limita a 50 caracteres
-    if len(city) > 50:
-        city = city[:50]
-    
-    # Converte para Title Case (primeira letra de cada palavra em maiúscula)
-    city = " ".join(word.capitalize() for word in city.split() if word)
-    
-    return city if city else None
+
+    synonyms = {
+        "floripa": "Florianópolis",
+        "poa": "Porto Alegre",
+        "sampa": "São Paulo"
+    }
+
+    def strip_accents(s: str) -> str:
+        return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+
+    text = city.strip().lower()
+    text_no_accents = strip_accents(text)
+
+    if text in synonyms:
+        candidate = synonyms[text]
+        return candidate if candidate in valid_cities else None
+
+    valid_norm = [(v, strip_accents(v.lower())) for v in valid_cities]
+
+    for original, norm in valid_norm:
+        if norm in text_no_accents:
+            return original
+
+    choices = [norm for _, norm in valid_norm]
+    match = difflib.get_close_matches(text_no_accents, choices, n=1, cutoff=0.8)
+    if match:
+        for original, norm in valid_norm:
+            if norm == match[0]:
+                return original
+
+    tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 4]
+    for token in tokens:
+        match = difflib.get_close_matches(token, choices, n=1, cutoff=0.85)
+        if match:
+            for original, norm in valid_norm:
+                if norm == match[0]:
+                    return original
+
+    return None
 
 
 def save_lead_from_conversation(session_id: str, lead_data: dict):
@@ -542,7 +529,7 @@ def save_lead_from_conversation(session_id: str, lead_data: dict):
         # Normaliza cidade: tenta usar normalize_city_name, com fallback para texto original
         raw_city = lead_data.get("cidade") or ""
         normalized_city = normalize_city_name(raw_city)
-        cidade_final = normalized_city if normalized_city else (raw_city.strip()[:120] if raw_city.strip() else "")
+        cidade_final = normalized_city if normalized_city else None
         
         doc = {
             "session_id": session_id,
