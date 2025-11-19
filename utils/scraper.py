@@ -577,25 +577,48 @@ def raspar_inscricoes():
                 vistos.add(t)
                 texto_geral.append(t)
 
+        base = "https://www.jovemprogramador.com.br/"
         link_inscricao = ""
-        for a in soup.find_all("a"):
-            txt = a.get_text(strip=True).lower()
+        for a in soup.find_all("a", href=True):
             href = a.get("href", "")
-            if not href:
-                continue
-            if any(k in txt for k in ["inscreva", "inscrição", "inscrever"]):
-                link_inscricao = href
+            if href and "inscrevase" in href.lower():
+                link_inscricao = (
+                    "https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase"
+                )
                 break
+        if not link_inscricao:
+            for a in soup.find_all("a"):
+                txt = a.get_text(strip=True).lower()
+                href = a.get("href", "")
+                if not href:
+                    continue
+                if any(k in txt for k in ["inscreva", "inscrição", "inscrever"]):
+                    if not href.startswith("http"):
+                        href = base + href.lstrip("/")
+                    link_inscricao = href
+                    break
 
         link_edital = ""
         for a in soup.find_all("a"):
-            txt = a.get_text(strip=True).lower()
             href = a.get("href", "")
             if not href:
                 continue
-            if any(k in txt for k in ["edital", "regulamento"]):
+            if href.lower().endswith(".pdf"):
+                if not href.startswith("http"):
+                    href = base + href.lstrip("/")
                 link_edital = href
                 break
+        if not link_edital:
+            for a in soup.find_all("a"):
+                txt = a.get_text(strip=True).lower()
+                href = a.get("href", "")
+                if not href:
+                    continue
+                if any(k in txt for k in ["edital", "regulamento", "termo", "regras", "manual"]):
+                    if not href.startswith("http"):
+                        href = base + href.lstrip("/")
+                    link_edital = href
+                    break
 
         return {
             "inscricoes": {

@@ -211,6 +211,7 @@ class Chatbot:
         Proibição: JAMAIS sugira cursos externos, canais do YouTube ou plataformas fora do Programa Jovem Programador (como Udemy, Coursera, FreeCodeCamp, Gustavo Guanabara, etc).
         Concisão: seja direto. Responda em no máximo 3 ou 4 frases, a menos que o usuário peça detalhes técnicos.
         Captura de lead: seja simpático e objetivo ao solicitar nome, cidade, estado e idade quando o usuário demonstrar interesse em inscrição, perguntando um item por vez.
+        PRIORIDADE MÁXIMA: Se o usuário pedir 'link', 'inscrição', 'site' ou 'edital', forneça a URL da página de inscrição IMEDIATAMENTE. Não faça perguntas de cadastro (nome, cidade) antes de entregar o link.
 
         --- INFORMAÇÕES OFICIAIS ---
         
@@ -220,6 +221,8 @@ class Chatbot:
         --- INSCRIÇÕES E EDITAIS ---
         {self.dados.get("inscricoes", {}).get("texto_geral", "Consulte o site.")}
         Para perguntas sobre datas, prazos e como se inscrever, use preferencialmente os dados da seção INSCRIÇÕES.
+        Link do Edital/Regulamento: {self.dados.get("inscricoes", {}).get("link_edital") or "Consulte o regulamento na página de inscrição abaixo."}
+        Se o usuário perguntar sobre o EDITAL e o link específico não existir, envie o 'Link para Inscrição' e diga que as regras estão lá.
 
         DÚVIDAS FREQUENTES:
         {duvidas_texto}
