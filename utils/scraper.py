@@ -520,59 +520,92 @@ def raspar_parceiros():
 
 
 def raspar_links_acesso():
-    """
-    Raspa os links de acesso para Aluno e Empresa procurando em toda a página,
-    para evitar problemas com menus de JavaScript.
-    """
     print("🔑 Raspando links de acesso...")
     try:
-        # Usando a página inicial, pois o menu de acesso está em todas.
         url = "https://www.jovemprogramador.com.br/"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
-
         soup = BeautifulSoup(response.text, "html.parser")
-
         links_acesso = {}
-
-        # --- ESTRATÉGIA CORRIGIDA ---
-        # Em vez de procurar um container específico, procuramos por TODOS os
-        # links da página e filtramos pelo texto exato.
         todos_os_links = soup.find_all("a")
-
-        print(f"    - Verificando {len(todos_os_links)} links na página...")
-
         for link in todos_os_links:
-            # .strip() remove espaços em branco antes e depois do texto
             texto_do_link = link.get_text(strip=True)
-
             if texto_do_link == "Área do Aluno":
                 href = link.get("href", "")
                 if href:
-                    print("    - Link 'Área do Aluno' encontrado!")
                     links_acesso["aluno"] = href
-
             elif texto_do_link == "Área da Empresa":
                 href = link.get("href", "")
                 if href:
-                    print("    - Link 'Área da Empresa' encontrado!")
                     links_acesso["empresa"] = href
-
-        if links_acesso:
-            print(f"✅ Encontrados {len(links_acesso)} links de acesso.")
-        else:
-            print(
-                "⚠️ Nenhum link de acesso ('Área do Aluno' ou 'Área da Empresa') foi encontrado no HTML da página."
-            )
-
         return {"links_acesso": links_acesso}
-
     except Exception as e:
         print(f"❌ ERRO ao raspar links de acesso: {e}")
         return {"links_acesso": {}}
+
+def raspar_inscricoes():
+    try:
+        url = "https://www.jovemprogramador.com.br/inscricoes-jovem-programador/"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, timeout=20)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        textos = []
+        containers = []
+        c1 = soup.find("div", class_="fh5co-heading")
+        if c1:
+            containers.append(c1)
+        for c in soup.find_all("div", class_="container"):
+            containers.append(c)
+        if not containers:
+            containers = [soup]
+
+        for cont in containers:
+            for el in cont.find_all(["p", "li"]):
+                t = el.get_text(strip=True)
+                if t and len(t) > 10:
+                    textos.append(t)
+
+        vistos = set()
+        texto_geral = []
+        for t in textos:
+            if t not in vistos:
+                vistos.add(t)
+                texto_geral.append(t)
+
+        link_inscricao = ""
+        for a in soup.find_all("a"):
+            txt = a.get_text(strip=True).lower()
+            href = a.get("href", "")
+            if not href:
+                continue
+            if any(k in txt for k in ["inscreva", "inscrição", "inscrever"]):
+                link_inscricao = href
+                break
+
+        link_edital = ""
+        for a in soup.find_all("a"):
+            txt = a.get_text(strip=True).lower()
+            href = a.get("href", "")
+            if not href:
+                continue
+            if any(k in txt for k in ["edital", "regulamento"]):
+                link_edital = href
+                break
+
+        return {
+            "inscricoes": {
+                "texto_geral": "\n\n".join(texto_geral[:20]),
+                "link_inscricao": link_inscricao,
+                "link_edital": link_edital,
+            }
+        }
+    except Exception:
+        return {"inscricoes": {"texto_geral": "", "link_inscricao": "", "link_edital": ""}}
 
 
 # dito isso, salvar tudo
@@ -592,6 +625,7 @@ def salvar_dados():
         "patrocinadores": raspar_patrocinadores()["patrocinadores"],
         "parceiros": raspar_parceiros()["parceiros"],
         "links_acesso": raspar_links_acesso()["links_acesso"],
+        "inscricoes": raspar_inscricoes()["inscricoes"],
     }
 
     with open("dados.json", "w", encoding="utf-8") as f:

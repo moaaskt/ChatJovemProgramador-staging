@@ -19,12 +19,6 @@
   },
   "cidades": "Araranguá, Blumenau, Biguaçu, Brusque, Caçador, Canoinhas, Chapecó, Concórdia, Criciúma, Curitibanos, Florianópolis, Fraiburgo, Jaraguá do Sul, Joaçaba, Joinville, Lages, Palhoça, Porto União, Rio do Sul, São Miguel do Oeste, Tubarão, Videira e Xanxerê.",
   "noticias": [
-{
-  "titulo": "Inscrições abertas — Jovem Programador 2026",
-  "texto_completo": "As inscrições para o Jovem Programador 2026 estão abertas. Participe e garanta sua vaga para cursos, capacitações e oportunidades de carreira no setor de tecnologia.",
-  "link": "https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase",
-  "data": "2025-11-18"
-},
     {
       "titulo": "Jovem Programador 2026 abre inscrições e se torna a maior edição do programa em SC",
       "link": "https://www.jovemprogramador.com.br/n.php?ID=144&T=jovem-programador-2026-abre-inscri-es-e-se-torna-a-maior-edi-o-do-programa-em-sc",
@@ -661,16 +655,48 @@
   },
   "apoiadores": [
     {
-      "nome": "CIB",
-      "link": "https://www.centrosdeinovacao.sc.gov.br/centro-de-inovacao-de-blumenau/"
+      "nome": "Communitech",
+      "link": "https://www.communi.tech/"
+    },
+    {
+      "nome": "Orion",
+      "link": "https://www.orionparque.com/"
+    },
+    {
+      "nome": "Somar",
+      "link": "http://somarsc.org/"
+    },
+    {
+      "nome": "Acate",
+      "link": "https://www.acate.com.br/"
+    },
+    {
+      "nome": "COLLABTECH",
+      "link": "https://collabtech.org.br/"
     },
     {
       "nome": "Novale Hub",
       "link": "http://www.novalehub.com.br/"
     },
     {
-      "nome": "COLLABTECH",
-      "link": "https://collabtech.org.br/"
+      "nome": "CIB",
+      "link": "https://www.centrosdeinovacao.sc.gov.br/centro-de-inovacao-de-blumenau/"
+    },
+    {
+      "nome": "Sigma Park ",
+      "link": "https://sigmapark.tec.br"
+    },
+    {
+      "nome": "NSC TV",
+      "link": "https://www.nsctotal.com.br"
+    },
+    {
+      "nome": "SESC",
+      "link": "https://www.sesc-sc.com.br/"
+    },
+    {
+      "nome": "Amureltec",
+      "link": "https://amureltec.com.br/"
     },
     {
       "nome": "Inovale",
@@ -683,38 +709,6 @@
     {
       "nome": "Gene",
       "link": "https://www.institutogene.org.br/"
-    },
-    {
-      "nome": "Acate",
-      "link": "https://www.acate.com.br/"
-    },
-    {
-      "nome": "SESC",
-      "link": "https://www.sesc-sc.com.br/"
-    },
-    {
-      "nome": "NSC TV",
-      "link": "https://www.nsctotal.com.br"
-    },
-    {
-      "nome": "Sigma Park ",
-      "link": "https://sigmapark.tec.br"
-    },
-    {
-      "nome": "Communitech",
-      "link": "https://www.communi.tech/"
-    },
-    {
-      "nome": "Somar",
-      "link": "http://somarsc.org/"
-    },
-    {
-      "nome": "Orion",
-      "link": "https://www.orionparque.com/"
-    },
-    {
-      "nome": "Amureltec",
-      "link": "https://amureltec.com.br/"
     },
     {
       "nome": "Jovem Programador 2026 abre inscrições e se torna a maior edição do programa em SC",
@@ -731,6 +725,30 @@
   ],
   "patrocinadores": [
     {
+      "nome": "Datainfo",
+      "link": "https://www.datainfo.inf.br/"
+    },
+    {
+      "nome": "ADM Sistemas",
+      "link": "https://web.adminfo.com.br"
+    },
+    {
+      "nome": "Radek",
+      "link": "https://radek.com.br/"
+    },
+    {
+      "nome": "DGSYS",
+      "link": "https://dgsys.com.br/"
+    },
+    {
+      "nome": "WK",
+      "link": "https://wk.com.br/"
+    },
+    {
+      "nome": "AMB Infraestrutura Tecnológica",
+      "link": "https://ambcorporativo.com.br"
+    },
+    {
       "nome": "hartsystem",
       "link": "https://hartsystem.com"
     },
@@ -739,80 +757,56 @@
       "link": "https://www.mobussconstrucao.com.br"
     },
     {
-      "nome": "DGSYS",
-      "link": "https://dgsys.com.br/"
-    },
-    {
-      "nome": "Grupo BST",
-      "link": "https://www.grupobst.com.br/"
-    },
-    {
-      "nome": "Exímio ",
-      "link": "https://www.eximioti.com.br/"
-    },
-    {
-      "nome": "NDD",
-      "link": "https://ndd.tech/"
-    },
-    {
-      "nome": "Koerich Lab",
-      "link": "https://klab.com.br"
-    },
-    {
-      "nome": "Teclógica",
-      "link": "https://www.teclogica.com.br/"
-    },
-    {
-      "nome": "Dev10",
-      "link": "https://institucional.pedidos10.com.br/"
-    },
-    {
-      "nome": "Radek",
-      "link": "https://radek.com.br/"
-    },
-    {
-      "nome": "WK",
-      "link": "https://wk.com.br/"
-    },
-    {
-      "nome": "CB Sistemas",
-      "link": "https://www.cbsistemas.com.br"
-    },
-    {
-      "nome": "Cloudpark",
-      "link": "https://cloudpark.com.br/"
-    },
-    {
-      "nome": "Softplan",
-      "link": "https://www.softplan.com.br/"
-    },
-    {
-      "nome": "AP Controle",
-      "link": "https://www.apcontrole.com.br/"
+      "nome": "DataRunk",
+      "link": "https://datarunk.com/"
     },
     {
       "nome": "Clube Associados",
       "link": "https://clubesassociados.com.br/"
     },
     {
+      "nome": "Koerich Lab",
+      "link": "https://klab.com.br"
+    },
+    {
+      "nome": "Grupo BST",
+      "link": "https://www.grupobst.com.br/"
+    },
+    {
+      "nome": "Cloudpark",
+      "link": "https://cloudpark.com.br/"
+    },
+    {
+      "nome": "CB Sistemas",
+      "link": "https://www.cbsistemas.com.br"
+    },
+    {
+      "nome": "AP Controle",
+      "link": "https://www.apcontrole.com.br/"
+    },
+    {
+      "nome": "Dev10",
+      "link": "https://institucional.pedidos10.com.br/"
+    },
+    {
+      "nome": "Teclógica",
+      "link": "https://www.teclogica.com.br/"
+    },
+    {
+      "nome": "Softplan",
+      "link": "https://www.softplan.com.br/"
+    },
+    {
+      "nome": "NDD",
+      "link": "https://ndd.tech/"
+    },
+    {
+      "nome": "Exímio ",
+      "link": "https://www.eximioti.com.br/"
+    },
+    {
       "nome": "Senior",
       "link": "https://www.senior.com.br/"
-    },
-    {
-      "nome": "ADM Sistemas",
-      "link": "https://web.adminfo.com.br"
-    },
-    {
-      "nome": "AMB Infraestrutura Tecnológica",
-      "link": "https://ambcorporativo.com.br"
-    },
-    {
-      "nome": "DataRunk",
-      "link": "https://datarunk.com/"
-    },
-    {
-      "nome": "Datainfo",
-      "link": "https://www.datainfo.inf.br/"
     },
     {
       "nome": "Jovem Programador 2026 abre inscrições e se torna a maior edição do programa em SC",
@@ -840,5 +834,10 @@
   "links_acesso": {
     "aluno": "http://www.jovemprogramador.com.br/aluno/",
     "empresa": "http://www.jovemprogramador.com.br/vagas/"
+  },
+  "inscricoes": {
+    "texto_geral": "Depoimentos\n\nInscreva-se\n\nDesenvolva seufuturo com oJovem Programador 2026!\n\nA transformação de jovens em profissionais prontos para o mercado de tecnologia.\n\nO que dizemnossosalunos e ex-alunos?\n\nConfira o impacto que o Jovem Programadorteve na vida de centenas de jovens em SC.\n\nDa Lógica aoHackathon\n\nConheça a Jornada PJP\n\nOportunidades reais para você!\n\nParceria com empresas do mercado de tecnologiaAulas híbridas: online e presencialNovo Módulo com Inteligência ArtificialInfraestrutura moderna em mais de 23 cidadesCertificado reconhecido pelo mercado\n\n\"O Programa Jovem Programador oferece aos alunos uma abordagem prática do mercado de trabalho, incentivando o trabalho em equipe e possibilitando uma aproximação com a área da tecnologia. Contribui para formar jovens preparados para o mercado e oferece uma oportunidade de transição de carreira para quem já atua profissionalmente.Por esses motivos, o Jovem Programador é fundamental para a Exímio na identificação de talentos que possam integrar nosso programa de desenvolvimento profissional, que começa com um estágio e oferece a possibilidade de contratação ao final.É nítida a diferença no conhecimento dos alunos que participam do Jovem Programador, pois chegam com maior preparo e melhores habilidades interpessoais (soft skills). Atualmente, a Exímio conta com dois profissionais que se destacaram na edição de 2024 do Jovem Programador, participaram do nosso programa de estágio, e foram efetivados ao final. ́\"Jhonata - Exímio TI (Brusque)\n\nOnde você pode participar?\n\nCom aulas em mais de 23 cidades, encontre amais próxima e comece sua jornada.\n\nNÃO DEIXE PARAA ÚLTIMA HORA!\n\nInscreva-se agora eprepare-se para o futuro\n\nPara participar do programa você deve ter mais de 16 anos\n\n*Somar a renda dos familiares (aqueles que tenham alguma renda), e dividir por todos os membros da família(inclusive aqueles que não têm renda nenhuma: como: crianças, adolescentes...).\n\nDúvidas?Temos as Respostas!\n\nPatrocinadores do programa\n\nApoiadores do programa",
+    "link_inscricao": "#inscrevase",
+    "link_edital": ""
   }
 }

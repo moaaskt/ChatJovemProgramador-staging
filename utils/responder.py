@@ -217,6 +217,10 @@ class Chatbot:
         SOBRE O PROGRAMA:
         {self.dados.get("sobre", "Informação não disponível.")}
 
+        --- INSCRIÇÕES E EDITAIS ---
+        {self.dados.get("inscricoes", {}).get("texto_geral", "Consulte o site.")}
+        Para perguntas sobre datas, prazos e como se inscrever, use preferencialmente os dados da seção INSCRIÇÕES.
+
         DÚVIDAS FREQUENTES:
         {duvidas_texto}
         
