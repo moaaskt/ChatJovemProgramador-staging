@@ -1,2 +1,4 @@
 static/assets/chat-jovem-programador-v2-firebase-adminsdk-fbsvc-774925ddb2.json
 .env
+__pycache__/
+*.pyc
