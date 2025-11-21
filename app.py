@@ -479,7 +479,10 @@ def chat():
         msg_lower = user_message.strip().lower()
         words = [w for w in re.split(r"\s+", msg_lower) if w]
         greeting_phrases = {"oi", "olá", "ola", "bom dia", "boa tarde", "boa noite", "e aí", "eaí", "fala", "opa", "salve", "teste", "ajuda", "hey", "hi", "hello"}
-        intent_keywords = {"curso", "inscrição", "inscrições", "inscrever", "quero", "matrícula", "matricula", "vaga", "2026"}
+        intent_keywords = {
+            "curso", "inscrição", "inscrições", "inscrever", "quero", "matrícula", "matricula", "vaga", "2026",
+            "funciona", "programa", "sobre", "detalhes", "informações", "informacoes", "começar", "comecar", "entender"
+        }
         has_intent = any(k in msg_lower for k in intent_keywords)
         is_short = len(words) < 4
         has_greeting = any(p in msg_lower for p in greeting_phrases)
