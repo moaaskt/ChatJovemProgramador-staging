@@ -316,6 +316,22 @@ def normalize_lead_answer(field: str, answer: str):
     return answer[:255]
 
 
+def bot_response_with_fallback(user_message: str) -> str:
+    res = chatbot_web.gerar_resposta(user_message)
+    res_str = res if isinstance(res, str) else (str(res) if res is not None else "")
+    lower = user_message.strip().lower()
+    keywords = {"link", "inscrição", "inscrever", "site", "2026", "edital"}
+    failed = ("Humm… não consegui processar agora" in res_str) or ("Humm... não consegui processar agora" in res_str) or ("Humm…" in res_str and "processar" in res_str)
+    if failed and any(k in lower for k in keywords):
+        return (
+            "Opa! Minha conexão com a IA oscilou, mas não vou te deixar na mão. 🚀\n\n"
+            "Aqui está o link oficial para você garantir sua vaga:\n"
+            "https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase\n\n"
+            "(Se precisar de algo mais, pode perguntar!)"
+        )
+    return res_str
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -388,7 +404,7 @@ def chat():
 
     # Se Firestore estiver desativado, mantém comportamento original
     if not AI_FIRESTORE_ENABLED:
-        bot_response = chatbot_web.gerar_resposta(user_message)
+        bot_response = bot_response_with_fallback(user_message)
         return jsonify({
             'response': bot_response,
             'session_id': session_id
@@ -442,7 +458,7 @@ def chat():
     # 3) Se lead já foi concluído, segue fluxo normal com IA
     # ---------------------------------------------------------
     if lead_done or lead_stage == "done":
-        bot_response = chatbot_web.gerar_resposta(user_message)
+        bot_response = bot_response_with_fallback(user_message)
 
         if AI_FIRESTORE_ENABLED:
             try:
@@ -468,7 +484,7 @@ def chat():
         is_short = len(words) < 4
         has_greeting = any(p in msg_lower for p in greeting_phrases)
         if (is_short and has_greeting and not has_intent) or (not has_intent):
-            bot_response = chatbot_web.gerar_resposta(user_message)
+            bot_response = bot_response_with_fallback(user_message)
             if AI_FIRESTORE_ENABLED:
                 try:
                     save_message(session_id, "assistant", bot_response, meta={"source": "web"})
