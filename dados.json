@@ -655,60 +655,60 @@
   },
   "apoiadores": [
     {
-      "nome": "CIB",
-      "link": "https://www.centrosdeinovacao.sc.gov.br/centro-de-inovacao-de-blumenau/"
-    },
-    {
-      "nome": "Somar",
-      "link": "http://somarsc.org/"
-    },
-    {
-      "nome": "SESC",
-      "link": "https://www.sesc-sc.com.br/"
-    },
-    {
-      "nome": "COLLABTECH",
-      "link": "https://collabtech.org.br/"
-    },
-    {
-      "nome": "Sigma Park ",
-      "link": "https://sigmapark.tec.br"
-    },
-    {
-      "nome": "NSC TV",
-      "link": "https://www.nsctotal.com.br"
-    },
-    {
       "nome": "Gene",
       "link": "https://www.institutogene.org.br/"
-    },
-    {
-      "nome": "Amureltec",
-      "link": "https://amureltec.com.br/"
-    },
-    {
-      "nome": "Inovale",
-      "link": "https://www.poloinovale.com.br/"
     },
     {
       "nome": "Acate",
       "link": "https://www.acate.com.br/"
     },
     {
-      "nome": "Orion",
-      "link": "https://www.orionparque.com/"
+      "nome": "Somar",
+      "link": "http://somarsc.org/"
+    },
+    {
+      "nome": "CIB",
+      "link": "https://www.centrosdeinovacao.sc.gov.br/centro-de-inovacao-de-blumenau/"
+    },
+    {
+      "nome": "Inovale",
+      "link": "https://www.poloinovale.com.br/"
+    },
+    {
+      "nome": "Communitech",
+      "link": "https://www.communi.tech/"
+    },
+    {
+      "nome": "Sigma Park ",
+      "link": "https://sigmapark.tec.br"
+    },
+    {
+      "nome": "SESC",
+      "link": "https://www.sesc-sc.com.br/"
     },
     {
       "nome": "Novale Hub",
       "link": "http://www.novalehub.com.br/"
     },
     {
+      "nome": "Amureltec",
+      "link": "https://amureltec.com.br/"
+    },
+    {
+      "nome": "NSC TV",
+      "link": "https://www.nsctotal.com.br"
+    },
+    {
       "nome": "Citeb",
       "link": "https://www.citeb.com.br/"
     },
     {
-      "nome": "Communitech",
-      "link": "https://www.communi.tech/"
+      "nome": "COLLABTECH",
+      "link": "https://collabtech.org.br/"
+    },
+    {
+      "nome": "Orion",
+      "link": "https://www.orionparque.com/"
     },
     {
       "nome": "Jovem Programador 2026 abre inscrições e se torna a maior edição do programa em SC",
@@ -725,68 +725,72 @@
   ],
   "patrocinadores": [
     {
-      "nome": "Teclógica",
-      "link": "https://www.teclogica.com.br/"
-    },
-    {
-      "nome": "Radek",
-      "link": "https://radek.com.br/"
-    },
-    {
-      "nome": "Koerich Lab",
-      "link": "https://klab.com.br"
-    },
-    {
-      "nome": "NDD",
-      "link": "https://ndd.tech/"
-    },
-    {
-      "nome": "AMB Infraestrutura Tecnológica",
-      "link": "https://ambcorporativo.com.br"
-    },
-    {
-      "nome": "Clube Associados",
-      "link": "https://clubesassociados.com.br/"
-    },
-    {
-      "nome": "DGSYS",
-      "link": "https://dgsys.com.br/"
-    },
-    {
-      "nome": "Dev10",
-      "link": "https://institucional.pedidos10.com.br/"
-    },
-    {
-      "nome": "AP Controle",
-      "link": "https://www.apcontrole.com.br/"
-    },
-    {
-      "nome": "DataRunk",
-      "link": "https://datarunk.com/"
-    },
-    {
       "nome": "Grupo BST",
       "link": "https://www.grupobst.com.br/"
-    },
-    {
-      "nome": "CB Sistemas",
-      "link": "https://www.cbsistemas.com.br"
     },
     {
       "nome": "Softplan",
       "link": "https://www.softplan.com.br/"
     },
     {
+      "nome": "Cloudpark",
+      "link": "https://cloudpark.com.br/"
+    },
+    {
+      "nome": "DGSYS",
+      "link": "https://dgsys.com.br/"
+    },
+    {
       "nome": "WK",
       "link": "https://wk.com.br/"
+    },
+    {
+      "nome": "Radek",
+      "link": "https://radek.com.br/"
+    },
+    {
+      "nome": "Dev10",
+      "link": "https://institucional.pedidos10.com.br/"
+    },
+    {
+      "nome": "AMB Infraestrutura Tecnológica",
+      "link": "https://ambcorporativo.com.br"
+    },
+    {
+      "nome": "Exímio ",
+      "link": "https://www.eximioti.com.br/"
+    },
+    {
+      "nome": "Teclógica",
+      "link": "https://www.teclogica.com.br/"
     },
     {
       "nome": "hartsystem",
       "link": "https://hartsystem.com"
     },
     {
-      "nome": "Exímio ",
-      "link": "https://www.eximioti.com.br/"
+      "nome": "ADM Sistemas",
+      "link": "https://web.adminfo.com.br"
+    },
+    {
+      "nome": "CB Sistemas",
+      "link": "https://www.cbsistemas.com.br"
+    },
+    {
+      "nome": "NDD",
+      "link": "https://ndd.tech/"
+    },
+    {
+      "nome": "Clube Associados",
+      "link": "https://clubesassociados.com.br/"
+    },
+    {
+      "nome": "DataRunk",
+      "link": "https://datarunk.com/"
+    },
+    {
+      "nome": "AP Controle",
+      "link": "https://www.apcontrole.com.br/"
     },
     {
       "nome": "Mobuss",
@@ -797,16 +801,12 @@
       "link": "https://www.datainfo.inf.br/"
     },
     {
-      "nome": "ADM Sistemas",
-      "link": "https://web.adminfo.com.br"
-    },
-    {
-      "nome": "Cloudpark",
-      "link": "https://cloudpark.com.br/"
-    },
-    {
       "nome": "Senior",
       "link": "https://www.senior.com.br/"
+    },
+    {
+      "nome": "Koerich Lab",
+      "link": "https://klab.com.br"
     },
     {
       "nome": "Jovem Programador 2026 abre inscrições e se torna a maior edição do programa em SC",
@@ -823,12 +823,12 @@
   ],
   "parceiros": [
     {
-      "nome": "SENAC PARCEIRO DE ENSINO",
-      "link": "https://portal.sc.senac.br/"
-    },
-    {
       "nome": "Seprosc - PARCEIRO INCIADOR/ORGANIZADOR",
       "link": "http://www.seprosc.com.br"
+    },
+    {
+      "nome": "SENAC PARCEIRO DE ENSINO",
+      "link": "https://portal.sc.senac.br/"
     }
   ],
   "links_acesso": {

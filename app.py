@@ -458,8 +458,27 @@ def chat():
     # ---------------------------------------------------------
     # 4) Fluxo de LEAD (sem e-mail, com 'pular' em qualquer etapa)
     # ---------------------------------------------------------
-    # Se ainda não começou, inicia coleta
+    # Se ainda não começou, decide entre responder com IA ou iniciar coleta
     if not lead_stage:
+        msg_lower = user_message.strip().lower()
+        words = [w for w in re.split(r"\s+", msg_lower) if w]
+        greeting_phrases = {"oi", "olá", "ola", "bom dia", "boa tarde", "boa noite", "e aí", "eaí", "fala", "opa", "salve", "teste", "ajuda", "hey", "hi", "hello"}
+        intent_keywords = {"curso", "inscrição", "inscrições", "inscrever", "quero", "matrícula", "matricula", "vaga", "2026"}
+        has_intent = any(k in msg_lower for k in intent_keywords)
+        is_short = len(words) < 4
+        has_greeting = any(p in msg_lower for p in greeting_phrases)
+        if (is_short and has_greeting and not has_intent) or (not has_intent):
+            bot_response = chatbot_web.gerar_resposta(user_message)
+            if AI_FIRESTORE_ENABLED:
+                try:
+                    save_message(session_id, "assistant", bot_response, meta={"source": "web"})
+                except Exception as e:
+                    print(f"[Firestore] Erro ao salvar resposta do bot: {e}")
+            return jsonify({
+                "response": bot_response,
+                "session_id": session_id,
+            })
+
         lead_stage = "collecting"
         lead_data = lead_data or {}
         try:
@@ -471,7 +490,6 @@ def chat():
         except Exception as e:
             print(f"[Firestore] Erro ao iniciar lead: {e}")
 
-        # Primeira pergunta: nome
         first_field = get_next_lead_field(lead_data)
         question = get_question_for_field(first_field, lead_data)
 

@@ -898,8 +898,31 @@ function addMessage(content, sender) {
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
     if (sender === 'bot') {
-        const frag = linkifyText(content);
-        messageContent.appendChild(frag);
+        const URL_REGEX = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+        const urls = Array.from(content.match(URL_REGEX) || []).map(u => u.startsWith('www.') ? ('https://' + u) : u);
+        const textWithoutUrls = (content || '').replace(URL_REGEX, '').trim();
+        if (textWithoutUrls) {
+            const fragText = renderMarkdownToFragment(textWithoutUrls);
+            messageContent.appendChild(fragText);
+        }
+        urls.forEach(rawUrl => {
+            let url = rawUrl;
+            try {
+                const a = document.createElement('a');
+                a.href = url;
+                let label = rawUrl;
+                try {
+                    const domain = new URL(url).hostname.replace('www.', '');
+                    label = FRIENDLY_NAMES[domain] || domain;
+                } catch (_) {
+                    label = rawUrl;
+                }
+                a.textContent = label;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer nofollow';
+                messageContent.appendChild(a);
+            } catch (_) {}
+        });
     } else {
         messageContent.textContent = content;
     }
