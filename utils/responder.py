@@ -235,6 +235,47 @@ class Chatbot:
         - IMPORTANTE: Se você listar "Facebook:", "Instagram:", etc, você DEVE incluir a URL completa logo após os dois pontos
         - NÃO deixe linhas vazias após os nomes das redes. SEMPRE coloque a URL na mesma linha ou logo abaixo
 
+        REGRA ABSOLUTA - Formatação de Links e CTAs:
+        - SEMPRE coloque o link NA MESMA LINHA ou IMEDIATAMENTE APÓS o emoji/texto de chamada
+        - Formato OBRIGATÓRIO para links de inscrição/edital:
+          "Para garantir sua vaga, acesse: https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase"
+          OU
+          "👉 https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase"
+        - NUNCA faça:
+          "👉 \n\nhttps://..." (link em linha separada com linhas vazias)
+          "👉 \n\n\nAqui está! \n\nhttps://..." (link no final separado)
+        - O link DEVE estar conectado ao texto de chamada, sem linhas vazias entre eles
+        - NUNCA coloque o link no final da mensagem separado do contexto
+        - NUNCA adicione linhas extras antes ou depois do link
+        - NUNCA reorganize parágrafos após mencionar o link
+        - Se você usar "👉", o link DEVE estar na mesma linha ou na linha imediata seguinte (sem linhas vazias)
+
+        TEMPLATE FIXO para respostas com link de inscrição:
+        "[Acolhimento] 🚀
+
+        [Benefício/Desejo] 🎓
+
+        [Informação sobre datas/prazos, se houver]
+
+        Para garantir sua vaga, acesse: [URL COMPLETA AQUI]
+
+        [Finalização amigável]"
+
+        TEMPLATE FIXO para respostas com link de edital:
+        "[Acolhimento] 🚀
+
+        [Benefício/Desejo] 🎓
+
+        Para ver o edital completo, acesse: [URL COMPLETA AQUI]
+
+        [Finalização amigável]"
+
+        VERIFICAÇÃO OBRIGATÓRIA antes de enviar resposta:
+        - Se você mencionou "acesse:", "link:", "👉", ou similar, VERIFIQUE se o link está na mesma linha ou linha imediata seguinte
+        - Se o link estiver separado por mais de 1 linha vazia, CORRIJA movendo o link para logo após o texto de chamada
+        - NUNCA envie resposta com emoji de chamada sem o link logo após
+        - Se você colocou "👉" em uma linha, o link DEVE estar na mesma linha ou na próxima linha (sem linhas vazias)
+
         Política de resposta (AIDA):
         1) Acolhimento: reconheça a iniciativa do usuário de estudar ou evoluir na carreira (ex.: "Ótima iniciativa querer estudar!" 💡).
         2) Benefício/Desejo: destaque benefícios reais do programa (ex.: "O curso é gratuito e conecta você com empresas parceiras." 🎓).
@@ -345,6 +386,172 @@ class Chatbot:
         
         return resposta
 
+    def _fix_link_formatting(self, resposta: str) -> str:
+        """
+        Corrige formatação de links que foram separados incorretamente.
+        Move links que estão no final ou muito separados para o lugar correto.
+        """
+        if not resposta or not isinstance(resposta, str):
+            return resposta
+        
+        import re
+        
+        # Regex para encontrar URLs
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        urls = re.findall(url_pattern, resposta)
+        
+        if not urls:
+            return resposta
+        
+        linhas = resposta.split('\n')
+        resultado_linhas = []
+        urls_processadas = set()
+        
+        i = 0
+        while i < len(linhas):
+            linha = linhas[i]
+            
+            # Verifica se a linha tem padrão de chamada
+            tem_chamada = (
+                '👉' in linha or
+                re.search(r'acesse:\s*$', linha, re.IGNORECASE) or
+                re.search(r'link:\s*$', linha, re.IGNORECASE) or
+                re.search(r'acesse\s+o\s+link:\s*$', linha, re.IGNORECASE)
+            )
+            
+            # Verifica se linha já tem URL
+            url_na_linha = re.search(url_pattern, linha)
+            
+            if tem_chamada:
+                if url_na_linha:
+                    # Já está correto - tem chamada e URL na mesma linha
+                    resultado_linhas.append(linha)
+                else:
+                    # Tem chamada mas não tem URL - procura URL próxima
+                    url_encontrada = None
+                    indice_url = None
+                    
+                    # Procura nas próximas 3 linhas
+                    for j in range(i + 1, min(i + 4, len(linhas))):
+                        url_match = re.search(url_pattern, linhas[j])
+                        if url_match:
+                            url_candidata = url_match.group(0)
+                            if url_candidata not in urls_processadas:
+                                url_encontrada = url_candidata
+                                indice_url = j
+                                break
+                    
+                    if url_encontrada:
+                        # Adiciona URL na mesma linha da chamada
+                        resultado_linhas.append(linha.rstrip() + ' ' + url_encontrada)
+                        urls_processadas.add(url_encontrada)
+                        # Pula até a linha que tinha a URL (mas mantém outras linhas entre)
+                        for k in range(i + 1, indice_url):
+                            if linhas[k].strip() and not re.search(url_pattern, linhas[k]):
+                                resultado_linhas.append(linhas[k])
+                        i = indice_url + 1
+                        continue
+                    else:
+                        # Não encontrou URL próxima, mantém linha original
+                        resultado_linhas.append(linha)
+            elif url_na_linha:
+                # Linha tem URL mas não tem chamada - verifica se deveria estar junto com chamada anterior
+                url_atual = url_na_linha.group(0)
+                
+                # Verifica se há chamada nas últimas 3 linhas do resultado
+                tem_chamada_antes = False
+                for j in range(max(0, len(resultado_linhas) - 3), len(resultado_linhas)):
+                    linha_antes = resultado_linhas[j]
+                    if (
+                        '👉' in linha_antes or
+                        re.search(r'acesse:\s*$', linha_antes, re.IGNORECASE) or
+                        re.search(r'link:\s*$', linha_antes, re.IGNORECASE)
+                    ):
+                        # Verifica se já tem URL após essa chamada
+                        if j + 1 >= len(resultado_linhas) or not re.search(url_pattern, resultado_linhas[j]):
+                            # Move URL para após a chamada
+                            resultado_linhas[j] = resultado_linhas[j].rstrip() + ' ' + url_atual
+                            urls_processadas.add(url_atual)
+                            # Remove URL da linha atual, mantém resto do texto
+                            linha_sem_url = linha.replace(url_atual, '').strip()
+                            if linha_sem_url:
+                                resultado_linhas.append(linha_sem_url)
+                            i += 1
+                            continue
+                        tem_chamada_antes = True
+                        break
+                
+                if not tem_chamada_antes and url_atual not in urls_processadas:
+                    resultado_linhas.append(linha)
+                    urls_processadas.add(url_atual)
+            else:
+                # Linha normal sem chamada nem URL
+                resultado_linhas.append(linha)
+            
+            i += 1
+        
+        resultado = '\n'.join(resultado_linhas)
+        
+        # Limpa linhas vazias excessivas (mais de 2 consecutivas)
+        resultado = re.sub(r'\n{3,}', '\n\n', resultado)
+        
+        return resultado
+
+    def _validate_response_formatting(self, resposta: str) -> str:
+        """
+        Valida e corrige formatação da resposta antes de retornar.
+        Garante que links estejam no lugar correto.
+        """
+        if not resposta or not isinstance(resposta, str):
+            return resposta
+        
+        import re
+        
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        tem_urls = bool(re.search(url_pattern, resposta))
+        
+        if not tem_urls:
+            return resposta
+        
+        # Verifica se há 👉 sem URL próximo
+        if '👉' in resposta:
+            linhas = resposta.split('\n')
+            for i, linha in enumerate(linhas):
+                if '👉' in linha:
+                    # Verifica se tem URL nas próximas 2 linhas
+                    proximas_linhas = '\n'.join(linhas[i:min(i+3, len(linhas))])
+                    if not re.search(url_pattern, proximas_linhas):
+                        # Procura primeira URL na resposta
+                        todas_urls = re.findall(url_pattern, resposta)
+                        if todas_urls:
+                            primeira_url = todas_urls[0]
+                            # Remove URL do lugar original
+                            resposta = resposta.replace(primeira_url, '', 1)
+                            # Adiciona após 👉 na mesma linha
+                            resposta = resposta.replace(linha, linha.rstrip() + ' ' + primeira_url, 1)
+                    break
+        
+        # Verifica se há "acesse:" sem URL próximo
+        if re.search(r'acesse:\s*$', resposta, re.MULTILINE | re.IGNORECASE):
+            linhas = resposta.split('\n')
+            for i, linha in enumerate(linhas):
+                if re.search(r'acesse:\s*$', linha, re.IGNORECASE):
+                    # Verifica se próxima linha tem URL
+                    if i + 1 < len(linhas):
+                        proxima = linhas[i + 1].strip()
+                        if not re.search(url_pattern, proxima):
+                            # Procura primeira URL
+                            todas_urls = re.findall(url_pattern, resposta)
+                            if todas_urls:
+                                primeira_url = todas_urls[0]
+                                # Remove do lugar original
+                                resposta = resposta.replace(primeira_url, '', 1)
+                                # Adiciona após "acesse:"
+                                resposta = resposta.replace(linha, linha.rstrip() + ' ' + primeira_url, 1)
+                    break
+        
+        return resposta
+
     # Este método é chamado toda vez que o usuário envia uma nova mensagem.
     def gerar_resposta(self, pergunta: str) -> str:
         # Validação simples para não enviar mensagens vazias para a API
@@ -373,8 +580,10 @@ class Chatbot:
             resp = self.chat_session.send_message(composed)
             text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
             resposta_final = text if isinstance(text, str) else (str(text) if text else "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?")
-            # Corrige links de redes sociais se necessário
+            # Aplica correções de formatação (ordem importa)
             resposta_final = self._fix_social_media_links(resposta_final)
+            resposta_final = self._fix_link_formatting(resposta_final)
+            resposta_final = self._validate_response_formatting(resposta_final)
             return resposta_final
         except Exception as e:
             print(f"[Gemini] erro:", e)
@@ -391,8 +600,11 @@ class Chatbot:
                         resp = self.chat_session.send_message(composed)
                         text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
                         if text and isinstance(text, str):
-                            resposta_final = self._fix_social_media_links(text)
-                            return resposta_final
+                            resposta_final = text
+                            # Aplica correções de formatação (ordem importa)
+                            resposta_final = self._fix_social_media_links(resposta_final)
+                            resposta_final = self._fix_link_formatting(resposta_final)
+                            resposta_final = self._validate_response_formatting(resposta_final)
                             return resposta_final
             except Exception as e2:
                 print(f"[Gemini] Erro ao reinicializar sessão: {e2}")
