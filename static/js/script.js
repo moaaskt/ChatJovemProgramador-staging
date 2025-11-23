@@ -898,14 +898,32 @@ function addMessage(content, sender) {
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
     if (sender === 'bot') {
+        // Detecta padrão "Nome: URL" (redes sociais) para não extrair URLs inline
+        const SOCIAL_MEDIA_PATTERN = /(Facebook|Instagram|LinkedIn|TikTok):\s*(https?:\/\/[^\s<]+)/gi;
+        const socialMediaMatches = Array.from(content.matchAll(SOCIAL_MEDIA_PATTERN));
+        const socialMediaUrls = new Set(socialMediaMatches.map(m => m[2]));
+        
         const URL_REGEX = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
-        const urls = Array.from(content.match(URL_REGEX) || []).map(u => u.startsWith('www.') ? ('https://' + u) : u);
-        const textWithoutUrls = (content || '').replace(URL_REGEX, '').trim();
+        const allUrls = Array.from(content.match(URL_REGEX) || []).map(u => u.startsWith('www.') ? ('https://' + u) : u);
+        
+        // Separa URLs que estão inline (formato "Nome: URL") das que estão soltas
+        const inlineUrls = allUrls.filter(url => socialMediaUrls.has(url));
+        const looseUrls = allUrls.filter(url => !socialMediaUrls.has(url));
+        
+        // Remove apenas URLs soltas do texto, mantendo as inline
+        let textWithoutUrls = content;
+        looseUrls.forEach(url => {
+            textWithoutUrls = textWithoutUrls.replace(url, '');
+        });
+        textWithoutUrls = textWithoutUrls.trim();
+        
         if (textWithoutUrls) {
             const fragText = renderMarkdownToFragment(textWithoutUrls);
             messageContent.appendChild(fragText);
         }
-        urls.forEach(rawUrl => {
+        
+        // Adiciona apenas URLs soltas como links separados
+        looseUrls.forEach(rawUrl => {
             let url = rawUrl;
             try {
                 const a = document.createElement('a');

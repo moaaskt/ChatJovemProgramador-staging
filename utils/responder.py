@@ -220,6 +220,9 @@ class Chatbot:
         - NUNCA liste apenas os nomes das redes sem as URLs
         - NUNCA use ícones, símbolos especiais (□, ■, etc) ou formatação visual complexa
         - NUNCA duplique informações (não repita o nome da rede após o link)
+        - REGRA ABSOLUTA: NUNCA crie duas listas de redes sociais. Use APENAS UMA lista com nomes E URLs juntos na mesma linha
+        - NUNCA faça: uma lista com "Facebook:", "Instagram:" sem URLs e depois outra lista com os links
+        - NUNCA faça: listar os nomes das redes em um lugar e os links em outro lugar da resposta
         - Exemplo de resposta CORRETA sobre redes sociais:
           "Aqui estão os nossos canais oficiais:
           Facebook: https://www.facebook.com/programajovemprogramador
@@ -230,10 +233,20 @@ class Chatbot:
           "Facebook: 
           Instagram: 
           LinkedIn: 
-          TikTok:"
+          TikTok:
+          [outro texto]
+          Facebook: https://..."
+        - Exemplo de resposta INCORRETA (NÃO FAÇA ISSO):
+          "Facebook:
+          Instagram:
+          [outro texto]
+          Facebook
+          Instagram
+          LinkedIn"
         - SEMPRE copie as URLs exatamente como aparecem na seção REDES SOCIAIS abaixo
         - IMPORTANTE: Se você listar "Facebook:", "Instagram:", etc, você DEVE incluir a URL completa logo após os dois pontos
-        - NÃO deixe linhas vazias após os nomes das redes. SEMPRE coloque a URL na mesma linha ou logo abaixo
+        - NÃO deixe linhas vazias após os nomes das redes. SEMPRE coloque a URL na mesma linha
+        - Use APENAS UMA lista completa com todas as redes e suas URLs juntas
 
         REGRA ABSOLUTA - Formatação de Links e CTAs:
         - SEMPRE coloque o link NA MESMA LINHA ou IMEDIATAMENTE APÓS o emoji/texto de chamada
@@ -325,6 +338,8 @@ class Chatbot:
         
         REGRA ABSOLUTA: Ao responder sobre redes sociais, você DEVE copiar EXATAMENTE o formato acima, incluindo TODAS as URLs completas. 
         NÃO liste apenas "Facebook:", "Instagram:" sem as URLs. SEMPRE inclua: "Facebook: https://...", "Instagram: https://...", etc.
+        NÃO crie duas listas - uma com nomes e outra com links. Use APENAS UMA lista com nomes E URLs juntos.
+        NÃO liste os nomes das redes em um lugar e os links em outro. TUDO deve estar junto na mesma lista.
 
         APOIADORES:
         {apoiadores_texto}
@@ -356,35 +371,126 @@ class Chatbot:
     def _fix_social_media_links(self, resposta: str) -> str:
         """
         Corrige respostas sobre redes sociais que não incluem URLs.
-        Se a resposta menciona redes sociais mas não tem URLs, adiciona automaticamente.
+        Remove duplicatas e consolida listas de redes sociais.
         """
         if not resposta or not isinstance(resposta, str):
             return resposta
         
-        # Verifica se a resposta menciona redes sociais mas não tem URLs completas
+        import re
+        
+        redes_info = self.dados.get("redes_sociais", {})
+        if not redes_info:
+            return resposta
+        
+        # Verifica se a resposta menciona redes sociais
         redes_mentions = ["Facebook:", "Instagram:", "LinkedIn:", "TikTok:"]
         tem_mencoes = any(mention in resposta for mention in redes_mentions)
-        tem_urls = "https://www.facebook.com" in resposta or "https://www.instagram.com" in resposta or "https://www.linkedin.com" in resposta or "https://www.tiktok.com" in resposta
         
-        # Se menciona redes mas não tem URLs, adiciona
-        if tem_mencoes and not tem_urls:
-            redes_info = self.dados.get("redes_sociais", {})
-            if redes_info:
-                # Procura por linhas que mencionam redes sociais sem URLs
-                linhas = resposta.split('\n')
-                novas_linhas = []
-                for linha in linhas:
-                    linha_original = linha
-                    # Verifica se a linha menciona uma rede social mas não tem URL
-                    for nome_rede, url in redes_info.items():
-                        if f"{nome_rede}:" in linha and url not in linha:
-                            # Substitui a linha pela versão com URL
-                            linha = f"{nome_rede}: {url}"
-                            break
+        if not tem_mencoes:
+            return resposta
+        
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        linhas = resposta.split('\n')
+        
+        # Identifica todas as listas de redes sociais
+        listas_redes = []  # Lista de (inicio, fim, tem_urls, linhas)
+        lista_atual = []
+        inicio_atual = -1
+        
+        for i, linha in enumerate(linhas):
+            linha_strip = linha.strip()
+            eh_rede = any(f"{nome}:" in linha_strip for nome in redes_info.keys())
+            
+            if eh_rede:
+                if not lista_atual:
+                    inicio_atual = i
+                lista_atual.append((i, linha))
+            else:
+                if lista_atual:
+                    # Verifica se a lista tem URLs
+                    tem_urls = any(re.search(url_pattern, l[1]) for l in lista_atual)
+                    listas_redes.append((inicio_atual, i - 1, tem_urls, lista_atual))
+                    lista_atual = []
+                    inicio_atual = -1
+        
+        # Processa última lista se terminou em lista
+        if lista_atual:
+            tem_urls = any(re.search(url_pattern, l[1]) for l in lista_atual)
+            listas_redes.append((inicio_atual, len(linhas) - 1, tem_urls, lista_atual))
+        
+        # Se não encontrou listas, apenas adiciona URLs se faltarem
+        if not listas_redes:
+            novas_linhas = []
+            for linha in linhas:
+                linha_modificada = False
+                for nome_rede, url in redes_info.items():
+                    if f"{nome_rede}:" in linha and url not in linha:
+                        novas_linhas.append(f"{nome_rede}: {url}")
+                        linha_modificada = True
+                        break
+                if not linha_modificada:
                     novas_linhas.append(linha)
-                return '\n'.join(novas_linhas)
+            return '\n'.join(novas_linhas)
         
-        return resposta
+        # Encontra a melhor lista (com URLs, ou a primeira se nenhuma tem)
+        lista_completa = None
+        for inicio, fim, tem_urls, lista_linhas in listas_redes:
+            if tem_urls:
+                # Constrói lista completa com URLs
+                lista_completa = []
+                for _, linha_original in lista_linhas:
+                    linha_strip = linha_original.strip()
+                    # Verifica se já tem URL
+                    if re.search(url_pattern, linha_strip):
+                        lista_completa.append(linha_strip)
+                    else:
+                        # Adiciona URL
+                        for nome_rede, url in redes_info.items():
+                            if f"{nome_rede}:" in linha_strip:
+                                lista_completa.append(f"{nome_rede}: {url}")
+                                break
+                break
+        
+        # Se não encontrou lista com URLs, constrói uma completa
+        if not lista_completa:
+            redes_unicas = set()
+            lista_completa = []
+            for inicio, fim, tem_urls, lista_linhas in listas_redes:
+                for _, linha_original in lista_linhas:
+                    linha_strip = linha_original.strip()
+                    for nome_rede, url in redes_info.items():
+                        if f"{nome_rede}:" in linha_strip and nome_rede not in redes_unicas:
+                            lista_completa.append(f"{nome_rede}: {url}")
+                            redes_unicas.add(nome_rede)
+                            break
+        
+        # Reconstrói resposta removendo listas duplicadas
+        linhas_finais = []
+        indices_removidos = set()
+        
+        # Marca índices de todas as listas para remover
+        for inicio, fim, tem_urls, lista_linhas in listas_redes:
+            for i in range(inicio, fim + 1):
+                indices_removidos.add(i)
+        
+        # Adiciona linhas não removidas
+        lista_inserida = False
+        for i, linha in enumerate(linhas):
+            if i in indices_removidos:
+                # Se é o início da primeira lista removida, insere lista completa
+                if not lista_inserida:
+                    linhas_finais.extend(lista_completa)
+                    lista_inserida = True
+                # Pula esta linha (está na lista removida)
+                continue
+            
+            linhas_finais.append(linha)
+        
+        # Se a lista estava no final, adiciona
+        if not lista_inserida and listas_redes:
+            linhas_finais.extend(lista_completa)
+        
+        return '\n'.join(linhas_finais)
 
     def _fix_link_formatting(self, resposta: str) -> str:
         """
@@ -500,7 +606,7 @@ class Chatbot:
     def _validate_response_formatting(self, resposta: str) -> str:
         """
         Valida e corrige formatação da resposta antes de retornar.
-        Garante que links estejam no lugar correto.
+        Garante que links estejam no lugar correto e valida listas de redes sociais.
         """
         if not resposta or not isinstance(resposta, str):
             return resposta
@@ -512,6 +618,44 @@ class Chatbot:
         
         if not tem_urls:
             return resposta
+        
+        # Validação específica para listas de redes sociais
+        redes_info = self.dados.get("redes_sociais", {})
+        if redes_info:
+            redes_mentions = ["Facebook:", "Instagram:", "LinkedIn:", "TikTok:"]
+            tem_mencoes_redes = any(mention in resposta for mention in redes_mentions)
+            
+            if tem_mencoes_redes:
+                # Conta quantas listas de redes sociais existem
+                linhas = resposta.split('\n')
+                listas_redes = []
+                lista_atual = []
+                
+                for i, linha in enumerate(linhas):
+                    linha_strip = linha.strip()
+                    eh_rede = any(f"{nome}:" in linha_strip for nome in redes_info.keys())
+                    
+                    if eh_rede:
+                        lista_atual.append(i)
+                    else:
+                        if lista_atual:
+                            # Verifica se a lista tem URLs
+                            tem_urls_lista = any(re.search(url_pattern, linhas[j]) for j in lista_atual)
+                            listas_redes.append((lista_atual, tem_urls_lista))
+                            lista_atual = []
+                
+                # Processa última lista
+                if lista_atual:
+                    tem_urls_lista = any(re.search(url_pattern, linhas[j]) for j in lista_atual)
+                    listas_redes.append((lista_atual, tem_urls_lista))
+                
+                # Se há múltiplas listas, já foi tratado por _fix_social_media_links
+                # Aqui apenas valida se há pelo menos uma lista completa
+                if listas_redes:
+                    tem_lista_completa = any(tem_urls for _, tem_urls in listas_redes)
+                    if not tem_lista_completa:
+                        # Nenhuma lista tem URLs - será corrigido por _fix_social_media_links
+                        pass
         
         # Verifica se há 👉 sem URL próximo
         if '👉' in resposta:
