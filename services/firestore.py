@@ -640,17 +640,17 @@ def get_leads_count_by_city():
             data = lead_doc.to_dict()
             cidade_bruta = data.get("cidade")
             
-            # Se não houver cidade, agrupa como "Indefinido"
+            # Se não houver cidade, agrupa como "Outras cidades do Brasil"
             if not cidade_bruta:
-                counts["Indefinido"] = counts.get("Indefinido", 0) + 1
+                counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
                 continue
             
             # Normaliza a cidade usando normalize_city_name
             cidade_normalizada = normalize_city_name(cidade_bruta)
             
-            # Se não conseguiu normalizar, agrupa como "Indefinido"
+            # Se não conseguiu normalizar, agrupa como "Outras cidades do Brasil"
             if not cidade_normalizada:
-                counts["Indefinido"] = counts.get("Indefinido", 0) + 1
+                counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
             else:
                 # Usa a cidade normalizada (já em Title Case) como chave
                 counts[cidade_normalizada] = counts.get(cidade_normalizada, 0) + 1
