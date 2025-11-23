@@ -898,49 +898,9 @@ function addMessage(content, sender) {
     const messageContent = document.createElement('div');
     messageContent.className = 'message-content';
     if (sender === 'bot') {
-        // Detecta padrão "Nome: URL" (redes sociais) para não extrair URLs inline
-        const SOCIAL_MEDIA_PATTERN = /(Facebook|Instagram|LinkedIn|TikTok):\s*(https?:\/\/[^\s<]+)/gi;
-        const socialMediaMatches = Array.from(content.matchAll(SOCIAL_MEDIA_PATTERN));
-        const socialMediaUrls = new Set(socialMediaMatches.map(m => m[2]));
-        
-        const URL_REGEX = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
-        const allUrls = Array.from(content.match(URL_REGEX) || []).map(u => u.startsWith('www.') ? ('https://' + u) : u);
-        
-        // Separa URLs que estão inline (formato "Nome: URL") das que estão soltas
-        const inlineUrls = allUrls.filter(url => socialMediaUrls.has(url));
-        const looseUrls = allUrls.filter(url => !socialMediaUrls.has(url));
-        
-        // Remove apenas URLs soltas do texto, mantendo as inline
-        let textWithoutUrls = content;
-        looseUrls.forEach(url => {
-            textWithoutUrls = textWithoutUrls.replace(url, '');
-        });
-        textWithoutUrls = textWithoutUrls.trim();
-        
-        if (textWithoutUrls) {
-            const fragText = renderMarkdownToFragment(textWithoutUrls);
-            messageContent.appendChild(fragText);
-        }
-        
-        // Adiciona apenas URLs soltas como links separados
-        looseUrls.forEach(rawUrl => {
-            let url = rawUrl;
-            try {
-                const a = document.createElement('a');
-                a.href = url;
-                let label = rawUrl;
-                try {
-                    const domain = new URL(url).hostname.replace('www.', '');
-                    label = FRIENDLY_NAMES[domain] || domain;
-                } catch (_) {
-                    label = rawUrl;
-                }
-                a.textContent = label;
-                a.target = '_blank';
-                a.rel = 'noopener noreferrer nofollow';
-                messageContent.appendChild(a);
-            } catch (_) {}
-        });
+        // Processa o conteúdo transformando padrões "Nome: URL" em links clicáveis
+        const processedFragment = processMessageContent(content);
+        messageContent.appendChild(processedFragment);
     } else {
         messageContent.textContent = content;
     }
@@ -1101,6 +1061,147 @@ const FRIENDLY_NAMES = {
     "portal.sc.senac.br": "Portal Senac",
     "programajovemprogramador.com.br": "Programa Jovem Programador",
 };
+
+// ===== PROCESSAR CONTEÚDO DE MENSAGEM COM LINKS INLINE =====
+function processMessageContent(content) {
+    /**
+     * Processa o conteúdo da mensagem, transformando padrões "Nome: URL" em links clicáveis
+     * e processando o resto do texto com markdown e links soltos.
+     * 
+     * @param {string} content - Conteúdo da mensagem
+     * @returns {DocumentFragment} Fragmento DOM processado
+     */
+    const fragment = document.createDocumentFragment();
+    if (!content) return fragment;
+    
+    // Padrão para detectar "Nome: URL" (redes sociais e outros)
+    // Captura: (nome) + ":" + espaço(s) + (URL)
+    const INLINE_LINK_PATTERN = /^([^:]+):\s+(https?:\/\/[^\s<]+|www\.[^\s<]+)$/gmi;
+    
+    // Divide o conteúdo em linhas
+    const lines = content.split(/\r?\n/);
+    const processedLines = [];
+    
+    // URLs que foram processadas como inline (para não processar novamente como soltas)
+    const processedInlineUrls = new Set();
+    
+    // Processa cada linha
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Verifica se a linha corresponde ao padrão "Nome: URL"
+        // Reset do regex para cada linha
+        INLINE_LINK_PATTERN.lastIndex = 0;
+        const match = INLINE_LINK_PATTERN.exec(line);
+        
+        if (match) {
+            // Linha no formato "Nome: URL" - transforma em link clicável
+            const nome = match[1].trim();
+            let url = match[2].trim();
+            
+            // Normaliza URL (adiciona https:// se começar com www.)
+            if (url.startsWith('www.')) {
+                url = 'https://' + url;
+            }
+            
+            // Marca URL como processada
+            processedInlineUrls.add(url);
+            
+            // Cria elemento <a> clicável
+            try {
+                const a = document.createElement('a');
+                a.href = url;
+                a.textContent = nome;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer nofollow';
+                a.className = 'inline-link';
+                
+                // Armazena o elemento <a> como marcador especial para processamento posterior
+                processedLines.push({ type: 'link', element: a, originalLine: line });
+            } catch (_) {
+                // Se houver erro ao criar link, mantém linha original
+                processedLines.push({ type: 'text', content: line });
+            }
+        } else {
+            // Linha normal - processa normalmente
+            processedLines.push({ type: 'text', content: line });
+        }
+    }
+    
+    // Reconstrói o conteúdo processando cada parte
+    for (let i = 0; i < processedLines.length; i++) {
+        const item = processedLines[i];
+        
+        if (item.type === 'link') {
+            // Adiciona link clicável
+            fragment.appendChild(item.element);
+        } else {
+            // Processa texto com markdown e links soltos
+            const textContent = item.content;
+            
+            // Detecta URLs soltas (que não foram processadas como inline)
+            const URL_REGEX = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+            const urlsInLine = [];
+            let textWithoutUrls = textContent;
+            
+            // Encontra todas as URLs na linha
+            let urlMatch;
+            URL_REGEX.lastIndex = 0; // Reset regex
+            while ((urlMatch = URL_REGEX.exec(textContent)) !== null) {
+                let url = urlMatch[0];
+                if (url.startsWith('www.')) {
+                    url = 'https://' + url;
+                }
+                
+                // Só processa se não foi processada como inline
+                if (!processedInlineUrls.has(url)) {
+                    urlsInLine.push({
+                        url: url,
+                        index: urlMatch.index,
+                        original: urlMatch[0]
+                    });
+                }
+            }
+            
+            // Remove URLs soltas do texto (serão adicionadas depois como links)
+            urlsInLine.forEach(({ original }) => {
+                textWithoutUrls = textWithoutUrls.replace(original, '');
+            });
+            
+            // Processa texto restante com markdown
+            if (textWithoutUrls.trim()) {
+                const textFragment = renderMarkdownToFragment(textWithoutUrls);
+                fragment.appendChild(textFragment);
+            }
+            
+            // Adiciona URLs soltas como links separados
+            urlsInLine.forEach(({ url }) => {
+                try {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    let label = url;
+                    try {
+                        const domain = new URL(url).hostname.replace('www.', '');
+                        label = FRIENDLY_NAMES[domain] || domain;
+                    } catch (_) {
+                        label = url;
+                    }
+                    a.textContent = label;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer nofollow';
+                    fragment.appendChild(a);
+                } catch (_) {}
+            });
+        }
+        
+        // Adiciona quebra de linha entre itens (exceto no último)
+        if (i < processedLines.length - 1) {
+            fragment.appendChild(document.createElement('br'));
+        }
+    }
+    
+    return fragment;
+}
 
 // ===== RENDERIZAR MARKDOWN PARA FRAGMENTO DOM (DOM-SAFE) =====
 function renderMarkdownToFragment(text) {
