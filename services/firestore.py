@@ -95,11 +95,16 @@ CIDADES_SANTA_CATARINA = [
 # Mapa de equivalências para cidades com variações de acentos/cedilha
 # Mapeia versões sem acentos/cedilha para o nome oficial correto
 CITY_EQUIVALENCE_MAP = {
-    # Cidades com cedilha (ç)
+    # Cidades com cedilha (ç) - Palhoça
     "palhoca": "Palhoça",
     "palhoça": "Palhoça",
     "palhoca_sc": "Palhoça",
     "palhoça_sc": "Palhoça",
+    "palhocá": "Palhoça",  # Com acento agudo
+    "Palhoca": "Palhoça",  # Primeira letra maiúscula
+    "PalhocA": "Palhoça",  # Mistura maiúsculas/minúsculas
+    "palhoca sc": "Palhoça",  # Com espaço antes de SC
+    "palhoça sc": "Palhoça",  # Com espaço antes de SC
     # Cidades com acentos comuns que podem ter variações
     "itajai": "Itajaí",
     "itajai_sc": "Itajaí",
@@ -616,7 +621,8 @@ def normalize_city_name(city: str) -> str | None:
     Usa matching aproximado para reconhecer variações e erros de digitação.
     Garante que dados antigos como "Palhoca" (sem cedilha) retornem "Palhoça" (com cedilha).
     """
-    if not city:
+    # Retorna None se vazio, None ou só espaços
+    if not city or not str(city).strip():
         return None
 
     def strip_accents(s: str) -> str:
@@ -755,7 +761,13 @@ def save_lead_from_conversation(session_id: str, lead_data: dict):
         raw_city = lead_data.get("cidade") or ""
         normalized_city = normalize_city_name(raw_city)
         # Se normalizou como cidade de SC, usa a normalizada; senão, mantém o texto original
-        cidade_final = normalized_city if normalized_city else raw_city.strip()[:100] if raw_city else None
+        if normalized_city:
+            cidade_final = normalized_city
+        elif raw_city and str(raw_city).strip():
+            cidade_final = str(raw_city).strip()[:100]
+        else:
+            # Garantir que nunca salve "" ou None
+            cidade_final = "Outras cidades do Brasil"
         
         doc = {
             "session_id": session_id,
@@ -798,18 +810,14 @@ def get_leads_count_by_city():
             data = lead_doc.to_dict()
             cidade_bruta = data.get("cidade")
             
-            # Se não houver cidade, agrupa como "Outras cidades do Brasil"
-            if not cidade_bruta:
+            # Tratar cidade vazia, None ou espaços
+            if not cidade_bruta or not str(cidade_bruta).strip():
                 counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
                 continue
             
             # Tenta normalizar como cidade de SC
             # normalize_city_name sempre retorna o nome OFICIAL da lista (com acentos/cedilha)
             cidade_normalizada = normalize_city_name(cidade_bruta)
-            
-            # Log temporário para debug (pode ser removido depois)
-            if cidade_bruta and ("palhoca" in cidade_bruta.lower() or "palhoça" in cidade_bruta.lower()):
-                logger.debug(f"[Firestore] DEBUG Palhoça - cidade_bruta: '{cidade_bruta}' -> cidade_normalizada: '{cidade_normalizada}'")
             
             # Se normalizou e está na lista de cidades de SC, agrupa individualmente
             # cidade_normalizada já é o nome oficial (ex: "Palhoça" com cedilha)
@@ -819,6 +827,11 @@ def get_leads_count_by_city():
             else:
                 # Não é cidade de SC ou não foi reconhecida - agrupa como "Outras cidades do Brasil"
                 counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
+        
+        # Segurança final: remover chaves vazias
+        if "" in counts:
+            counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + counts[""]
+            del counts[""]
         
         return counts
     except Exception as e:
