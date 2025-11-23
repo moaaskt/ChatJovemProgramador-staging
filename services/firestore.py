@@ -474,9 +474,9 @@ def normalize_city_name(city: str) -> str | None:
     valid_cities = [
         "Araranguá", "Blumenau", "Biguaçu", "Brusque", "Caçador", "Canoinhas",
         "Chapecó", "Concórdia", "Criciúma", "Curitibanos", "Florianópolis",
-        "Fraiburgo", "Jaraguá do Sul", "Joaçaba", "Joinville", "Lages",
+        "Fraiburgo", "Itapema", "Jaraguá do Sul", "Joaçaba", "Joinville", "Lages",
         "Palhoça", "Porto União", "Rio do Sul", "São Miguel do Oeste",
-        "Tubarão", "Videira", "Xanxerê", "São José", "Tijucas"
+        "Tubarão", "Urubici", "Videira", "Xanxerê", "São José", "Tijucas"
     ]
 
     synonyms = {
@@ -546,10 +546,26 @@ def normalize_city_name(city: str) -> str | None:
 
     valid_norm = [(v, strip_accents(v.lower())) for v in valid_cities]
 
+    # Primeiro: verifica igualdade exata (mais preciso)
     for original, norm in valid_norm:
-        if norm in text_no_accents:
+        if norm == text_no_accents:
             return original
 
+    # Segundo: verifica se o texto está contido na cidade normalizada
+    # (ex: "itapema" está contido em "itapema" após normalização)
+    for original, norm in valid_norm:
+        if text_no_accents in norm:
+            return original
+
+    # Terceiro: verifica se a cidade normalizada está contida no texto
+    # (útil para casos onde o usuário digita algo como "sou de itapema sc")
+    # Mas só aceita se o texto tiver pelo menos 4 caracteres para evitar falsos positivos
+    if len(text_no_accents) >= 4:
+        for original, norm in valid_norm:
+            if norm in text_no_accents and len(norm) >= 4:
+                return original
+
+    # Quarto: matching aproximado com difflib
     choices = [norm for _, norm in valid_norm]
     match = difflib.get_close_matches(text_no_accents, choices, n=1, cutoff=0.8)
     if match:
@@ -557,6 +573,7 @@ def normalize_city_name(city: str) -> str | None:
             if norm == match[0]:
                 return original
 
+    # Quinto: matching por tokens (para cidades compostas)
     tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 4]
     for token in tokens:
         match = difflib.get_close_matches(token, choices, n=1, cutoff=0.85)
@@ -623,17 +640,17 @@ def get_leads_count_by_city():
             data = lead_doc.to_dict()
             cidade_bruta = data.get("cidade")
             
-            # Se não houver cidade, agrupa como "Outras cidades do Brasil"
+            # Se não houver cidade, agrupa como "Indefinido"
             if not cidade_bruta:
-                counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
+                counts["Indefinido"] = counts.get("Indefinido", 0) + 1
                 continue
             
             # Normaliza a cidade usando normalize_city_name
             cidade_normalizada = normalize_city_name(cidade_bruta)
             
-            # Se não conseguiu normalizar, agrupa como "Outras cidades do Brasil"
+            # Se não conseguiu normalizar, agrupa como "Indefinido"
             if not cidade_normalizada:
-                counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
+                counts["Indefinido"] = counts.get("Indefinido", 0) + 1
             else:
                 # Usa a cidade normalizada (já em Title Case) como chave
                 counts[cidade_normalizada] = counts.get(cidade_normalizada, 0) + 1
