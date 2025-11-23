@@ -643,6 +643,20 @@ def normalize_city_name(city: str) -> str | None:
     if not text:
         return None
     
+    # CRÍTICO: Criar versão auxiliar original ANTES de qualquer limpeza
+    # Esta versão será usada para matching reverso antes de remover vírgulas
+    text_clean_original = text.strip()
+    text_original_no_accents = strip_accents(text_clean_original)
+    
+    # Normaliza lista de cidades de SC (cria tuplas: (nome_oficial, nome_sem_acentos))
+    cidades_norm = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
+    
+    # MATCHING REVERSO COM TEXTO ORIGINAL (ANTES DE QUALQUER LIMPEZA)
+    # Isso garante que "rua x, palhoca" seja reconhecido antes de remover a vírgula
+    for original, norm in cidades_norm:
+        if norm in text_original_no_accents:
+            return original  # Retorna nome OFICIAL imediatamente
+    
     # Remove prefixos comuns no início da frase
     prefixes = [
         "eu sou de", "eu moro em", "eu falo de", "sou de", "moro em",
@@ -692,9 +706,6 @@ def normalize_city_name(city: str) -> str | None:
         if candidate in CIDADES_SANTA_CATARINA:
             return candidate
 
-    # Normaliza lista de cidades de SC (cria tuplas: (nome_oficial, nome_sem_acentos))
-    cidades_norm = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
-
     # 1. Igualdade exata (mais preciso) - compara versões sem acentos
     for original, norm in cidades_norm:
         if norm == text_no_accents:
@@ -713,15 +724,12 @@ def normalize_city_name(city: str) -> str | None:
                 norm.endswith(text_no_accents)):
                 return original  # Retorna nome OFICIAL
 
-    # 3. Cidade normalizada contida no texto (com proteção)
-    # (útil para casos onde o usuário digita algo como "sou de itajaí sc")
-    if len(text_no_accents) >= 4:
-        for original, norm in cidades_norm:
-            if norm in text_no_accents and len(norm) >= 4:
-                # Só aceita se a cidade for pelo menos 70% do tamanho do texto
-                # ou se for match exato no início
-                if len(norm) >= len(text_no_accents) * 0.7 or text_no_accents.startswith(norm):
-                    return original  # Retorna nome OFICIAL
+    # 3. MATCH REVERSO APÓS LIMPEZA: cidade oficial dentro do texto informado
+    # Aceita qualquer posição (início, meio ou fim)
+    # Exemplo: "centro de palhoca" → reconhece "palhoca" → retorna "Palhoça"
+    for original, norm in cidades_norm:
+        if norm in text_no_accents:
+            return original  # Retorna nome OFICIAL
 
     # 4. Matching aproximado com difflib
     choices = [norm for _, norm in cidades_norm]
@@ -731,14 +739,13 @@ def normalize_city_name(city: str) -> str | None:
             if norm == match[0]:
                 return original  # Retorna nome OFICIAL
 
-    # 5. Matching por tokens (para cidades compostas)
-    tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 4]
+    # 5. MATCH POR TOKENS — capturar qualquer token parecido com a cidade
+    # Reduzido para 3 letras e cutoff 0.70 para matching mais robusto
+    tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 3]
     for token in tokens:
-        match = difflib.get_close_matches(token, choices, n=1, cutoff=0.85)
-        if match:
-            for original, norm in cidades_norm:
-                if norm == match[0]:
-                    return original  # Retorna nome OFICIAL
+        for original, norm in cidades_norm:
+            if difflib.SequenceMatcher(None, token, norm).ratio() >= 0.70:
+                return original  # Retorna nome OFICIAL
 
     # Não é cidade de SC reconhecida - retorna None
     # (será aceita como texto livre em normalize_lead_answer)
@@ -818,6 +825,20 @@ def get_leads_count_by_city():
             # Tenta normalizar como cidade de SC
             # normalize_city_name sempre retorna o nome OFICIAL da lista (com acentos/cedilha)
             cidade_normalizada = normalize_city_name(cidade_bruta)
+            
+            # Proteção extra: tentar normalizar novamente após limpeza profunda
+            if not cidade_normalizada:
+                # Remove acentos e converte para lowercase para tentar novamente
+                def strip_accents_helper(s: str) -> str:
+                    """Remove acentos e diacríticos, incluindo cedilha."""
+                    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+                
+                cidade_limpa = strip_accents_helper(str(cidade_bruta).lower())
+                cidade_normalizada = normalize_city_name(cidade_limpa)
+            
+            # Log temporário para debug (remover depois)
+            if cidade_normalizada is None:
+                logger.debug(f"[DEBUG][Cidade não reconhecida]: '{cidade_bruta}'")
             
             # Se normalizou e está na lista de cidades de SC, agrupa individualmente
             # cidade_normalizada já é o nome oficial (ex: "Palhoça" com cedilha)
