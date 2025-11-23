@@ -6,6 +6,7 @@ Todas as funções retornam silenciosamente se AI_FIRESTORE_ENABLED=false.
 import os
 import json
 import logging
+import base64
 from datetime import datetime, timedelta
 from firebase_admin import initialize_app, credentials, firestore
 from firebase_admin.exceptions import FirebaseError
@@ -128,9 +129,78 @@ def _is_enabled():
     return _firestore_enabled
 
 
+def _load_firebase_credentials():
+    """
+    Carrega credenciais do Firebase de forma robusta, suportando múltiplos formatos:
+    1. JSON direto na variável de ambiente (começa com '{')
+    2. Caminho para arquivo JSON
+    3. Base64 codificado
+    
+    Returns:
+        dict: Dicionário com as credenciais do Firebase ou None se não conseguir carregar
+    """
+    credentials_value = os.getenv("FIREBASE_CREDENTIALS")
+    
+    if not credentials_value:
+        logger.warning("[Firestore] FIREBASE_CREDENTIALS não encontrado na variável de ambiente.")
+        return None
+    
+    # Remove espaços extras
+    credentials_value = credentials_value.strip()
+    
+    # Caso 1: JSON direto (começa com '{')
+    if credentials_value.startswith('{'):
+        try:
+            logger.debug("[Firestore] Tentando carregar credenciais como JSON direto...")
+            cred_dict = json.loads(credentials_value)
+            logger.info("[Firestore] Credenciais carregadas como JSON direto com sucesso.")
+            return cred_dict
+        except json.JSONDecodeError as e:
+            logger.warning(f"[Firestore] Erro ao parsear JSON direto: {e}")
+            # Continua para tentar outros métodos
+    
+    # Caso 2: Caminho para arquivo
+    if os.path.exists(credentials_value):
+        try:
+            logger.debug(f"[Firestore] Tentando carregar credenciais do arquivo: {credentials_value}")
+            with open(credentials_value, 'r', encoding='utf-8') as f:
+                cred_dict = json.load(f)
+            logger.info(f"[Firestore] Credenciais carregadas do arquivo '{credentials_value}' com sucesso.")
+            return cred_dict
+        except json.JSONDecodeError as e:
+            logger.error(f"[Firestore] Erro ao parsear JSON do arquivo '{credentials_value}': {e}")
+            return None
+        except Exception as e:
+            logger.error(f"[Firestore] Erro ao ler arquivo '{credentials_value}': {e}")
+            return None
+    
+    # Caso 3: Base64 codificado
+    try:
+        logger.debug("[Firestore] Tentando decodificar credenciais como Base64...")
+        decoded = base64.b64decode(credentials_value, validate=True)
+        cred_dict = json.loads(decoded.decode('utf-8'))
+        logger.info("[Firestore] Credenciais decodificadas de Base64 com sucesso.")
+        return cred_dict
+    except (ValueError, UnicodeDecodeError) as e:
+        logger.debug(f"[Firestore] Não é Base64 válido: {e}")
+    except json.JSONDecodeError as e:
+        logger.warning(f"[Firestore] Erro ao parsear JSON decodificado de Base64: {e}")
+    except Exception as e:
+        logger.debug(f"[Firestore] Erro ao processar Base64: {e}")
+    
+    # Se chegou aqui, não conseguiu carregar de nenhuma forma
+    logger.error("[Firestore] Não foi possível carregar credenciais. Verifique FIREBASE_CREDENTIALS.")
+    logger.error("[Firestore] Formatos suportados:")
+    logger.error("  1. JSON direto: FIREBASE_CREDENTIALS='{\"type\":\"service_account\",...}'")
+    logger.error("  2. Caminho para arquivo: FIREBASE_CREDENTIALS='./service-account.json'")
+    logger.error("  3. Base64: FIREBASE_CREDENTIALS='eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0='")
+    return None
+
+
 def init_admin():
     """
-    Inicializa Firebase Admin SDK usando FIREBASE_CREDENTIALS (JSON string).
+    Inicializa Firebase Admin SDK usando FIREBASE_CREDENTIALS.
+    Suporta múltiplos formatos: JSON direto, caminho para arquivo, ou Base64.
     Deve ser chamado uma única vez no bootstrap da aplicação.
     """
     global _db
@@ -144,13 +214,14 @@ def init_admin():
         return
     
     try:
-        credentials_json = os.getenv("FIREBASE_CREDENTIALS")
-        if not credentials_json:
-            logger.warning("[Firestore] FIREBASE_CREDENTIALS não encontrado. Firestore desabilitado.")
+        # Carrega credenciais usando função auxiliar robusta
+        cred_dict = _load_firebase_credentials()
+        
+        if not cred_dict:
+            logger.warning("[Firestore] Não foi possível carregar credenciais. Firestore desabilitado.")
             return
         
-        # Parse do JSON string para dict
-        cred_dict = json.loads(credentials_json)
+        # Cria objeto de credenciais
         cred = credentials.Certificate(cred_dict)
         
         # Inicializa app (pode ser chamado múltiplas vezes, Firebase gerencia singleton)
@@ -160,12 +231,11 @@ def init_admin():
             # App já inicializado, tudo bem
             pass
         
+        # Atualiza a variável global _db
         _db = firestore.client()
         logger.info("[Firestore] Inicializado com sucesso")
         logger.info(f"[Firestore] Projeto conectado: {_db.project}")
         
-    except json.JSONDecodeError as e:
-        logger.error(f"[Firestore] Erro ao parsear FIREBASE_CREDENTIALS: {e}")
     except FirebaseError as e:
         logger.error(f"[Firestore] Erro ao inicializar Firebase Admin: {e}")
     except Exception as e:
