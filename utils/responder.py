@@ -177,7 +177,8 @@ class Chatbot:
         redes_info = self.dados.get("redes_sociais", {})
         redes_texto = "Não encontrei informações sobre as redes sociais oficiais do programa."
         if redes_info:
-            lista_redes = [f"- {nome}: {url}" for nome, url in redes_info.items()]
+            # Formata de forma simples e direta, uma rede por linha com nome e URL completa
+            lista_redes = [f"{nome}: {url}" for nome, url in redes_info.items()]
             redes_texto = (
                 "Você pode encontrar e seguir o Jovem Programador nas seguintes redes sociais:\n"
                 + "\n".join(lista_redes)
@@ -212,6 +213,14 @@ class Chatbot:
         Formatação: use quebras de linha curtas e respostas interessantes, evitando textões.
         Blindagem: responda APENAS com base no conteúdo abaixo. Se a resposta não estiver no texto, diga que o melhor é verificar no site oficial ou acionar um humano.
         Proibição: não recomende cursos externos ou plataformas fora do Programa Jovem Programador.
+        
+        IMPORTANTE - Formatação de Links e Redes Sociais:
+        - Ao apresentar links de redes sociais, use APENAS texto simples: "Nome da Rede: URL completa"
+        - NÃO use ícones, símbolos especiais (□, ■, etc) ou formatação visual complexa
+        - NÃO duplique informações (não repita o nome da rede após o link)
+        - Formato correto: "Facebook: https://www.facebook.com/..."
+        - Formato incorreto: "Facebook: □ https://..." ou "Facebook: [link] Facebook"
+        - Deixe os links completos e clicáveis, o sistema converterá automaticamente
 
         Política de resposta (AIDA):
         1) Acolhimento: reconheça a iniciativa do usuário de estudar ou evoluir na carreira (ex.: "Ótima iniciativa querer estudar!" 💡).
