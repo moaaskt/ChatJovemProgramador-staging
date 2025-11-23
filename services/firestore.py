@@ -92,6 +92,28 @@ CIDADES_SANTA_CATARINA = [
     "Xaxim", "Zortéa"
 ]
 
+# Mapa de equivalências para cidades com variações de acentos/cedilha
+# Mapeia versões sem acentos/cedilha para o nome oficial correto
+CITY_EQUIVALENCE_MAP = {
+    # Cidades com cedilha (ç)
+    "palhoca": "Palhoça",
+    "palhoça": "Palhoça",
+    "palhoca_sc": "Palhoça",
+    "palhoça_sc": "Palhoça",
+    # Cidades com acentos comuns que podem ter variações
+    "itajai": "Itajaí",
+    "itajai_sc": "Itajaí",
+    "florianopolis": "Florianópolis",
+    "florianopolis_sc": "Florianópolis",
+    "sao jose": "São José",
+    "sao jose_sc": "São José",
+    "sao bento do sul": "São Bento do Sul",
+    "sao bento do sul_sc": "São Bento do Sul",
+    "sao miguel do oeste": "São Miguel do Oeste",
+    "sao miguel do oeste_sc": "São Miguel do Oeste",
+    # Adicionar outras cidades conforme necessário
+}
+
 
 def _is_enabled():
     """Verifica se Firestore está habilitado via variável de ambiente."""
@@ -534,17 +556,71 @@ def get_conversation_messages(session_id, limit=200):
         return []
 
 
+def sanitize_and_map_city(city_input: str) -> str:
+    """
+    Sanitiza e mapeia cidade para versão normalizada (sem acentos, lowercase).
+    Usado para comparação interna, mas sempre retorna o nome oficial da lista.
+    
+    Args:
+        city_input: Nome da cidade (pode ter acentos, cedilha, etc.)
+    
+    Returns:
+        String normalizada (lowercase, sem acentos) para comparação
+    """
+    def strip_accents(s: str) -> str:
+        """Remove acentos e diacríticos, incluindo cedilha."""
+        return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+    
+    if not city_input:
+        return ""
+    
+    # Limpeza inicial
+    text = city_input.strip().lower()
+    
+    # Remove prefixos comuns
+    prefixes = [
+        "eu sou de", "eu moro em", "eu falo de", "sou de", "moro em",
+        "falo de", "sou", "moro", "falo", "cidade de", "município de",
+        "cidade", "município"
+    ]
+    
+    for prefix in prefixes:
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+    
+    # Remove estado após vírgula ou hífen
+    if "," in text:
+        text = text.split(",")[0].strip()
+    if "-" in text and not text.startswith("são"):  # Preserva "São" no início
+        # Só remove hífen se não for parte do nome (ex: "São Bento do Sul")
+        parts = text.split("-")
+        if len(parts) > 1 and len(parts[-1]) <= 3:  # Provavelmente estado (SC, SP, etc)
+            text = "-".join(parts[:-1]).strip()
+    
+    # Remove espaços extras
+    text = " ".join(text.split())
+    text = text.strip()
+    
+    # Remove acentos e diacríticos (incluindo cedilha)
+    text_normalized = strip_accents(text)
+    
+    return text_normalized
+
+
 def normalize_city_name(city: str) -> str | None:
     """
     Normaliza o nome da cidade removendo prefixos comuns, estados e validando.
-    - Se for cidade de SC: retorna nome normalizado
+    - Se for cidade de SC: retorna nome oficial da lista (ex: "Palhoça" com cedilha)
     - Se não for de SC: retorna None (para aceitar como texto livre e não travar o fluxo)
     Usa matching aproximado para reconhecer variações e erros de digitação.
+    Garante que dados antigos como "Palhoca" (sem cedilha) retornem "Palhoça" (com cedilha).
     """
     if not city:
         return None
 
     def strip_accents(s: str) -> str:
+        """Remove acentos e diacríticos, incluindo cedilha."""
         return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
     # Sinônimos conhecidos (apenas para SC)
@@ -577,7 +653,10 @@ def normalize_city_name(city: str) -> str | None:
     if "," in text:
         text = text.split(",")[0].strip()
     if "-" in text:
-        text = text.split("-")[0].strip()
+        # Só remove hífen se parecer ser estado (2-3 letras no final)
+        parts = text.split("-")
+        if len(parts) > 1 and len(parts[-1].strip()) <= 3:
+            text = "-".join(parts[:-1]).strip()
     
     # Remove espaços extras e faz strip final
     text = " ".join(text.split())
@@ -591,22 +670,29 @@ def normalize_city_name(city: str) -> str | None:
     if len(text) > 50:
         text = text[:50]
     
+    # Verifica mapa de equivalências PRIMEIRO (para casos como "palhoca" -> "Palhoça")
+    text_lower = text.lower()
+    if text_lower in CITY_EQUIVALENCE_MAP:
+        candidate = CITY_EQUIVALENCE_MAP[text_lower]
+        if candidate in CIDADES_SANTA_CATARINA:
+            return candidate
+    
     # Remove acentos para comparação
     text_no_accents = strip_accents(text)
 
-    # Verifica sinônimos primeiro
+    # Verifica sinônimos
     if text in synonyms:
         candidate = synonyms[text]
         if candidate in CIDADES_SANTA_CATARINA:
             return candidate
 
-    # Normaliza lista de cidades de SC
+    # Normaliza lista de cidades de SC (cria tuplas: (nome_oficial, nome_sem_acentos))
     cidades_norm = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
 
-    # 1. Igualdade exata (mais preciso)
+    # 1. Igualdade exata (mais preciso) - compara versões sem acentos
     for original, norm in cidades_norm:
         if norm == text_no_accents:
-            return original
+            return original  # Retorna nome OFICIAL (com acentos/cedilha)
 
     # 2. Texto contido na cidade normalizada (mas só se for match significativo)
     # Evita falsos positivos como "curitiba" -> "curitibanos"
@@ -619,7 +705,7 @@ def normalize_city_name(city: str) -> str | None:
             if (len(text_no_accents) >= len(norm) * 0.7 or 
                 norm.startswith(text_no_accents) or 
                 norm.endswith(text_no_accents)):
-                return original
+                return original  # Retorna nome OFICIAL
 
     # 3. Cidade normalizada contida no texto (com proteção)
     # (útil para casos onde o usuário digita algo como "sou de itajaí sc")
@@ -629,7 +715,7 @@ def normalize_city_name(city: str) -> str | None:
                 # Só aceita se a cidade for pelo menos 70% do tamanho do texto
                 # ou se for match exato no início
                 if len(norm) >= len(text_no_accents) * 0.7 or text_no_accents.startswith(norm):
-                    return original
+                    return original  # Retorna nome OFICIAL
 
     # 4. Matching aproximado com difflib
     choices = [norm for _, norm in cidades_norm]
@@ -637,7 +723,7 @@ def normalize_city_name(city: str) -> str | None:
     if match:
         for original, norm in cidades_norm:
             if norm == match[0]:
-                return original
+                return original  # Retorna nome OFICIAL
 
     # 5. Matching por tokens (para cidades compostas)
     tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 4]
@@ -646,7 +732,7 @@ def normalize_city_name(city: str) -> str | None:
         if match:
             for original, norm in cidades_norm:
                 if norm == match[0]:
-                    return original
+                    return original  # Retorna nome OFICIAL
 
     # Não é cidade de SC reconhecida - retorna None
     # (será aceita como texto livre em normalize_lead_answer)
@@ -698,7 +784,8 @@ def get_leads_count_by_city():
     Conta leads agrupados por cidade.
     Cidades de SC são normalizadas e agrupadas individualmente.
     Cidades de outros estados ou não reconhecidas são agrupadas como "Outras cidades do Brasil".
-    Retorna dict { "cidade": count, ... }
+    Garante que dados antigos como "Palhoca" (sem cedilha) sejam normalizados para "Palhoça" (com cedilha).
+    Retorna dict { "cidade": count, ... } onde as chaves são sempre os nomes oficiais da lista.
     """
     if not _is_enabled() or _db is None:
         return {}
@@ -717,10 +804,17 @@ def get_leads_count_by_city():
                 continue
             
             # Tenta normalizar como cidade de SC
+            # normalize_city_name sempre retorna o nome OFICIAL da lista (com acentos/cedilha)
             cidade_normalizada = normalize_city_name(cidade_bruta)
             
+            # Log temporário para debug (pode ser removido depois)
+            if cidade_bruta and ("palhoca" in cidade_bruta.lower() or "palhoça" in cidade_bruta.lower()):
+                logger.debug(f"[Firestore] DEBUG Palhoça - cidade_bruta: '{cidade_bruta}' -> cidade_normalizada: '{cidade_normalizada}'")
+            
             # Se normalizou e está na lista de cidades de SC, agrupa individualmente
+            # cidade_normalizada já é o nome oficial (ex: "Palhoça" com cedilha)
             if cidade_normalizada and cidade_normalizada in CIDADES_SANTA_CATARINA:
+                # Usa o nome oficial como chave (garante consistência no gráfico)
                 counts[cidade_normalizada] = counts.get(cidade_normalizada, 0) + 1
             else:
                 # Não é cidade de SC ou não foi reconhecida - agrupa como "Outras cidades do Brasil"
