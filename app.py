@@ -142,6 +142,8 @@ def get_error_message_for_field(field: str) -> str:
     Mensagens de erro quando a validação falha.
     (E-mail saiu do fluxo, então só estado/idade precisam de erro específico)
     """
+    if field == "cidade":
+        return "Pode me informar o nome da sua cidade? Qualquer cidade está ok! 🙂"
     if field == "estado":
         return "Consegue me passar a sigla do estado? (Ex.: SC, SP, RJ)"
     if field == "idade":
@@ -226,9 +228,14 @@ def normalize_lead_answer(field: str, answer: str):
     if field == "interesse":
         return answer[:200]
 
-    # Cidade: usa normalização esperta, com fallback pro texto cru
+    # Cidade: aceita qualquer cidade (SC normalizada, outras como texto livre)
+    # NÃO trava o fluxo se não reconhecer como cidade de SC
     if field == "cidade":
         normalized = normalize_city_name(answer)
+        # Se não reconheceu como SC, aceita como texto livre (não trava)
+        if normalized is None:
+            # Aceita o texto original (será salvo e agrupado como "Outras cidades do Brasil")
+            return answer[:100]  # Limita tamanho mas aceita qualquer cidade
         return normalized
 
     # Estado (UF): normaliza usando a helper de UF

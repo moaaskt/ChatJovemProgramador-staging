@@ -20,6 +20,78 @@ logger.setLevel(logging.DEBUG)
 _firestore_enabled = None
 _db = None
 
+# Lista completa de TODAS as cidades de Santa Catarina (295 municípios)
+CIDADES_SANTA_CATARINA = [
+    "Abdon Batista", "Abelardo Luz", "Agrolândia", "Agronômica", "Água Doce",
+    "Águas de Chapecó", "Águas Frias", "Águas Mornas", "Alfredo Wagner",
+    "Alto Bela Vista", "Anchieta", "Angelina", "Anita Garibaldi",
+    "Anitápolis", "Antônio Carlos", "Apiúna", "Arabutã", "Araquari",
+    "Araranguá", "Armazém", "Arroio Trinta", "Arvoredo", "Ascurra",
+    "Atalanta", "Aurora", "Balneário Arroio do Silva", "Balneário Barra do Sul",
+    "Balneário Camboriú", "Balneário Gaivota", "Bandeirante", "Barra Bonita",
+    "Barra Velha", "Bela Vista do Toldo", "Belmonte", "Benedito Novo",
+    "Biguaçu", "Blumenau", "Bocaina do Sul", "Bom Jardim da Serra",
+    "Bom Jesus", "Bom Jesus do Oeste", "Bom Retiro", "Botuverá",
+    "Braço do Norte", "Braço do Trombudo", "Brunópolis", "Brusque",
+    "Caçador", "Caibi", "Calmon", "Camboriú", "Campo Alegre",
+    "Campo Belo do Sul", "Campo Erê", "Campos Novos", "Canelinha",
+    "Canoinhas", "Capão Alto", "Capinzal", "Capivari de Baixo",
+    "Catanduvas", "Caxambu do Sul", "Celso Ramos", "Cerro Negro",
+    "Chapadão do Lageado", "Chapecó", "Cocal do Sul", "Concórdia",
+    "Cordilheira Alta", "Coronel Freitas", "Coronel Martins", "Correia Pinto",
+    "Corupá", "Criciúma", "Cunha Porã", "Cunhataí", "Curitibanos",
+    "Descanso", "Dionísio Cerqueira", "Dona Emma", "Doutor Pedrinho",
+    "Entre Rios", "Ermo", "Erval Velho", "Faxinal dos Guedes",
+    "Flor do Sertão", "Florianópolis", "Formosa do Sul", "Forquilhinha",
+    "Fraiburgo", "Frei Rogério", "Galvão", "Garopaba", "Garuva",
+    "Gaspar", "Governador Celso Ramos", "Grão Pará", "Gravatal",
+    "Guabiruba", "Guaraciaba", "Guaramirim", "Guarujá do Sul",
+    "Guatambú", "Herval d'Oeste", "Ibiam", "Ibicaré", "Ibirama",
+    "Içara", "Ilhota", "Imaruí", "Imbituba", "Imbuia", "Indaial",
+    "Iomerê", "Ipira", "Iporã do Oeste", "Ipuaçu", "Ipumirim",
+    "Iraceminha", "Irani", "Irati", "Irineópolis", "Itá", "Itaiópolis",
+    "Itajaí", "Itapema", "Itapiranga", "Itapoá", "Ituporanga", "Jaborá",
+    "Jacinto Machado", "Jaguaruna", "Jaraguá do Sul", "Jardinópolis",
+    "Joaçaba", "Joinville", "José Boiteux", "Jupiá", "Lacerdópolis",
+    "Lages", "Laguna", "Lajeado Grande", "Laurentino", "Lauro Muller",
+    "Lebon Régis", "Leoberto Leal", "Lindóia do Sul", "Lontras",
+    "Luiz Alves", "Luzerna", "Macieira", "Mafra", "Major Gercino",
+    "Major Vieira", "Maracajá", "Maravilha", "Marema", "Massaranduba",
+    "Matos Costa", "Meleiro", "Mirim Doce", "Modelo", "Mondaí",
+    "Monte Carlo", "Monte Castelo", "Morro da Fumaça", "Morro Grande",
+    "Navegantes", "Nova Erechim", "Nova Itaberaba", "Nova Trento",
+    "Nova Veneza", "Novo Horizonte", "Orleans", "Otacílio Costa",
+    "Ouro", "Ouro Verde", "Paial", "Painel", "Palhoça", "Palma Sola",
+    "Palmeira", "Palmitos", "Papanduva", "Paraíso", "Passo de Torres",
+    "Passos Maia", "Paulo Lopes", "Pedras Grandes", "Penha", "Peritiba",
+    "Petrolândia", "Piçarras", "Pinhalzinho", "Pinheiro Preto",
+    "Piratuba", "Planalto Alegre", "Pomerode", "Ponte Alta",
+    "Ponte Alta do Norte", "Ponte Serrada", "Porto Belo", "Porto União",
+    "Pouso Redondo", "Praia Grande", "Presidente Castelo Branco",
+    "Presidente Getúlio", "Presidente Nereu", "Princesa", "Quilombo",
+    "Rancho Queimado", "Rio das Antas", "Rio do Campo", "Rio do Oeste",
+    "Rio do Sul", "Rio dos Cedros", "Rio Fortuna", "Rio Negrinho",
+    "Rio Rufino", "Riqueza", "Rodeio", "Romelândia", "Salete",
+    "Saltinho", "Salto Veloso", "Sangão", "Santa Cecília",
+    "Santa Helena", "Santa Rosa de Lima", "Santa Rosa do Sul",
+    "Santa Terezinha", "Santa Terezinha do Progresso", "Santiago do Sul",
+    "Santo Amaro da Imperatriz", "São Bento do Sul", "São Bernardino",
+    "São Bonifácio", "São Carlos", "São Cristóvão do Sul", "São Domingos",
+    "São Francisco do Sul", "São João Batista", "São João do Itaperiú",
+    "São João do Oeste", "São João do Sul", "São Joaquim", "São José",
+    "São José do Cedro", "São José do Cerrito", "São Lourenço do Oeste",
+    "São Ludgero", "São Martinho", "São Miguel da Boa Vista",
+    "São Miguel do Oeste", "São Pedro de Alcântara", "Saudades",
+    "Schroeder", "Seara", "Serra Alta", "Siderópolis", "Sombrio",
+    "Sul Brasil", "Taió", "Tangará", "Tigrinhos", "Tijucas",
+    "Timbé do Sul", "Timbó", "Timbó Grande", "Três Barras", "Treviso",
+    "Treze de Maio", "Treze Tílias", "Trombudo Central", "Tubarão",
+    "Tunápolis", "Turvo", "União do Oeste", "Urubici", "Urupema",
+    "Urussanga", "Vargeão", "Vargem", "Vargem Bonita", "Vidal Ramos",
+    "Videira", "Vitor Meireles", "Witmarsum", "Xanxerê", "Xavantina",
+    "Xaxim", "Zortéa"
+]
+
 
 def _is_enabled():
     """Verifica se Firestore está habilitado via variável de ambiente."""
@@ -464,29 +536,24 @@ def get_conversation_messages(session_id, limit=200):
 
 def normalize_city_name(city: str) -> str | None:
     """
-    Normaliza o nome da cidade removendo prefixos comuns, estados e validando contra lista de cidades válidas.
+    Normaliza o nome da cidade removendo prefixos comuns, estados e validando.
+    - Se for cidade de SC: retorna nome normalizado
+    - Se não for de SC: retorna None (para aceitar como texto livre e não travar o fluxo)
     Usa matching aproximado para reconhecer variações e erros de digitação.
-    Retorna o nome da cidade normalizado ou None se não for reconhecida.
     """
     if not city:
         return None
 
-    valid_cities = [
-        "Araranguá", "Blumenau", "Biguaçu", "Brusque", "Caçador", "Canoinhas",
-        "Chapecó", "Concórdia", "Criciúma", "Curitibanos", "Florianópolis",
-        "Fraiburgo", "Itapema", "Jaraguá do Sul", "Joaçaba", "Joinville", "Lages",
-        "Palhoça", "Porto União", "Rio do Sul", "São Miguel do Oeste",
-        "Tubarão", "Urubici", "Videira", "Xanxerê", "São José", "Tijucas"
-    ]
-
-    synonyms = {
-        "floripa": "Florianópolis",
-        "poa": "Porto Alegre",
-        "sampa": "São Paulo"
-    }
-
     def strip_accents(s: str) -> str:
         return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+
+    # Sinônimos conhecidos (apenas para SC)
+    synonyms = {
+        "floripa": "Florianópolis",
+        "itajai": "Itajaí",
+        "itaja": "Itajaí",
+        "gv": "Gaspar",  # comum em SC
+    }
 
     # Limpeza inicial: converte para lowercase e remove espaços
     text = city.strip().lower()
@@ -496,15 +563,9 @@ def normalize_city_name(city: str) -> str | None:
     
     # Remove prefixos comuns no início da frase
     prefixes = [
-        "eu sou de",
-        "eu moro em",
-        "eu falo de",
-        "sou de",
-        "moro em",
-        "falo de",
-        "sou",
-        "moro",
-        "falo"
+        "eu sou de", "eu moro em", "eu falo de", "sou de", "moro em",
+        "falo de", "sou", "moro", "falo", "cidade de", "município de",
+        "cidade", "município"
     ]
     
     for prefix in prefixes:
@@ -518,13 +579,6 @@ def normalize_city_name(city: str) -> str | None:
     if "-" in text:
         text = text.split("-")[0].strip()
     
-    # Remove palavras genéricas no começo
-    generic_words = ["cidade de", "município de", "cidade", "município"]
-    for word in generic_words:
-        if text.startswith(word):
-            text = text[len(word):].strip()
-            break
-    
     # Remove espaços extras e faz strip final
     text = " ".join(text.split())
     text = text.strip()
@@ -537,51 +591,65 @@ def normalize_city_name(city: str) -> str | None:
     if len(text) > 50:
         text = text[:50]
     
-    # Agora faz a validação contra a lista de cidades válidas
+    # Remove acentos para comparação
     text_no_accents = strip_accents(text)
 
+    # Verifica sinônimos primeiro
     if text in synonyms:
         candidate = synonyms[text]
-        return candidate if candidate in valid_cities else None
+        if candidate in CIDADES_SANTA_CATARINA:
+            return candidate
 
-    valid_norm = [(v, strip_accents(v.lower())) for v in valid_cities]
+    # Normaliza lista de cidades de SC
+    cidades_norm = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
 
-    # Primeiro: verifica igualdade exata (mais preciso)
-    for original, norm in valid_norm:
+    # 1. Igualdade exata (mais preciso)
+    for original, norm in cidades_norm:
         if norm == text_no_accents:
             return original
 
-    # Segundo: verifica se o texto está contido na cidade normalizada
-    # (ex: "itapema" está contido em "itapema" após normalização)
-    for original, norm in valid_norm:
+    # 2. Texto contido na cidade normalizada (mas só se for match significativo)
+    # Evita falsos positivos como "curitiba" -> "curitibanos"
+    for original, norm in cidades_norm:
         if text_no_accents in norm:
-            return original
-
-    # Terceiro: verifica se a cidade normalizada está contida no texto
-    # (útil para casos onde o usuário digita algo como "sou de itapema sc")
-    # Mas só aceita se o texto tiver pelo menos 4 caracteres para evitar falsos positivos
-    if len(text_no_accents) >= 4:
-        for original, norm in valid_norm:
-            if norm in text_no_accents and len(norm) >= 4:
+            # Só aceita se:
+            # - O texto for pelo menos 70% do tamanho da cidade, OU
+            # - For match exato de substring no início da cidade, OU
+            # - For match exato no final da cidade (para casos como "são josé")
+            if (len(text_no_accents) >= len(norm) * 0.7 or 
+                norm.startswith(text_no_accents) or 
+                norm.endswith(text_no_accents)):
                 return original
 
-    # Quarto: matching aproximado com difflib
-    choices = [norm for _, norm in valid_norm]
+    # 3. Cidade normalizada contida no texto (com proteção)
+    # (útil para casos onde o usuário digita algo como "sou de itajaí sc")
+    if len(text_no_accents) >= 4:
+        for original, norm in cidades_norm:
+            if norm in text_no_accents and len(norm) >= 4:
+                # Só aceita se a cidade for pelo menos 70% do tamanho do texto
+                # ou se for match exato no início
+                if len(norm) >= len(text_no_accents) * 0.7 or text_no_accents.startswith(norm):
+                    return original
+
+    # 4. Matching aproximado com difflib
+    choices = [norm for _, norm in cidades_norm]
     match = difflib.get_close_matches(text_no_accents, choices, n=1, cutoff=0.8)
     if match:
-        for original, norm in valid_norm:
+        for original, norm in cidades_norm:
             if norm == match[0]:
                 return original
 
-    # Quinto: matching por tokens (para cidades compostas)
+    # 5. Matching por tokens (para cidades compostas)
     tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 4]
     for token in tokens:
         match = difflib.get_close_matches(token, choices, n=1, cutoff=0.85)
         if match:
-            for original, norm in valid_norm:
+            for original, norm in cidades_norm:
                 if norm == match[0]:
                     return original
 
+    # Não é cidade de SC reconhecida - retorna None
+    # (será aceita como texto livre em normalize_lead_answer)
     return None
 
 
@@ -597,10 +665,11 @@ def save_lead_from_conversation(session_id: str, lead_data: dict):
         return False
 
     try:
-        # Normaliza cidade: tenta usar normalize_city_name, com fallback para texto original
+        # Normaliza cidade: tenta usar normalize_city_name para SC, senão mantém texto original
         raw_city = lead_data.get("cidade") or ""
         normalized_city = normalize_city_name(raw_city)
-        cidade_final = normalized_city if normalized_city else None
+        # Se normalizou como cidade de SC, usa a normalizada; senão, mantém o texto original
+        cidade_final = normalized_city if normalized_city else raw_city.strip()[:100] if raw_city else None
         
         doc = {
             "session_id": session_id,
@@ -627,6 +696,8 @@ def save_lead_from_conversation(session_id: str, lead_data: dict):
 def get_leads_count_by_city():
     """
     Conta leads agrupados por cidade.
+    Cidades de SC são normalizadas e agrupadas individualmente.
+    Cidades de outros estados ou não reconhecidas são agrupadas como "Outras cidades do Brasil".
     Retorna dict { "cidade": count, ... }
     """
     if not _is_enabled() or _db is None:
@@ -645,15 +716,15 @@ def get_leads_count_by_city():
                 counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
                 continue
             
-            # Normaliza a cidade usando normalize_city_name
+            # Tenta normalizar como cidade de SC
             cidade_normalizada = normalize_city_name(cidade_bruta)
             
-            # Se não conseguiu normalizar, agrupa como "Outras cidades do Brasil"
-            if not cidade_normalizada:
-                counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
-            else:
-                # Usa a cidade normalizada (já em Title Case) como chave
+            # Se normalizou e está na lista de cidades de SC, agrupa individualmente
+            if cidade_normalizada and cidade_normalizada in CIDADES_SANTA_CATARINA:
                 counts[cidade_normalizada] = counts.get(cidade_normalizada, 0) + 1
+            else:
+                # Não é cidade de SC ou não foi reconhecida - agrupa como "Outras cidades do Brasil"
+                counts["Outras cidades do Brasil"] = counts.get("Outras cidades do Brasil", 0) + 1
         
         return counts
     except Exception as e:

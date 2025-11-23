@@ -214,13 +214,26 @@ class Chatbot:
         Blindagem: responda APENAS com base no conteúdo abaixo. Se a resposta não estiver no texto, diga que o melhor é verificar no site oficial ou acionar um humano.
         Proibição: não recomende cursos externos ou plataformas fora do Programa Jovem Programador.
         
-        IMPORTANTE - Formatação de Links e Redes Sociais:
-        - Ao apresentar links de redes sociais, use APENAS texto simples: "Nome da Rede: URL completa"
-        - NÃO use ícones, símbolos especiais (□, ■, etc) ou formatação visual complexa
-        - NÃO duplique informações (não repita o nome da rede após o link)
-        - Formato correto: "Facebook: https://www.facebook.com/..."
-        - Formato incorreto: "Facebook: □ https://..." ou "Facebook: [link] Facebook"
-        - Deixe os links completos e clicáveis, o sistema converterá automaticamente
+        CRÍTICO - Formatação de Links e Redes Sociais:
+        - Quando o usuário perguntar sobre redes sociais, você DEVE incluir as URLs completas na resposta
+        - Formato OBRIGATÓRIO: "Nome da Rede: URL completa" (exemplo: "Facebook: https://www.facebook.com/programajovemprogramador")
+        - NUNCA liste apenas os nomes das redes sem as URLs
+        - NUNCA use ícones, símbolos especiais (□, ■, etc) ou formatação visual complexa
+        - NUNCA duplique informações (não repita o nome da rede após o link)
+        - Exemplo de resposta CORRETA sobre redes sociais:
+          "Aqui estão os nossos canais oficiais:
+          Facebook: https://www.facebook.com/programajovemprogramador
+          Instagram: https://www.instagram.com/programa_jovemprogramador
+          LinkedIn: https://www.linkedin.com/company/programajovemprogramador
+          TikTok: https://www.tiktok.com/@jovemprogramador_sc"
+        - Exemplo de resposta INCORRETA (NÃO FAÇA ISSO):
+          "Facebook: 
+          Instagram: 
+          LinkedIn: 
+          TikTok:"
+        - SEMPRE copie as URLs exatamente como aparecem na seção REDES SOCIAIS abaixo
+        - IMPORTANTE: Se você listar "Facebook:", "Instagram:", etc, você DEVE incluir a URL completa logo após os dois pontos
+        - NÃO deixe linhas vazias após os nomes das redes. SEMPRE coloque a URL na mesma linha ou logo abaixo
 
         Política de resposta (AIDA):
         1) Acolhimento: reconheça a iniciativa do usuário de estudar ou evoluir na carreira (ex.: "Ótima iniciativa querer estudar!" 💡).
@@ -266,8 +279,11 @@ class Chatbot:
         HACKATHON:
         {hackathon_texto}
 
-        REDES SOCIAIS:
+        REDES SOCIAIS (COPIE AS URLs EXATAMENTE COMO ESTÃO AQUI - NÃO OMITA AS URLs):
         {redes_texto}
+        
+        REGRA ABSOLUTA: Ao responder sobre redes sociais, você DEVE copiar EXATAMENTE o formato acima, incluindo TODAS as URLs completas. 
+        NÃO liste apenas "Facebook:", "Instagram:" sem as URLs. SEMPRE inclua: "Facebook: https://...", "Instagram: https://...", etc.
 
         APOIADORES:
         {apoiadores_texto}
@@ -296,6 +312,39 @@ class Chatbot:
             print("[Gemini] Falha com", name, "->", e)
             return False
 
+    def _fix_social_media_links(self, resposta: str) -> str:
+        """
+        Corrige respostas sobre redes sociais que não incluem URLs.
+        Se a resposta menciona redes sociais mas não tem URLs, adiciona automaticamente.
+        """
+        if not resposta or not isinstance(resposta, str):
+            return resposta
+        
+        # Verifica se a resposta menciona redes sociais mas não tem URLs completas
+        redes_mentions = ["Facebook:", "Instagram:", "LinkedIn:", "TikTok:"]
+        tem_mencoes = any(mention in resposta for mention in redes_mentions)
+        tem_urls = "https://www.facebook.com" in resposta or "https://www.instagram.com" in resposta or "https://www.linkedin.com" in resposta or "https://www.tiktok.com" in resposta
+        
+        # Se menciona redes mas não tem URLs, adiciona
+        if tem_mencoes and not tem_urls:
+            redes_info = self.dados.get("redes_sociais", {})
+            if redes_info:
+                # Procura por linhas que mencionam redes sociais sem URLs
+                linhas = resposta.split('\n')
+                novas_linhas = []
+                for linha in linhas:
+                    linha_original = linha
+                    # Verifica se a linha menciona uma rede social mas não tem URL
+                    for nome_rede, url in redes_info.items():
+                        if f"{nome_rede}:" in linha and url not in linha:
+                            # Substitui a linha pela versão com URL
+                            linha = f"{nome_rede}: {url}"
+                            break
+                    novas_linhas.append(linha)
+                return '\n'.join(novas_linhas)
+        
+        return resposta
+
     # Este método é chamado toda vez que o usuário envia uma nova mensagem.
     def gerar_resposta(self, pergunta: str) -> str:
         # Validação simples para não enviar mensagens vazias para a API
@@ -323,7 +372,10 @@ class Chatbot:
             composed = f"Usuário: {pergunta}"
             resp = self.chat_session.send_message(composed)
             text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
-            return text if isinstance(text, str) else (str(text) if text else "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?")
+            resposta_final = text if isinstance(text, str) else (str(text) if text else "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?")
+            # Corrige links de redes sociais se necessário
+            resposta_final = self._fix_social_media_links(resposta_final)
+            return resposta_final
         except Exception as e:
             print(f"[Gemini] erro:", e)
             # Tentar reinicializar a sessão automaticamente
@@ -339,7 +391,9 @@ class Chatbot:
                         resp = self.chat_session.send_message(composed)
                         text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
                         if text and isinstance(text, str):
-                            return text
+                            resposta_final = self._fix_social_media_links(text)
+                            return resposta_final
+                            return resposta_final
             except Exception as e2:
                 print(f"[Gemini] Erro ao reinicializar sessão: {e2}")
             
