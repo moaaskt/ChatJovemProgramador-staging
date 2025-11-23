@@ -463,6 +463,11 @@ def get_conversation_messages(session_id, limit=200):
 
 
 def normalize_city_name(city: str) -> str | None:
+    """
+    Normaliza o nome da cidade removendo prefixos comuns, estados e validando contra lista de cidades válidas.
+    Usa matching aproximado para reconhecer variações e erros de digitação.
+    Retorna o nome da cidade normalizado ou None se não for reconhecida.
+    """
     if not city:
         return None
 
@@ -483,7 +488,56 @@ def normalize_city_name(city: str) -> str | None:
     def strip_accents(s: str) -> str:
         return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
+    # Limpeza inicial: converte para lowercase e remove espaços
     text = city.strip().lower()
+    
+    if not text:
+        return None
+    
+    # Remove prefixos comuns no início da frase
+    prefixes = [
+        "eu sou de",
+        "eu moro em",
+        "eu falo de",
+        "sou de",
+        "moro em",
+        "falo de",
+        "sou",
+        "moro",
+        "falo"
+    ]
+    
+    for prefix in prefixes:
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+    
+    # Corta tudo após vírgula ou hífen (geralmente estado)
+    if "," in text:
+        text = text.split(",")[0].strip()
+    if "-" in text:
+        text = text.split("-")[0].strip()
+    
+    # Remove palavras genéricas no começo
+    generic_words = ["cidade de", "município de", "cidade", "município"]
+    for word in generic_words:
+        if text.startswith(word):
+            text = text[len(word):].strip()
+            break
+    
+    # Remove espaços extras e faz strip final
+    text = " ".join(text.split())
+    text = text.strip()
+    
+    # Validação: se ficou com menos de 2 caracteres, retorna None
+    if len(text) < 2:
+        return None
+    
+    # Limita a 50 caracteres
+    if len(text) > 50:
+        text = text[:50]
+    
+    # Agora faz a validação contra a lista de cidades válidas
     text_no_accents = strip_accents(text)
 
     if text in synonyms:
