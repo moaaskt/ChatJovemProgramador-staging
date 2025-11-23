@@ -651,10 +651,21 @@ def normalize_city_name(city: str) -> str | None:
     # Normaliza lista de cidades de SC (cria tuplas: (nome_oficial, nome_sem_acentos))
     cidades_norm = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
     
+    # Normaliza lista de cidades de SC (cria tuplas: (nome_oficial, nome_sem_acentos))
+    # Criado aqui para uso no matching reverso com texto original
+    cidades_norm_original = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
+    
     # MATCHING REVERSO COM TEXTO ORIGINAL (ANTES DE QUALQUER LIMPEZA)
     # Isso garante que "rua x, palhoca" seja reconhecido antes de remover a vírgula
-    for original, norm in cidades_norm:
-        if norm in text_original_no_accents:
+    # CORREÇÃO: Verifica se a cidade aparece como palavra isolada para evitar falsos positivos
+    # Exemplo: "itajaí" não deve matchar com "itá" dentro de "itajaí"
+    # CORREÇÃO: Rejeita cidades muito curtas (< 4 chars) no matching reverso também
+    for original, norm in cidades_norm_original:
+        # Pula cidades muito curtas no matching reverso (evita "ita" → "Itá")
+        if len(norm) < 4:
+            continue
+        # Verifica se a cidade aparece como palavra isolada (com espaços ou no início/fim)
+        if f" {norm} " in f" {text_original_no_accents} " or text_original_no_accents.startswith(f"{norm} ") or text_original_no_accents.endswith(f" {norm}"):
             return original  # Retorna nome OFICIAL imediatamente
     
     # Remove prefixos comuns no início da frase
@@ -706,6 +717,20 @@ def normalize_city_name(city: str) -> str | None:
         if candidate in CIDADES_SANTA_CATARINA:
             return candidate
 
+    # Normaliza lista de cidades de SC (cria tuplas: (nome_oficial, nome_sem_acentos))
+    cidades_norm = [(c, strip_accents(c.lower())) for c in CIDADES_SANTA_CATARINA]
+
+    # CORREÇÃO: Para entradas muito curtas (< 4 caracteres), verifica match exato com nome oficial
+    # Isso permite "Itá" (nome oficial) mas rejeita "ita" (sem acento, pode ser erro)
+    if len(text_no_accents) < 4:
+        # Verifica se o texto original (com acentos) matcha exatamente com alguma cidade oficial
+        text_original_lower = city.strip().lower() if city else ""
+        for cidade_oficial in CIDADES_SANTA_CATARINA:
+            if cidade_oficial.lower() == text_original_lower:
+                return cidade_oficial  # Match exato com nome oficial, permite
+        # Se não matchou com nome oficial, rejeita (pode ser erro de digitação)
+        return None
+
     # 1. Igualdade exata (mais preciso) - compara versões sem acentos
     for original, norm in cidades_norm:
         if norm == text_no_accents:
@@ -727,8 +752,14 @@ def normalize_city_name(city: str) -> str | None:
     # 3. MATCH REVERSO APÓS LIMPEZA: cidade oficial dentro do texto informado
     # Aceita qualquer posição (início, meio ou fim)
     # Exemplo: "centro de palhoca" → reconhece "palhoca" → retorna "Palhoça"
+    # CORREÇÃO: Verifica se a cidade aparece como palavra isolada para evitar falsos positivos
+    # CORREÇÃO: Rejeita cidades muito curtas (< 4 chars) no matching reverso também
     for original, norm in cidades_norm:
-        if norm in text_no_accents:
+        # Pula cidades muito curtas no matching reverso (evita "ita" → "Itá")
+        if len(norm) < 4:
+            continue
+        # Verifica se a cidade aparece como palavra isolada (com espaços ou no início/fim)
+        if f" {norm} " in f" {text_no_accents} " or text_no_accents.startswith(f"{norm} ") or text_no_accents.endswith(f" {norm}"):
             return original  # Retorna nome OFICIAL
 
     # 4. Matching aproximado com difflib
@@ -740,11 +771,14 @@ def normalize_city_name(city: str) -> str | None:
                 return original  # Retorna nome OFICIAL
 
     # 5. MATCH POR TOKENS — capturar qualquer token parecido com a cidade
-    # Reduzido para 3 letras e cutoff 0.70 para matching mais robusto
-    tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 3]
+    # CORREÇÃO: Aumentado limite para 4 letras e ratio para 0.80 para evitar falsos positivos
+    # Exemplo: "itá" não deve matchar com "itajaí" (ratio ~0.50, mas token muito curto)
+    tokens = [t for t in text_no_accents.replace('-', ' ').replace(',', ' ').split() if len(t) >= 4]
     for token in tokens:
         for original, norm in cidades_norm:
-            if difflib.SequenceMatcher(None, token, norm).ratio() >= 0.70:
+            ratio = difflib.SequenceMatcher(None, token, norm).ratio()
+            # Requer token com pelo menos 4 caracteres E ratio >= 0.80
+            if len(token) >= 4 and ratio >= 0.80:
                 return original  # Retorna nome OFICIAL
 
     # Não é cidade de SC reconhecida - retorna None
