@@ -469,11 +469,10 @@ def get_message_counts_by_role(
 
         streams = []
         if date_start or days:
-            # Período definido: consulta por ambos os campos
             streams.append(stream_messages_for_field("created_at"))
             streams.append(stream_messages_for_field("createdAt"))
+            streams.append(stream_messages_for_field("criadoEm"))
         else:
-            # Sem filtro: apenas um stream geral (evita duplicidades)
             streams.append(_db.collection_group("messages").stream())
 
         for s in streams:
@@ -565,10 +564,9 @@ def get_recent_conversations(
                 today = datetime.utcnow()
                 start = today - timedelta(days=days)
                 q = q.where(field_name, ">=", start)
-            return q.order_by("updated_at", direction=firestore.Query.DESCENDING).stream()
+            return q.order_by(field_name, direction=firestore.Query.DESCENDING).stream()
 
         if date_start or days:
-            # Buscar por ambos os campos para cobrir diferentes documentos
             streams = [fetch_by_field("updated_at"), fetch_by_field("created_at")]
         else:
             streams = [_db.collection("conversations").order_by("updated_at", direction=firestore.Query.DESCENDING).stream()]
