@@ -453,44 +453,119 @@ def get_message_counts_by_role(
         user_count = 0
         bot_count = 0
 
-        # Quando há filtro por período, precisamos considerar que algumas mensagens
-        # usam "created_at" e outras usam "createdAt". Consultamos ambas e unimos.
-        paths_seen = set()
+        paths_seen: set[str] = set()
 
-        def stream_messages_for_field(field_name: str):
-            q = _db.collection_group("messages")
-            if date_start and date_end:
-                q = q.where(field_name, ">=", date_start).where(field_name, "<=", date_end)
-            elif days and days > 0:
-                today = datetime.utcnow()
-                start = today - timedelta(days=days)
-                q = q.where(field_name, ">=", start)
-            return q.stream()
+        # Detecta campos de data presentes via amostra
+        detected_fields: set[str] = set()
+        try:
+            sample = _db.collection_group("messages").limit(5).stream()
+            for msg in sample:
+                d = msg.to_dict() or {}
+                if "created_at" in d and d.get("created_at"):
+                    detected_fields.add("created_at")
+                if "createdAt" in d and d.get("createdAt"):
+                    detected_fields.add("createdAt")
+                if "criadoEm" in d and d.get("criadoEm"):
+                    detected_fields.add("criadoEm")
+        except Exception as e:
+            logger.error(f"[Firestore] Sample detection failed: {e}")
 
-        streams = []
-        if date_start or days:
-            streams.append(stream_messages_for_field("created_at"))
-            streams.append(stream_messages_for_field("createdAt"))
-            streams.append(stream_messages_for_field("criadoEm"))
+        # Se nenhum campo detectado, assume os três como possíveis
+        if not detected_fields:
+            detected_fields = {"created_at", "createdAt", "criadoEm"}
+
+        # Construir intervalo
+        use_range = bool(date_start and date_end) or (bool(days) and days and days > 0)
+        range_start = None
+        range_end = None
+        if date_start and date_end:
+            range_start = date_start
+            range_end = date_end
+        elif days and days > 0:
+            today = datetime.utcnow()
+            range_start = today - timedelta(days=days)
+            range_end = None
+
+        successful_docs = 0
+
+        if use_range:
+            for field in detected_fields:
+                try:
+                    q = _db.collection_group("messages")
+                    if range_start is not None:
+                        q = q.where(field, ">=", range_start)
+                    if range_end is not None:
+                        q = q.where(field, "<=", range_end)
+                    stream = q.stream()
+                    for msg in stream:
+                        ref = getattr(getattr(msg, "reference", None), "path", None)
+                        if ref and ref in paths_seen:
+                            continue
+                        if ref:
+                            paths_seen.add(ref)
+                        data = msg.to_dict() or {}
+                        role = data.get("role")
+                        if role == "user":
+                            user_count += 1
+                        elif role == "bot":
+                            bot_count += 1
+                        successful_docs += 1
+                except Exception as e:
+                    err_text = str(e)
+                    logger.error(f"[Firestore] Range query failed for field '{field}': {err_text}")
+                    if "FAILED_PRECONDITION" in err_text or "index" in err_text.lower():
+                        logger.error(f"[Firestore] Possible missing index for collection_group messages on field '{field}'")
+
+            # Fallback: sem dados válidos, faz leitura sem filtros e filtra em memória
+            if successful_docs == 0:
+                try:
+                    fallback_stream = _db.collection_group("messages").limit(1000).stream()
+                    for msg in fallback_stream:
+                        ref = getattr(getattr(msg, "reference", None), "path", None)
+                        if ref and ref in paths_seen:
+                            continue
+                        if ref:
+                            paths_seen.add(ref)
+                        data = msg.to_dict() or {}
+                        ts = data.get("createdAt") or data.get("created_at") or data.get("criadoEm")
+                        if ts is None:
+                            continue
+                        if range_start and range_end:
+                            if ts < range_start or ts > range_end:
+                                continue
+                        elif range_start:
+                            if ts < range_start:
+                                continue
+                        role = data.get("role")
+                        if role == "user":
+                            user_count += 1
+                        elif role == "bot":
+                            bot_count += 1
+                        successful_docs += 1
+                    if successful_docs == 0:
+                        logger.error("[Firestore] Fallback yielded no documents within range")
+                    else:
+                        logger.info(f"[Firestore] Fallback applied with {successful_docs} documents counted")
+                except Exception as e:
+                    logger.error(f"[Firestore] Fallback stream failed: {e}")
         else:
-            streams.append(_db.collection_group("messages").stream())
-
-        for s in streams:
-            for msg in s:
-                # Deduplica por caminho do documento
-                path = getattr(msg, "_reference", None)
-                path_str = str(path) if path else getattr(getattr(msg, "reference", None), "path", None)
-                if path_str and path_str in paths_seen:
-                    continue
-                if path_str:
-                    paths_seen.add(path_str)
-
-                data = msg.to_dict() or {}
-                role = data.get("role")
-                if role == "user":
-                    user_count += 1
-                elif role == "bot":
-                    bot_count += 1
+            # Sem filtro de período: comportamento atual
+            try:
+                stream = _db.collection_group("messages").stream()
+                for msg in stream:
+                    ref = getattr(getattr(msg, "reference", None), "path", None)
+                    if ref and ref in paths_seen:
+                        continue
+                    if ref:
+                        paths_seen.add(ref)
+                    data = msg.to_dict() or {}
+                    role = data.get("role")
+                    if role == "user":
+                        user_count += 1
+                    elif role == "bot":
+                        bot_count += 1
+            except Exception as e:
+                logger.error(f"[Firestore] Unfiltered messages stream failed: {e}")
 
         return {
             "user_messages": user_count,
