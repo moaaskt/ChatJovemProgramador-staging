@@ -123,15 +123,43 @@ def api_reports():
 
     data = {
         "conversation_counts": conversation_counts,
-        # Por enquanto: todas as mensagens (pode ser estendido futuramente para receber days ou date_start/date_end)
-        "message_counts": get_message_counts_by_role(),
+        "message_counts": (
+            get_message_counts_by_role(
+                days=days if not (date_start and date_end) else None,
+                date_start=date_start,
+                date_end=date_end,
+            )
+        ),
         "daily_conversations": daily_conversations,
-        # Mantém comportamento atual (pode ser estendido futuramente para receber days ou date_start/date_end)
-        "recent_conversations": get_recent_conversations(limit=10),
-        # Por enquanto: todos os leads (pode ser estendido futuramente se os documentos de leads tiverem campos de timestamp consistentes)
-        "leads_by_city": get_leads_count_by_city(),
-        "leads_by_state": get_leads_count_by_state(),
-        "leads_by_age_range": get_leads_count_by_age_range(),
+        "recent_conversations": (
+            get_recent_conversations(
+                limit=10,
+                days=days if not (date_start and date_end) else None,
+                date_start=date_start,
+                date_end=date_end,
+            )
+        ),
+        "leads_by_city": (
+            get_leads_count_by_city(
+                days=days if not (date_start and date_end) else None,
+                date_start=date_start,
+                date_end=date_end,
+            )
+        ),
+        "leads_by_state": (
+            get_leads_count_by_state(
+                days=days if not (date_start and date_end) else None,
+                date_start=date_start,
+                date_end=date_end,
+            )
+        ),
+        "leads_by_age_range": (
+            get_leads_count_by_age_range(
+                days=days if not (date_start and date_end) else None,
+                date_start=date_start,
+                date_end=date_end,
+            )
+        ),
     }
     return jsonify(data)
 

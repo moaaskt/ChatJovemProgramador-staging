@@ -444,19 +444,54 @@ def get_conversation_counts(
         return {"total_conversations": 0}
 
 
-def get_message_counts_by_role():
+def get_message_counts_by_role(
+    days: int | None = None,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
     try:
         user_count = 0
         bot_count = 0
 
-        messages = _db.collection_group("messages").stream()
-        for msg in messages:
-            data = msg.to_dict()
-            role = data.get("role")
-            if role == "user":
-                user_count += 1
-            elif role == "bot":
-                bot_count += 1
+        # Quando há filtro por período, precisamos considerar que algumas mensagens
+        # usam "created_at" e outras usam "createdAt". Consultamos ambas e unimos.
+        paths_seen = set()
+
+        def stream_messages_for_field(field_name: str):
+            q = _db.collection_group("messages")
+            if date_start and date_end:
+                q = q.where(field_name, ">=", date_start).where(field_name, "<=", date_end)
+            elif days and days > 0:
+                today = datetime.utcnow()
+                start = today - timedelta(days=days)
+                q = q.where(field_name, ">=", start)
+            return q.stream()
+
+        streams = []
+        if date_start or days:
+            # Período definido: consulta por ambos os campos
+            streams.append(stream_messages_for_field("created_at"))
+            streams.append(stream_messages_for_field("createdAt"))
+        else:
+            # Sem filtro: apenas um stream geral (evita duplicidades)
+            streams.append(_db.collection_group("messages").stream())
+
+        for s in streams:
+            for msg in s:
+                # Deduplica por caminho do documento
+                path = getattr(msg, "_reference", None)
+                path_str = str(path) if path else getattr(getattr(msg, "reference", None), "path", None)
+                if path_str and path_str in paths_seen:
+                    continue
+                if path_str:
+                    paths_seen.add(path_str)
+
+                data = msg.to_dict() or {}
+                role = data.get("role")
+                if role == "user":
+                    user_count += 1
+                elif role == "bot":
+                    bot_count += 1
 
         return {
             "user_messages": user_count,
@@ -512,27 +547,62 @@ def get_daily_conversation_counts(
         return {}
 
 
-def get_recent_conversations(limit=10):
+def get_recent_conversations(
+    limit: int = 10,
+    days: int | None = None,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
     try:
-        convs = (
-            _db.collection("conversations")
-               .order_by("updated_at", direction=firestore.Query.DESCENDING)
-               .limit(limit)
-               .stream()
-        )
-
         results = []
-        for c in convs:
-            d = c.to_dict()
-            results.append({
-                "session_id": d.get("session_id"),
-                "created_at": d.get("created_at"),
-                "updated_at": d.get("updated_at"),
-                "total_user_messages": d.get("total_user_messages", 0),
-                "total_bot_messages": d.get("total_bot_messages", 0),
-            })
+        seen_ids = set()
 
-        return results
+        def fetch_by_field(field_name: str):
+            q = _db.collection("conversations")
+            if date_start and date_end:
+                q = q.where(field_name, ">=", date_start).where(field_name, "<=", date_end)
+            elif days and days > 0:
+                today = datetime.utcnow()
+                start = today - timedelta(days=days)
+                q = q.where(field_name, ">=", start)
+            return q.order_by("updated_at", direction=firestore.Query.DESCENDING).stream()
+
+        if date_start or days:
+            # Buscar por ambos os campos para cobrir diferentes documentos
+            streams = [fetch_by_field("updated_at"), fetch_by_field("created_at")]
+        else:
+            streams = [_db.collection("conversations").order_by("updated_at", direction=firestore.Query.DESCENDING).stream()]
+
+        for s in streams:
+            for c in s:
+                d = c.to_dict() or {}
+                sid = d.get("session_id")
+                if sid and sid in seen_ids:
+                    continue
+                if sid:
+                    seen_ids.add(sid)
+                results.append({
+                    "session_id": sid,
+                    "created_at": d.get("created_at"),
+                    "updated_at": d.get("updated_at"),
+                    "total_user_messages": d.get("total_user_messages", 0),
+                    "total_bot_messages": d.get("total_bot_messages", 0),
+                })
+
+        # Ordena por updated_at desc (fallback created_at)
+        def sort_key(item):
+            ts_upd = item.get("updated_at")
+            ts_cr = item.get("created_at")
+            base = ts_upd or ts_cr
+            try:
+                # Firestore timestamp tem atributo seconds/_seconds
+                seconds = getattr(base, "seconds", None) or getattr(base, "_seconds", None)
+                return seconds or 0
+            except Exception:
+                return 0
+
+        results.sort(key=sort_key, reverse=True)
+        return results[:limit]
     except Exception as e:
         logger.error(f"[Firestore] Erro em recent_conversations: {e}")
         return []
@@ -902,7 +972,11 @@ def save_lead_from_conversation(session_id: str, lead_data: dict):
         return False
 
 
-def get_leads_count_by_city():
+def get_leads_count_by_city(
+    days: int | None = None,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
     """
     Conta leads agrupados por cidade.
     Cidades de SC são normalizadas e agrupadas individualmente.
@@ -914,7 +988,15 @@ def get_leads_count_by_city():
         return {}
     
     try:
-        leads = _db.collection("leads").stream()
+        query = _db.collection("leads")
+        if date_start and date_end:
+            query = query.where("createdAt", ">=", date_start).where("createdAt", "<=", date_end)
+        elif days and days > 0:
+            today = datetime.utcnow()
+            start = today - timedelta(days=days)
+            query = query.where("createdAt", ">=", start)
+
+        leads = query.stream()
         
         counts = {}
         for lead_doc in leads:
@@ -964,7 +1046,11 @@ def get_leads_count_by_city():
         return {}
 
 
-def get_leads_count_by_state():
+def get_leads_count_by_state(
+    days: int | None = None,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
     """
     Conta leads agrupados por estado (UF).
     Retorna dict { "SC": count, "PR": count, ... }.
@@ -973,7 +1059,15 @@ def get_leads_count_by_state():
         return {}
 
     try:
-        leads = _db.collection("leads").stream()
+        query = _db.collection("leads")
+        if date_start and date_end:
+            query = query.where("createdAt", ">=", date_start).where("createdAt", "<=", date_end)
+        elif days and days > 0:
+            today = datetime.utcnow()
+            start = today - timedelta(days=days)
+            query = query.where("createdAt", ">=", start)
+
+        leads = query.stream()
         counts: dict[str, int] = {}
 
         for lead_doc in leads:
@@ -992,7 +1086,11 @@ def get_leads_count_by_state():
         return {}
 
 
-def get_leads_count_by_age_range():
+def get_leads_count_by_age_range(
+    days: int | None = None,
+    date_start: datetime | None = None,
+    date_end: datetime | None = None,
+):
     """
     Conta leads agrupados por faixa etária.
     Retorna dict { "16-18": count, "19-24": count, "25+": count }.
@@ -1001,7 +1099,15 @@ def get_leads_count_by_age_range():
         return {}
 
     try:
-        leads = _db.collection("leads").stream()
+        query = _db.collection("leads")
+        if date_start and date_end:
+            query = query.where("createdAt", ">=", date_start).where("createdAt", "<=", date_end)
+        elif days and days > 0:
+            today = datetime.utcnow()
+            start = today - timedelta(days=days)
+            query = query.where("createdAt", ">=", start)
+
+        leads = query.stream()
         counts: dict[str, int] = {}
 
         for lead_doc in leads:
