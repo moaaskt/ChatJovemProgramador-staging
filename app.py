@@ -34,6 +34,7 @@ class Cores:
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['JSON_AS_ASCII'] = False  # Garante que caracteres UTF-8 sejam preservados no JSON
 CORS(app)
 
 # Inicializa Firestore (se habilitado)
