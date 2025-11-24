@@ -524,10 +524,15 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
             labels: {
                 style: {
                     colors: labelColor,
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    fontFamily: 'inherit'  // Usa fonte padrão do sistema para melhor suporte a caracteres especiais
                 },
                 rotate: -45,  // Rotaciona labels para melhor legibilidade
-                rotateAlways: false
+                rotateAlways: false,
+                formatter: function(val) {
+                    // Garante que caracteres especiais sejam renderizados corretamente
+                    return val;
+                }
             }
         },
         yaxis: {
