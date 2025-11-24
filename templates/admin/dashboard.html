@@ -509,6 +509,8 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
     const gridColor = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
     const labelColor = isLightTheme ? '#6b7280' : '#9aa0c6';
     const tooltipTheme = isLightTheme ? 'light' : 'dark';
+    const narrow = el.clientWidth && el.clientWidth < 420;
+    const fontSize = narrow ? '10px' : '12px';
 
     const options = {
         chart: {
@@ -522,15 +524,17 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
         xaxis: {
             categories: labels,
             labels: {
+                show: true,
+                rotate: -45,
+                rotateAlways: true,
+                hideOverlappingLabels: false,
+                trim: false,
                 style: {
                     colors: labelColor,
-                    fontSize: '12px',
-                    fontFamily: 'inherit'  // Usa fonte padrão do sistema para melhor suporte a caracteres especiais
+                    fontSize: fontSize,
+                    fontFamily: 'inherit'
                 },
-                rotate: -45,  // Rotaciona labels para melhor legibilidade
-                rotateAlways: false,
                 formatter: function(val) {
-                    // Garante que caracteres especiais sejam renderizados corretamente
                     return val;
                 }
             }
