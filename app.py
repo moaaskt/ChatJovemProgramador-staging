@@ -17,6 +17,7 @@ from services.firestore import (
     update_conversation,
     save_lead_from_conversation,
     get_settings,
+    normalize_city_name,
 )
 
 # --- Classe de Cores (Foco em Alto Contraste) ---
@@ -33,6 +34,7 @@ class Cores:
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['JSON_AS_ASCII'] = False  # Garante que caracteres UTF-8 sejam preservados no JSON
 CORS(app)
 
 # Inicializa Firestore (se habilitado)
@@ -141,6 +143,8 @@ def get_error_message_for_field(field: str) -> str:
     Mensagens de erro quando a validação falha.
     (E-mail saiu do fluxo, então só estado/idade precisam de erro específico)
     """
+    if field == "cidade":
+        return "Pode me informar o nome da sua cidade? Qualquer cidade está ok! 🙂"
     if field == "estado":
         return "Consegue me passar a sigla do estado? (Ex.: SC, SP, RJ)"
     if field == "idade":
@@ -193,73 +197,6 @@ def normalize_uf(text: str) -> str | None:
     return None
 
 
-def normalize_city_name(city: str) -> str | None:
-    """
-    Normaliza o nome da cidade removendo prefixos comuns, estados e formatando para Title Case.
-    Exemplos:
-    - "eu falo de palhoça, sc" -> "Palhoça"
-    - "sou de florianópolis" -> "Florianópolis"
-    - "moro em palhoça - sc" -> "Palhoça"
-    Retorna None se a cidade não puder ser normalizada (vazia ou muito curta).
-    """
-    if not city:
-        return None
-    
-    # Converte para lowercase
-    city = city.lower().strip()
-    
-    if not city:
-        return None
-    
-    # Remove prefixos comuns no início da frase (case-insensitive)
-    prefixes = [
-        "eu sou de",
-        "eu moro em",
-        "eu falo de",
-        "sou de",
-        "moro em",
-        "falo de",
-        "sou",
-        "moro",
-        "falo"
-    ]
-    
-    for prefix in prefixes:
-        if city.startswith(prefix):
-            city = city[len(prefix):].strip()
-            break
-    
-    # Corta tudo após vírgula ou hífen (geralmente estado)
-    if "," in city:
-        city = city.split(",")[0].strip()
-    if "-" in city:
-        city = city.split("-")[0].strip()
-    
-    # Remove palavras genéricas no começo
-    generic_words = ["cidade de", "município de", "cidade", "município"]
-    for word in generic_words:
-        if city.startswith(word):
-            city = city[len(word):].strip()
-            break
-    
-    # Remove espaços extras e faz strip final
-    city = " ".join(city.split())
-    city = city.strip()
-    
-    # Validação: se ficou com menos de 2 caracteres, retorna None
-    if len(city) < 2:
-        return None
-    
-    # Limita a 50 caracteres
-    if len(city) > 50:
-        city = city[:50]
-    
-    # Converte para Title Case (primeira letra de cada palavra em maiúscula)
-    city = " ".join(word.capitalize() for word in city.split() if word)
-    
-    return city if city else None
-
-
 def validate_email(email: str) -> bool:
     """
     Valida formato básico de email usando regex permissivo.
@@ -292,9 +229,14 @@ def normalize_lead_answer(field: str, answer: str):
     if field == "interesse":
         return answer[:200]
 
-    # Cidade: usa normalização esperta, com fallback pro texto cru
+    # Cidade: aceita qualquer cidade (SC normalizada, outras como texto livre)
+    # NÃO trava o fluxo se não reconhecer como cidade de SC
     if field == "cidade":
         normalized = normalize_city_name(answer)
+        # Se não reconheceu como SC, aceita como texto livre (não trava)
+        if normalized is None:
+            # Aceita o texto original (será salvo e agrupado como "Outras cidades do Brasil")
+            return answer[:100]  # Limita tamanho mas aceita qualquer cidade
         return normalized
 
     # Estado (UF): normaliza usando a helper de UF

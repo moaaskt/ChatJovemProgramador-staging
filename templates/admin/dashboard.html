@@ -524,7 +524,14 @@ function createLeadsBarChart(containerId, labels, seriesData, chartRefName) {
             labels: {
                 style: {
                     colors: labelColor,
-                    fontSize: '12px'
+                    fontSize: '12px',
+                    fontFamily: 'inherit'  // Usa fonte padrão do sistema para melhor suporte a caracteres especiais
+                },
+                rotate: -45,  // Rotaciona labels para melhor legibilidade
+                rotateAlways: false,
+                formatter: function(val) {
+                    // Garante que caracteres especiais sejam renderizados corretamente
+                    return val;
                 }
             }
         },
@@ -771,8 +778,36 @@ function loadDashboardData(filters = {}) {
 
             // ----- Leads por cidade -----
             const leadsByCity = data.leads_by_city || {};
-            const cityLabels = Object.keys(leadsByCity);
-            const cityValues = Object.values(leadsByCity);
+            
+            // Debug: verifica dados brutos recebidos
+            console.log('[Dashboard] Leads por cidade (bruto):', leadsByCity);
+            console.log('[Dashboard] Chaves brutas:', Object.keys(leadsByCity));
+            console.log('[Dashboard] Palhoça no objeto bruto:', 'Palhoça' in leadsByCity);
+            if ('Palhoça' in leadsByCity) {
+                console.log('[Dashboard] Count de Palhoça:', leadsByCity['Palhoça']);
+            }
+            
+            // Ordena por valor (quantidade) em ordem decrescente para melhor visualização
+            const cityEntries = Object.entries(leadsByCity);
+            cityEntries.sort((a, b) => {
+                // Ordena por valor (count) decrescente, depois alfabeticamente se empate
+                if (b[1] !== a[1]) {
+                    return b[1] - a[1];
+                }
+                return a[0].localeCompare(b[0], 'pt-BR');
+            });
+            
+            const cityLabels = cityEntries.map(entry => entry[0]);
+            const cityValues = cityEntries.map(entry => entry[1]);
+            
+            // Debug: verifica após ordenação
+            console.log('[Dashboard] Labels ordenados:', cityLabels);
+            console.log('[Dashboard] Valores ordenados:', cityValues);
+            console.log('[Dashboard] Palhoça presente após ordenação:', cityLabels.includes('Palhoça'));
+            if (cityLabels.includes('Palhoça')) {
+                const index = cityLabels.indexOf('Palhoça');
+                console.log('[Dashboard] Índice de Palhoça:', index, '| Valor:', cityValues[index]);
+            }
 
             if (cityLabels.length > 0) {
                 createLeadsByCityChart(cityLabels, cityValues);

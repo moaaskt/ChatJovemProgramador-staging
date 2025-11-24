@@ -177,7 +177,8 @@ class Chatbot:
         redes_info = self.dados.get("redes_sociais", {})
         redes_texto = "Não encontrei informações sobre as redes sociais oficiais do programa."
         if redes_info:
-            lista_redes = [f"- {nome}: {url}" for nome, url in redes_info.items()]
+            # Formata de forma simples e direta, uma rede por linha com nome e URL completa
+            lista_redes = [f"{nome}: {url}" for nome, url in redes_info.items()]
             redes_texto = (
                 "Você pode encontrar e seguir o Jovem Programador nas seguintes redes sociais:\n"
                 + "\n".join(lista_redes)
@@ -212,6 +213,81 @@ class Chatbot:
         Formatação: use quebras de linha curtas e respostas interessantes, evitando textões.
         Blindagem: responda APENAS com base no conteúdo abaixo. Se a resposta não estiver no texto, diga que o melhor é verificar no site oficial ou acionar um humano.
         Proibição: não recomende cursos externos ou plataformas fora do Programa Jovem Programador.
+        
+        CRÍTICO - Formatação de Links e Redes Sociais:
+        - Quando o usuário perguntar sobre redes sociais, você DEVE incluir as URLs completas na resposta
+        - Formato OBRIGATÓRIO: "Nome da Rede: URL completa" (exemplo: "Facebook: https://www.facebook.com/programajovemprogramador")
+        - NUNCA liste apenas os nomes das redes sem as URLs
+        - NUNCA use ícones, símbolos especiais (□, ■, etc) ou formatação visual complexa
+        - NUNCA duplique informações (não repita o nome da rede após o link)
+        - REGRA ABSOLUTA: NUNCA crie duas listas de redes sociais. Use APENAS UMA lista com nomes E URLs juntos na mesma linha
+        - NUNCA faça: uma lista com "Facebook:", "Instagram:" sem URLs e depois outra lista com os links
+        - NUNCA faça: listar os nomes das redes em um lugar e os links em outro lugar da resposta
+        - Exemplo de resposta CORRETA sobre redes sociais:
+          "Aqui estão os nossos canais oficiais:
+          Facebook: https://www.facebook.com/programajovemprogramador
+          Instagram: https://www.instagram.com/programa_jovemprogramador
+          LinkedIn: https://www.linkedin.com/company/programajovemprogramador
+          TikTok: https://www.tiktok.com/@jovemprogramador_sc"
+        - Exemplo de resposta INCORRETA (NÃO FAÇA ISSO):
+          "Facebook: 
+          Instagram: 
+          LinkedIn: 
+          TikTok:
+          [outro texto]
+          Facebook: https://..."
+        - Exemplo de resposta INCORRETA (NÃO FAÇA ISSO):
+          "Facebook:
+          Instagram:
+          [outro texto]
+          Facebook
+          Instagram
+          LinkedIn"
+        - SEMPRE copie as URLs exatamente como aparecem na seção REDES SOCIAIS abaixo
+        - IMPORTANTE: Se você listar "Facebook:", "Instagram:", etc, você DEVE incluir a URL completa logo após os dois pontos
+        - NÃO deixe linhas vazias após os nomes das redes. SEMPRE coloque a URL na mesma linha
+        - Use APENAS UMA lista completa com todas as redes e suas URLs juntas
+
+        REGRA ABSOLUTA - Formatação de Links e CTAs:
+        - SEMPRE coloque o link NA MESMA LINHA ou IMEDIATAMENTE APÓS o emoji/texto de chamada
+        - Formato OBRIGATÓRIO para links de inscrição/edital:
+          "Para garantir sua vaga, acesse: https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase"
+          OU
+          "👉 https://www.jovemprogramador.com.br/inscricoes-jovem-programador/#inscrevase"
+        - NUNCA faça:
+          "👉 \n\nhttps://..." (link em linha separada com linhas vazias)
+          "👉 \n\n\nAqui está! \n\nhttps://..." (link no final separado)
+        - O link DEVE estar conectado ao texto de chamada, sem linhas vazias entre eles
+        - NUNCA coloque o link no final da mensagem separado do contexto
+        - NUNCA adicione linhas extras antes ou depois do link
+        - NUNCA reorganize parágrafos após mencionar o link
+        - Se você usar "👉", o link DEVE estar na mesma linha ou na linha imediata seguinte (sem linhas vazias)
+
+        TEMPLATE FIXO para respostas com link de inscrição:
+        "[Acolhimento] 🚀
+
+        [Benefício/Desejo] 🎓
+
+        [Informação sobre datas/prazos, se houver]
+
+        Para garantir sua vaga, acesse: [URL COMPLETA AQUI]
+
+        [Finalização amigável]"
+
+        TEMPLATE FIXO para respostas com link de edital:
+        "[Acolhimento] 🚀
+
+        [Benefício/Desejo] 🎓
+
+        Para ver o edital completo, acesse: [URL COMPLETA AQUI]
+
+        [Finalização amigável]"
+
+        VERIFICAÇÃO OBRIGATÓRIA antes de enviar resposta:
+        - Se você mencionou "acesse:", "link:", "👉", ou similar, VERIFIQUE se o link está na mesma linha ou linha imediata seguinte
+        - Se o link estiver separado por mais de 1 linha vazia, CORRIJA movendo o link para logo após o texto de chamada
+        - NUNCA envie resposta com emoji de chamada sem o link logo após
+        - Se você colocou "👉" em uma linha, o link DEVE estar na mesma linha ou na próxima linha (sem linhas vazias)
 
         Política de resposta (AIDA):
         1) Acolhimento: reconheça a iniciativa do usuário de estudar ou evoluir na carreira (ex.: "Ótima iniciativa querer estudar!" 💡).
@@ -257,8 +333,13 @@ class Chatbot:
         HACKATHON:
         {hackathon_texto}
 
-        REDES SOCIAIS:
+        REDES SOCIAIS (COPIE AS URLs EXATAMENTE COMO ESTÃO AQUI - NÃO OMITA AS URLs):
         {redes_texto}
+        
+        REGRA ABSOLUTA: Ao responder sobre redes sociais, você DEVE copiar EXATAMENTE o formato acima, incluindo TODAS as URLs completas. 
+        NÃO liste apenas "Facebook:", "Instagram:" sem as URLs. SEMPRE inclua: "Facebook: https://...", "Instagram: https://...", etc.
+        NÃO crie duas listas - uma com nomes e outra com links. Use APENAS UMA lista com nomes E URLs juntos.
+        NÃO liste os nomes das redes em um lugar e os links em outro. TUDO deve estar junto na mesma lista.
 
         APOIADORES:
         {apoiadores_texto}
@@ -287,6 +368,334 @@ class Chatbot:
             print("[Gemini] Falha com", name, "->", e)
             return False
 
+    def _fix_social_media_links(self, resposta: str) -> str:
+        """
+        Corrige respostas sobre redes sociais que não incluem URLs.
+        Remove duplicatas e consolida listas de redes sociais.
+        """
+        if not resposta or not isinstance(resposta, str):
+            return resposta
+        
+        import re
+        
+        redes_info = self.dados.get("redes_sociais", {})
+        if not redes_info:
+            return resposta
+        
+        # Verifica se a resposta menciona redes sociais
+        redes_mentions = ["Facebook:", "Instagram:", "LinkedIn:", "TikTok:"]
+        tem_mencoes = any(mention in resposta for mention in redes_mentions)
+        
+        if not tem_mencoes:
+            return resposta
+        
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        linhas = resposta.split('\n')
+        
+        # Identifica todas as listas de redes sociais
+        listas_redes = []  # Lista de (inicio, fim, tem_urls, linhas)
+        lista_atual = []
+        inicio_atual = -1
+        
+        for i, linha in enumerate(linhas):
+            linha_strip = linha.strip()
+            eh_rede = any(f"{nome}:" in linha_strip for nome in redes_info.keys())
+            
+            if eh_rede:
+                if not lista_atual:
+                    inicio_atual = i
+                lista_atual.append((i, linha))
+            else:
+                if lista_atual:
+                    # Verifica se a lista tem URLs
+                    tem_urls = any(re.search(url_pattern, l[1]) for l in lista_atual)
+                    listas_redes.append((inicio_atual, i - 1, tem_urls, lista_atual))
+                    lista_atual = []
+                    inicio_atual = -1
+        
+        # Processa última lista se terminou em lista
+        if lista_atual:
+            tem_urls = any(re.search(url_pattern, l[1]) for l in lista_atual)
+            listas_redes.append((inicio_atual, len(linhas) - 1, tem_urls, lista_atual))
+        
+        # Se não encontrou listas, apenas adiciona URLs se faltarem
+        if not listas_redes:
+            novas_linhas = []
+            for linha in linhas:
+                linha_modificada = False
+                for nome_rede, url in redes_info.items():
+                    if f"{nome_rede}:" in linha and url not in linha:
+                        novas_linhas.append(f"{nome_rede}: {url}")
+                        linha_modificada = True
+                        break
+                if not linha_modificada:
+                    novas_linhas.append(linha)
+            return '\n'.join(novas_linhas)
+        
+        # Encontra a melhor lista (com URLs, ou a primeira se nenhuma tem)
+        lista_completa = None
+        for inicio, fim, tem_urls, lista_linhas in listas_redes:
+            if tem_urls:
+                # Constrói lista completa com URLs
+                lista_completa = []
+                for _, linha_original in lista_linhas:
+                    linha_strip = linha_original.strip()
+                    # Verifica se já tem URL
+                    if re.search(url_pattern, linha_strip):
+                        lista_completa.append(linha_strip)
+                    else:
+                        # Adiciona URL
+                        for nome_rede, url in redes_info.items():
+                            if f"{nome_rede}:" in linha_strip:
+                                lista_completa.append(f"{nome_rede}: {url}")
+                                break
+                break
+        
+        # Se não encontrou lista com URLs, constrói uma completa
+        if not lista_completa:
+            redes_unicas = set()
+            lista_completa = []
+            for inicio, fim, tem_urls, lista_linhas in listas_redes:
+                for _, linha_original in lista_linhas:
+                    linha_strip = linha_original.strip()
+                    for nome_rede, url in redes_info.items():
+                        if f"{nome_rede}:" in linha_strip and nome_rede not in redes_unicas:
+                            lista_completa.append(f"{nome_rede}: {url}")
+                            redes_unicas.add(nome_rede)
+                            break
+        
+        # Reconstrói resposta removendo listas duplicadas
+        linhas_finais = []
+        indices_removidos = set()
+        
+        # Marca índices de todas as listas para remover
+        for inicio, fim, tem_urls, lista_linhas in listas_redes:
+            for i in range(inicio, fim + 1):
+                indices_removidos.add(i)
+        
+        # Adiciona linhas não removidas
+        lista_inserida = False
+        for i, linha in enumerate(linhas):
+            if i in indices_removidos:
+                # Se é o início da primeira lista removida, insere lista completa
+                if not lista_inserida:
+                    linhas_finais.extend(lista_completa)
+                    lista_inserida = True
+                # Pula esta linha (está na lista removida)
+                continue
+            
+            linhas_finais.append(linha)
+        
+        # Se a lista estava no final, adiciona
+        if not lista_inserida and listas_redes:
+            linhas_finais.extend(lista_completa)
+        
+        return '\n'.join(linhas_finais)
+
+    def _fix_link_formatting(self, resposta: str) -> str:
+        """
+        Corrige formatação de links que foram separados incorretamente.
+        Move links que estão no final ou muito separados para o lugar correto.
+        """
+        if not resposta or not isinstance(resposta, str):
+            return resposta
+        
+        import re
+        
+        # Regex para encontrar URLs
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        urls = re.findall(url_pattern, resposta)
+        
+        if not urls:
+            return resposta
+        
+        linhas = resposta.split('\n')
+        resultado_linhas = []
+        urls_processadas = set()
+        
+        i = 0
+        while i < len(linhas):
+            linha = linhas[i]
+            
+            # Verifica se a linha tem padrão de chamada
+            tem_chamada = (
+                '👉' in linha or
+                re.search(r'acesse:\s*$', linha, re.IGNORECASE) or
+                re.search(r'link:\s*$', linha, re.IGNORECASE) or
+                re.search(r'acesse\s+o\s+link:\s*$', linha, re.IGNORECASE)
+            )
+            
+            # Verifica se linha já tem URL
+            url_na_linha = re.search(url_pattern, linha)
+            
+            if tem_chamada:
+                if url_na_linha:
+                    # Já está correto - tem chamada e URL na mesma linha
+                    resultado_linhas.append(linha)
+                else:
+                    # Tem chamada mas não tem URL - procura URL próxima
+                    url_encontrada = None
+                    indice_url = None
+                    
+                    # Procura nas próximas 3 linhas
+                    for j in range(i + 1, min(i + 4, len(linhas))):
+                        url_match = re.search(url_pattern, linhas[j])
+                        if url_match:
+                            url_candidata = url_match.group(0)
+                            if url_candidata not in urls_processadas:
+                                url_encontrada = url_candidata
+                                indice_url = j
+                                break
+                    
+                    if url_encontrada:
+                        # Adiciona URL na mesma linha da chamada
+                        resultado_linhas.append(linha.rstrip() + ' ' + url_encontrada)
+                        urls_processadas.add(url_encontrada)
+                        # Pula até a linha que tinha a URL (mas mantém outras linhas entre)
+                        for k in range(i + 1, indice_url):
+                            if linhas[k].strip() and not re.search(url_pattern, linhas[k]):
+                                resultado_linhas.append(linhas[k])
+                        i = indice_url + 1
+                        continue
+                    else:
+                        # Não encontrou URL próxima, mantém linha original
+                        resultado_linhas.append(linha)
+            elif url_na_linha:
+                # Linha tem URL mas não tem chamada - verifica se deveria estar junto com chamada anterior
+                url_atual = url_na_linha.group(0)
+                
+                # Verifica se há chamada nas últimas 3 linhas do resultado
+                tem_chamada_antes = False
+                for j in range(max(0, len(resultado_linhas) - 3), len(resultado_linhas)):
+                    linha_antes = resultado_linhas[j]
+                    if (
+                        '👉' in linha_antes or
+                        re.search(r'acesse:\s*$', linha_antes, re.IGNORECASE) or
+                        re.search(r'link:\s*$', linha_antes, re.IGNORECASE)
+                    ):
+                        # Verifica se já tem URL após essa chamada
+                        if j + 1 >= len(resultado_linhas) or not re.search(url_pattern, resultado_linhas[j]):
+                            # Move URL para após a chamada
+                            resultado_linhas[j] = resultado_linhas[j].rstrip() + ' ' + url_atual
+                            urls_processadas.add(url_atual)
+                            # Remove URL da linha atual, mantém resto do texto
+                            linha_sem_url = linha.replace(url_atual, '').strip()
+                            if linha_sem_url:
+                                resultado_linhas.append(linha_sem_url)
+                            i += 1
+                            continue
+                        tem_chamada_antes = True
+                        break
+                
+                if not tem_chamada_antes and url_atual not in urls_processadas:
+                    resultado_linhas.append(linha)
+                    urls_processadas.add(url_atual)
+            else:
+                # Linha normal sem chamada nem URL
+                resultado_linhas.append(linha)
+            
+            i += 1
+        
+        resultado = '\n'.join(resultado_linhas)
+        
+        # Limpa linhas vazias excessivas (mais de 2 consecutivas)
+        resultado = re.sub(r'\n{3,}', '\n\n', resultado)
+        
+        return resultado
+
+    def _validate_response_formatting(self, resposta: str) -> str:
+        """
+        Valida e corrige formatação da resposta antes de retornar.
+        Garante que links estejam no lugar correto e valida listas de redes sociais.
+        """
+        if not resposta or not isinstance(resposta, str):
+            return resposta
+        
+        import re
+        
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        tem_urls = bool(re.search(url_pattern, resposta))
+        
+        if not tem_urls:
+            return resposta
+        
+        # Validação específica para listas de redes sociais
+        redes_info = self.dados.get("redes_sociais", {})
+        if redes_info:
+            redes_mentions = ["Facebook:", "Instagram:", "LinkedIn:", "TikTok:"]
+            tem_mencoes_redes = any(mention in resposta for mention in redes_mentions)
+            
+            if tem_mencoes_redes:
+                # Conta quantas listas de redes sociais existem
+                linhas = resposta.split('\n')
+                listas_redes = []
+                lista_atual = []
+                
+                for i, linha in enumerate(linhas):
+                    linha_strip = linha.strip()
+                    eh_rede = any(f"{nome}:" in linha_strip for nome in redes_info.keys())
+                    
+                    if eh_rede:
+                        lista_atual.append(i)
+                    else:
+                        if lista_atual:
+                            # Verifica se a lista tem URLs
+                            tem_urls_lista = any(re.search(url_pattern, linhas[j]) for j in lista_atual)
+                            listas_redes.append((lista_atual, tem_urls_lista))
+                            lista_atual = []
+                
+                # Processa última lista
+                if lista_atual:
+                    tem_urls_lista = any(re.search(url_pattern, linhas[j]) for j in lista_atual)
+                    listas_redes.append((lista_atual, tem_urls_lista))
+                
+                # Se há múltiplas listas, já foi tratado por _fix_social_media_links
+                # Aqui apenas valida se há pelo menos uma lista completa
+                if listas_redes:
+                    tem_lista_completa = any(tem_urls for _, tem_urls in listas_redes)
+                    if not tem_lista_completa:
+                        # Nenhuma lista tem URLs - será corrigido por _fix_social_media_links
+                        pass
+        
+        # Verifica se há 👉 sem URL próximo
+        if '👉' in resposta:
+            linhas = resposta.split('\n')
+            for i, linha in enumerate(linhas):
+                if '👉' in linha:
+                    # Verifica se tem URL nas próximas 2 linhas
+                    proximas_linhas = '\n'.join(linhas[i:min(i+3, len(linhas))])
+                    if not re.search(url_pattern, proximas_linhas):
+                        # Procura primeira URL na resposta
+                        todas_urls = re.findall(url_pattern, resposta)
+                        if todas_urls:
+                            primeira_url = todas_urls[0]
+                            # Remove URL do lugar original
+                            resposta = resposta.replace(primeira_url, '', 1)
+                            # Adiciona após 👉 na mesma linha
+                            resposta = resposta.replace(linha, linha.rstrip() + ' ' + primeira_url, 1)
+                    break
+        
+        # Verifica se há "acesse:" sem URL próximo
+        if re.search(r'acesse:\s*$', resposta, re.MULTILINE | re.IGNORECASE):
+            linhas = resposta.split('\n')
+            for i, linha in enumerate(linhas):
+                if re.search(r'acesse:\s*$', linha, re.IGNORECASE):
+                    # Verifica se próxima linha tem URL
+                    if i + 1 < len(linhas):
+                        proxima = linhas[i + 1].strip()
+                        if not re.search(url_pattern, proxima):
+                            # Procura primeira URL
+                            todas_urls = re.findall(url_pattern, resposta)
+                            if todas_urls:
+                                primeira_url = todas_urls[0]
+                                # Remove do lugar original
+                                resposta = resposta.replace(primeira_url, '', 1)
+                                # Adiciona após "acesse:"
+                                resposta = resposta.replace(linha, linha.rstrip() + ' ' + primeira_url, 1)
+                    break
+        
+        return resposta
+
     # Este método é chamado toda vez que o usuário envia uma nova mensagem.
     def gerar_resposta(self, pergunta: str) -> str:
         # Validação simples para não enviar mensagens vazias para a API
@@ -314,7 +723,12 @@ class Chatbot:
             composed = f"Usuário: {pergunta}"
             resp = self.chat_session.send_message(composed)
             text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
-            return text if isinstance(text, str) else (str(text) if text else "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?")
+            resposta_final = text if isinstance(text, str) else (str(text) if text else "Humm… não consegui processar agora 😅\nPode tentar reformular sua pergunta sobre o Jovem Programador?")
+            # Aplica correções de formatação (ordem importa)
+            resposta_final = self._fix_social_media_links(resposta_final)
+            resposta_final = self._fix_link_formatting(resposta_final)
+            resposta_final = self._validate_response_formatting(resposta_final)
+            return resposta_final
         except Exception as e:
             print(f"[Gemini] erro:", e)
             # Tentar reinicializar a sessão automaticamente
@@ -330,7 +744,12 @@ class Chatbot:
                         resp = self.chat_session.send_message(composed)
                         text = getattr(resp, "text", None) or getattr(resp, "candidates", None)
                         if text and isinstance(text, str):
-                            return text
+                            resposta_final = text
+                            # Aplica correções de formatação (ordem importa)
+                            resposta_final = self._fix_social_media_links(resposta_final)
+                            resposta_final = self._fix_link_formatting(resposta_final)
+                            resposta_final = self._validate_response_formatting(resposta_final)
+                            return resposta_final
             except Exception as e2:
                 print(f"[Gemini] Erro ao reinicializar sessão: {e2}")
             
