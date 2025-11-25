@@ -93,6 +93,8 @@
         document.querySelector('.app-left').classList.remove('show');
     });
 
+    
+
     // Sidebar active state with smooth indicator/glow
     (function() {
       const links = Array.from(document.querySelectorAll('.nav-list-link'));
@@ -125,6 +127,26 @@
         });
       });
     })();
+</script>
+
+<script>
+(function(){
+  const KEY='adminSidebarCollapsed';
+  const btn=document.getElementById('sidebarToggle');
+  const body=document.body;
+  try{if(localStorage.getItem(KEY)==='true'){body.classList.add('sidebar-collapsed');btn.classList.add('active');}}catch(e){}
+  if(!btn)return;
+  let t=null;
+  btn.addEventListener('click',e=>{
+    e.preventDefault();
+    btn.classList.remove('animating'); void btn.offsetWidth;
+    btn.classList.add('animating');
+    const c=body.classList.toggle('sidebar-collapsed');
+    btn.classList.toggle('active',c);
+    try{localStorage.setItem(KEY,c);}catch(e){}
+    clearTimeout(t);t=setTimeout(()=>btn.classList.remove('animating'),1300);
+  });
+})();
 </script>
 
 <!-- Script global para aplicar tema do localStorage em todas as páginas admin -->
