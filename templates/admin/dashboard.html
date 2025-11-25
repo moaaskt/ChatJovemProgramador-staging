@@ -922,8 +922,27 @@ function normalizeInterest(s) {
 }
 
 function renderDonut(data) {
-  const labels = data.map(d => d.name);
-  const series = data.map(d => d.value);
+  const el = document.querySelector("#chart_interests_donut") || document.querySelector("#chart");
+  if (!el) return;
+
+  el.style.width = "100%";
+  if (!el.style.minHeight) el.style.minHeight = "240px";
+
+  const labels = Array.isArray(data) ? data.map(d => d.name) : [];
+  const series = Array.isArray(data) ? data.map(d => d.value) : [];
+  const hasData = labels.length > 0 && series.length > 0;
+
+  const skeleton = el.querySelector('.chart-skeleton');
+  if (skeleton) skeleton.style.display = 'none';
+  el.classList.remove('loading');
+
+  if (!hasData) {
+    if (window.interestChart) { try { window.interestChart.destroy(); } catch(e) {} }
+    window.interestChart = null;
+    el.innerHTML = '<div class="text-muted" style="padding:12px;text-align:center">Sem dados de interesse</div>';
+    return;
+  }
+
   const options = {
     series,
     chart: { type: "donut", width: 380 },
@@ -935,14 +954,28 @@ function renderDonut(data) {
     tooltip: { y: { formatter: v => v } },
     responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: "bottom" } } }]
   };
-  const el = document.querySelector("#chart_interests_donut");
-  if (!el) return;
+
+  const ensureSize = () => {
+    const rect = el.getBoundingClientRect();
+    if (rect.height <= 0 || el.offsetHeight <= 0) {
+      el.style.height = "320px";
+    }
+    if (window.interestChart) { try { window.interestChart.resize(); } catch(e) {} }
+  };
+
   if (window.interestChart) {
     window.interestChart.updateOptions({ labels });
     window.interestChart.updateSeries(series);
+    ensureSize();
+    setTimeout(ensureSize, 80);
+    requestAnimationFrame(ensureSize);
   } else {
     window.interestChart = new ApexCharts(el, options);
-    window.interestChart.render();
+    window.interestChart.render().then(() => {
+      ensureSize();
+      setTimeout(ensureSize, 80);
+      requestAnimationFrame(ensureSize);
+    });
   }
 }
 
@@ -967,17 +1000,30 @@ function subscribeInterests(db, tenantId, N, onData) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const flag = (window.enableInterestDonut === true) || (localStorage.getItem("enableInterestDonut") === "true") || true;
+  const flag = (window.enableInterestDonut === true) || (localStorage.getItem("enableInterestDonut") === "true");
   if (!flag) return;
-  const el = document.querySelector("#chart_interests_donut");
+  const el = document.querySelector("#chart_interests_donut") || document.querySelector("#chart");
   if (!el) return;
+
   const cfg = window.FIREBASE_CLIENT_CONFIG;
-  if (!cfg || !cfg.apiKey || !cfg.projectId) return;
+  if (!cfg || !cfg.apiKey || !cfg.projectId) {
+    el.innerHTML = '<div class="text-muted" style="padding:12px;text-align:center">Configuração do Firebase ausente</div>';
+    return;
+  }
+
   const app = initializeApp(cfg);
   const db = getFirestore(app);
   const N = typeof window.INTERESTS_LIMIT_N === "number" ? window.INTERESTS_LIMIT_N : 400;
   const tenantId = window.currentTenantId || null;
+
   subscribeInterests(db, tenantId, N, renderDonut);
+
+  window.addEventListener('resize', () => {
+    if (window.interestChart) { try { window.interestChart.resize(); } catch(e){} }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && window.interestChart) { try { window.interestChart.resize(); } catch(e){} }
+  });
 });
 </script>
 
