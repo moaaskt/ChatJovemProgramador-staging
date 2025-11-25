@@ -149,6 +149,27 @@
 })();
 </script>
 
+<script>
+(function(){
+  if (!window.FIREBASE_CLIENT_CONFIG) {
+    if (window.firebaseConfig) {
+      window.FIREBASE_CLIENT_CONFIG = window.firebaseConfig;
+    } else {
+      try {
+        const raw = localStorage.getItem('firebaseClientConfig');
+        if (raw) window.FIREBASE_CLIENT_CONFIG = JSON.parse(raw);
+      } catch (e) {}
+    }
+  }
+  if (!window.currentTenantId) {
+    try {
+      const t = localStorage.getItem('currentTenantId');
+      if (t) window.currentTenantId = t;
+    } catch (e) {}
+  }
+})();
+</script>
+
 <!-- Script global para aplicar tema do localStorage em todas as páginas admin -->
 <script>
   (function () {

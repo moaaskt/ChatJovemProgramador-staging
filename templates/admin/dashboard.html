@@ -146,6 +146,15 @@
     </div>
 
     <div class="chart-container-wrapper small">
+        <div class="chart-container apex-chart-card">
+            <div class="chart-container-header">
+                <h3>Interesses dos leads</h3>
+                <span class="chart-subtitle">Últimos leads por tenant</span>
+            </div>
+            <div id="chart_interests_donut" class="apex-chart-container">
+                <div class="chart-skeleton skeleton"></div>
+            </div>
+        </div>
         <!-- <div class="chart-container apex-chart-card">
             <div class="chart-container-header">
                 <h3>Mensagens por papel</h3>
@@ -897,6 +906,78 @@ document.addEventListener("DOMContentLoaded", function () {
     // Carregamento inicial padrão (por exemplo, 7 dias)
     const initialDays = filterQuick ? parseInt(filterQuick.value || "7", 10) : 7;
     loadDashboardData({ days: initialDays || 7 });
+});
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, where, orderBy, limit as fblimit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+function normalizeInterest(s) {
+  if (!s || typeof s !== "string") return null;
+  const x = s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const map = { curso: "cursos", cursos: "cursos", "curso online": "cursos" };
+  const y = map[x] || x;
+  return y || null;
+}
+
+function renderDonut(data) {
+  const labels = data.map(d => d.name);
+  const series = data.map(d => d.value);
+  const options = {
+    series,
+    chart: { type: "donut", width: 380 },
+    labels,
+    plotOptions: { pie: { startAngle: -90, endAngle: 270 } },
+    dataLabels: { enabled: false },
+    fill: { type: "gradient" },
+    legend: { position: "bottom" },
+    tooltip: { y: { formatter: v => v } },
+    responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: "bottom" } } }]
+  };
+  const el = document.querySelector("#chart_interests_donut");
+  if (!el) return;
+  if (window.interestChart) {
+    window.interestChart.updateOptions({ labels });
+    window.interestChart.updateSeries(series);
+  } else {
+    window.interestChart = new ApexCharts(el, options);
+    window.interestChart.render();
+  }
+}
+
+function subscribeInterests(db, tenantId, N, onData) {
+  const base = collection(db, "leads");
+  let q;
+  if (tenantId) {
+    q = query(base, where("tenantId", "==", tenantId), orderBy("createdAt", "desc"), fblimit(N));
+  } else {
+    q = query(base, orderBy("createdAt", "desc"), fblimit(N));
+  }
+  return onSnapshot(q, snap => {
+    const counts = {};
+    snap.forEach(doc => {
+      const k = normalizeInterest(doc.data().interesse);
+      if (!k) return;
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    const data = Object.entries(counts).map(([name, value]) => ({ name, value }));
+    onData(data);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const flag = (window.enableInterestDonut === true) || (localStorage.getItem("enableInterestDonut") === "true") || true;
+  if (!flag) return;
+  const el = document.querySelector("#chart_interests_donut");
+  if (!el) return;
+  const cfg = window.FIREBASE_CLIENT_CONFIG;
+  if (!cfg || !cfg.apiKey || !cfg.projectId) return;
+  const app = initializeApp(cfg);
+  const db = getFirestore(app);
+  const N = typeof window.INTERESTS_LIMIT_N === "number" ? window.INTERESTS_LIMIT_N : 400;
+  const tenantId = window.currentTenantId || null;
+  subscribeInterests(db, tenantId, N, renderDonut);
 });
 </script>
 
