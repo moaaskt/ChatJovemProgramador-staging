@@ -370,6 +370,19 @@
   opacity: 1;
 }
 
+@media screen and (min-width: 920px) {
+  .admin-body.sidebar-collapsed .app-left {
+    flex-basis: 0;
+    width: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+  }
+  .admin-body.sidebar-collapsed .app-main {
+    flex: 1;
+  }
+}
+
 .app-logo {
   display: flex;
   align-items: center;
@@ -935,6 +948,34 @@ button {
   color: var(--main-color);
   border-radius: 4px;
 }
+
+/* === Sidebar Toggle Ripple (Icon-only) === */
+.sidebar-toggle-button{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  background:transparent;border:none;padding:0;margin:0;cursor:pointer;
+  --icon-size:22px;
+}
+.sidebar-toggle-button .btn-icon{
+  width:var(--icon-size);height:var(--icon-size);transition:.35s cubic-bezier(.2,.9,.2,1);
+}
+.sidebar-toggle-button .rings{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:var(--icon-size);height:var(--icon-size);pointer-events:none;
+}
+.sidebar-toggle-button .ring{
+  position:absolute;left:50%;top:50%;width:100%;height:100%;
+  transform:translate(-50%,-50%) scale(.2);border-radius:50%;
+  border:1px solid rgba(255,255,255,.12);opacity:0;
+}
+.sidebar-toggle-button.animating .r1{animation:ring 1s cubic-bezier(.65,0,.34,1) forwards;}
+.sidebar-toggle-button.animating .r2{animation:ring 1s cubic-bezier(.65,0,.34,1) .12s forwards;}
+.sidebar-toggle-button.animating .r3{animation:ring 1s cubic-bezier(.65,0,.34,1) .24s forwards;}
+@keyframes ring{
+  0%{transform:translate(-50%,-50%) scale(.18);opacity:.9;}
+  40%{opacity:.6;}
+  100%{transform:translate(-50%,-50%) scale(1.9);opacity:0;}
+}
+.sidebar-toggle-button.active .btn-icon{transform:rotate(180deg) scale(.98);} 
 
 .close-menu {
   position: absolute;
