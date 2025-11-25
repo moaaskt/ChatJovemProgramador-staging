@@ -478,7 +478,8 @@ button {
 /* MAIN */
 
 .app-main {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -516,8 +517,8 @@ button {
 }
 
 .chart-row.two .big {
-  flex: 1;
-  max-width: 77.7%;
+  flex: 1 1 0%;
+  max-width: 66.6667%;
 }
 
 .chart-row.two .small {
