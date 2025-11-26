@@ -490,6 +490,7 @@ button {
   background: radial-gradient(circle, rgba(5, 19, 64, 1) 1%, rgba(4, 15, 50, 1) 100%);
   position: relative;
   z-index: 1;
+  contain: paint;
 }
 
 /* HEADER DA PÁGINA */
