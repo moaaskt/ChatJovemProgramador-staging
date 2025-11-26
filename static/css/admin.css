@@ -363,6 +363,8 @@
   overflow-x: hidden;
   padding: 24px 0;
   transition: all .4s ease-in;
+  position: relative;
+  z-index: 3;
 }
 
 .app-left.show {
@@ -486,6 +488,8 @@ button {
   background-color: var(--app-bg-light);
   padding: 24px;
   background: radial-gradient(circle, rgba(5, 19, 64, 1) 1%, rgba(4, 15, 50, 1) 100%);
+  position: relative;
+  z-index: 1;
 }
 
 /* HEADER DA PÁGINA */
