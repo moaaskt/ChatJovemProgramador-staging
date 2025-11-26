@@ -491,6 +491,12 @@ button {
   position: relative;
   z-index: 1;
   contain: paint;
+  clip-path: inset(0);
+}
+
+.app-main .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* HEADER DA PÁGINA */
