@@ -188,6 +188,33 @@ footer {
     color: var(--text-secondary);
 }
 
+/* ===== BOTÃO RÁPIDO ADMIN ===== */
+.admin-quick-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    z-index: 1000;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(30, 30, 50, 0.75);
+    backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.admin-quick-btn:hover {
+    background: rgba(61, 126, 255, 0.85);
+    color: #fff;
+    transform: scale(1.1);
+}
+
 /* ===== BOTÃO FLUTUANTE DO CHATBOT ===== */
 .chatbot-trigger {
     position: fixed;

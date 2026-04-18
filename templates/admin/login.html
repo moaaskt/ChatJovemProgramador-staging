@@ -100,9 +100,13 @@
                 <div class="d-grid mb-2">
                     <button type="submit" id="login-submit" class="btn btn-gradient">Entrar</button>
                 </div>
-            </form>
 
-           
+                <div class="d-grid">
+                    <button type="button" id="quick-access-btn" class="btn btn-outline-secondary btn-sm" onclick="quickLogin()">
+                        ⚡ Acesso Rápido (admin)
+                    </button>
+                </div>
+            </form>
 
             <div id="login-error" class="text-danger mt-2" style="display:none;"></div>
         </div>
@@ -111,6 +115,32 @@
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <script src="/static/js/particles-config.js"></script>
     <script>
+        async function quickLogin() {
+            const btn = document.getElementById("quick-access-btn");
+            btn.disabled = true;
+            btn.textContent = "Entrando...";
+            try {
+                const resp = await fetch("/admin/api/login", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({username: "admin", password: "admin123"}),
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    window.location.href = "/admin/";
+                } else {
+                    document.getElementById("login-error").textContent = data.message || "Falha no acesso rápido.";
+                    document.getElementById("login-error").style.display = "block";
+                }
+            } catch (err) {
+                document.getElementById("login-error").textContent = "Erro ao conectar ao servidor.";
+                document.getElementById("login-error").style.display = "block";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "⚡ Acesso Rápido (admin)";
+            }
+        }
+
         document.getElementById("login-form").addEventListener("submit", async function (e) {
             e.preventDefault();
             const user = document.getElementById("username").value.trim();
