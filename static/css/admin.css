@@ -1835,6 +1835,177 @@ button {
   );
 }
 
+/* ============================================
+   MELHORIAS DE DESIGN - UI MODERNA 2025
+   ============================================ */
+
+/* Sidebar: borda direita sutil com brilho + separador logo */
+.app-left {
+  border-right: 1px solid rgba(61, 126, 255, 0.12);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+}
+
+.app-logo {
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+/* Logo badge moderno */
+.app-logo i {
+  background: linear-gradient(135deg, #3d7eff, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(61, 126, 255, 0.5));
+}
+
+/* Nav links: aumenta contraste e adiciona ícone de borda esquerda no hover */
+.nav-list-link {
+  border-radius: 8px;
+  margin: 0 12px;
+  padding: 10px 14px !important;
+}
+
+.nav-list-item:not(.active):hover .nav-list-link {
+  color: #c0c8e8;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-list-item.active .nav-list-link {
+  background: linear-gradient(90deg, rgba(61, 126, 255, 0.18), rgba(61, 126, 255, 0.05));
+  border-left: 3px solid #3d7eff;
+  padding-left: 11px !important;
+  box-shadow: 0 4px 16px rgba(61, 126, 255, 0.12);
+}
+
+/* Remove o ::after antigo da borda direita no item ativo */
+.nav-list-item.active .nav-list-link::after {
+  display: none;
+}
+
+/* Sidebar nav: ícones mais brilhantes */
+.nav-list-link i {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.nav-list-item:not(.active):hover .nav-list-link i {
+  transform: translateX(2px);
+}
+
+/* Main header: linha de título com underline gradiente */
+.main-header-line h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  background: linear-gradient(90deg, #ffffff 60%, rgba(255,255,255,0.5));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Botão Filtrar mais estiloso */
+.main-header-line .btn-primary {
+  background: linear-gradient(135deg, #3d7eff, #7c3aed);
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  box-shadow: 0 4px 14px rgba(61, 126, 255, 0.35);
+  transition: all 0.2s ease;
+}
+
+.main-header-line .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(61, 126, 255, 0.5);
+}
+
+/* Metric cards: acento colorido no topo por posição */
+.chart-row.three .chart-container-wrapper:nth-child(1) .metric-card {
+  border-top: 2px solid #3d7eff;
+  background: linear-gradient(160deg, rgba(61, 126, 255, 0.12) 0%, rgba(4, 15, 50, 0.95) 60%);
+}
+
+.chart-row.three .chart-container-wrapper:nth-child(2) .metric-card {
+  border-top: 2px solid #10b981;
+  background: linear-gradient(160deg, rgba(16, 185, 129, 0.1) 0%, rgba(4, 15, 50, 0.95) 60%);
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);
+}
+
+.chart-row.three .chart-container-wrapper:nth-child(2) .metric-card .metric-label i,
+.chart-row.three .chart-container-wrapper:nth-child(2) .metric-card .metric-label {
+  color: #10b981;
+}
+
+.chart-row.three .chart-container-wrapper:nth-child(2) .metric-card:hover {
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.22);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.chart-row.three .chart-container-wrapper:nth-child(3) .metric-card {
+  border-top: 2px solid #a855f7;
+  background: linear-gradient(160deg, rgba(168, 85, 247, 0.1) 0%, rgba(4, 15, 50, 0.95) 60%);
+  border-color: rgba(168, 85, 247, 0.25);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.12);
+}
+
+.chart-row.three .chart-container-wrapper:nth-child(3) .metric-card .metric-label i,
+.chart-row.three .chart-container-wrapper:nth-child(3) .metric-card .metric-label {
+  color: #a855f7;
+}
+
+.chart-row.three .chart-container-wrapper:nth-child(3) .metric-card:hover {
+  box-shadow: 0 6px 25px rgba(168, 85, 247, 0.22);
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+/* Metric value: número grande com estilo */
+.metric-value {
+  font-size: 36px !important;
+  font-weight: 700 !important;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #fff 40%, rgba(255,255,255,0.65));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Chart cards: borda sutil no topo + micro-brilho no hover */
+.apex-chart-card {
+  border-top: 1px solid rgba(61, 126, 255, 0.25) !important;
+  background: linear-gradient(160deg, rgba(5, 14, 45, 0.98) 0%, rgba(1, 8, 31, 0.99) 100%) !important;
+}
+
+.apex-chart-card:hover {
+  border-top-color: rgba(61, 126, 255, 0.55) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(61, 126, 255, 0.12) !important;
+}
+
+/* Seção tabela: card-section com borda mais visível */
+.card-section {
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Section title: ícone colorido */
+.section-title i {
+  background: linear-gradient(135deg, #3d7eff, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fundo do app-main: adiciona textura de pontos sutis */
+.app-main {
+  background-image:
+    radial-gradient(circle, rgba(5, 19, 64, 1) 1%, rgba(4, 15, 50, 1) 100%),
+    radial-gradient(rgba(61, 126, 255, 0.03) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 24px 24px !important;
+}
+
 /* Skeleton – modo ESCURO (mantém o que já está hoje) */
 .admin-body.theme-dark .skeleton,
 .admin-body.theme-dark .skeleton-chart,
