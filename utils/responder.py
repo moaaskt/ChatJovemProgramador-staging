@@ -264,14 +264,8 @@ class Chatbot:
         - Se você usar "👉", o link DEVE estar na mesma linha ou na linha imediata seguinte (sem linhas vazias)
 
         TEMPLATE FIXO para respostas com link de inscrição:
-        "[Acolhimento] 🚀
-
-        [Benefício/Desejo] 🎓
-
-        [Informação sobre datas/prazos, se houver]
-
+        "[Acolhimento + Benefício principal] 🚀🎓
         Para garantir sua vaga, acesse: [URL COMPLETA AQUI]
-
         [Finalização amigável]"
 
         TEMPLATE FIXO para respostas com link de edital:
